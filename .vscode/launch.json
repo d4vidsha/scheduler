@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "Debug FastAPI backend: Python Debugger",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.main:app",
+                "--reload"
+            ],
+            "cwd": "${workspaceFolder}/backend",
+            "jinja": true,
+            "envFile": "${workspaceFolder}/.env",
+        },
+        {
+            "name": "Debug frontend: Launch Chrome against http://localhost:5173",
+            "request": "launch",
+            "type": "chrome",
+            "url": "http://localhost:5173",
+            "webRoot": "${workspaceFolder}/frontend"
+        }
+    ]
+}

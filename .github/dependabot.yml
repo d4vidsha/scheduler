@@ -1,0 +1,16 @@
+version: 2
+updates:
+  # github actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: ":arrow_up:"
+  # python
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: ":arrow_up:"
