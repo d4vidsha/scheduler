@@ -1,4 +1,4 @@
-# FastAPI Project - Backend
+# Backend
 
 ## Requirements
 
@@ -15,15 +15,15 @@ docker compose up -d
 
 * Now you can open your browser and interact with these URLs:
 
-Frontend, built with Docker, with routes handled based on the path: http://localhost
+Frontend, built with Docker, with routes handled based on the path: <http://localhost>
 
-Backend, JSON based web API based on OpenAPI: http://localhost/api/
+Backend, JSON based web API based on OpenAPI: <http://localhost/api/>
 
-Automatic interactive documentation with Swagger UI (from the OpenAPI backend): http://localhost/docs
+Automatic interactive documentation with Swagger UI (from the OpenAPI backend):<http://localhost/docs>
 
-Adminer, database web administration: http://localhost:8080
+Adminer, database web administration: <http://localhost:8080>
 
-Traefik UI, to see how the routes are being handled by the proxy: http://localhost:8090
+Traefik UI, to see how the routes are being handled by the proxy: <http://localhost:8090>
 
 **Note**: The first time you start your stack, it might take a minute for it to be ready. While the backend waits for the database to be ready and configures everything. You can check the logs to monitor it.
 
@@ -50,13 +50,13 @@ By default, the dependencies are managed with [Poetry](https://python-poetry.org
 From `./backend/` you can install all the dependencies with:
 
 ```console
-$ poetry install
+poetry install
 ```
 
 Then you can start a shell session with the new environment with:
 
 ```console
-$ poetry shell
+poetry shell
 ```
 
 Make sure your editor is using the correct Python virtual environment.
@@ -70,7 +70,7 @@ By default the backend has user registration disabled, but there's already a rou
 After modifying the environment variables, restart the Docker containers to apply the changes. You can do this by running:
 
 ```console
-$ docker compose up -d
+docker compose up -d
 ```
 
 ### VS Code
@@ -90,7 +90,7 @@ For example, the directory with the backend code is mounted as a Docker "host vo
 There is also a command override that runs `/start-reload.sh` (included in the base image) instead of the default `/start.sh` (also included in the base image). It starts a single server process (instead of multiple, as would be for production) and reloads the process whenever the code changes. Have in mind that if you have a syntax error and save the Python file, it will break and exit, and the container will stop. After that, you can restart the container by fixing the error and running again:
 
 ```console
-$ docker compose up -d
+docker compose up -d
 ```
 
 There is also a commented out `command` override, you can uncomment it and comment the default one. It makes the backend container run a process that does "nothing", but keeps the container alive. That allows you to get inside your running container and execute commands inside, for example a Python interpreter to test installed dependencies, or start the development server that reloads when it detects changes.
@@ -98,13 +98,13 @@ There is also a commented out `command` override, you can uncomment it and comme
 To get inside the container with a `bash` session you can start the stack with:
 
 ```console
-$ docker compose up -d
+docker compose up -d
 ```
 
 and then `exec` inside the running container:
 
 ```console
-$ docker compose exec backend bash
+docker compose exec backend bash
 ```
 
 You should see an output like:
@@ -118,7 +118,7 @@ that means that you are in a `bash` session inside your container, as a `root` u
 There you can use the script `/start-reload.sh` to run the debug live reloading server. You can run that script from inside the container with:
 
 ```console
-$ bash /start-reload.sh
+bash /start-reload.sh
 ```
 
 ...it will look like:
@@ -138,7 +138,7 @@ Nevertheless, if it doesn't detect a change but a syntax error, it will just sto
 To test the backend run:
 
 ```console
-$ bash ./scripts/test.sh
+bash ./scripts/test.sh
 ```
 
 The tests run with Pytest, modify and add tests to `./backend/app/tests/`.
@@ -174,7 +174,7 @@ Make sure you create a "revision" of your models and that you "upgrade" your dat
 * Start an interactive session in the backend container:
 
 ```console
-$ docker compose exec backend bash
+docker compose exec backend bash
 ```
 
 * Alembic is already configured to import your SQLModel models from `./backend/app/models.py`.
@@ -182,7 +182,7 @@ $ docker compose exec backend bash
 * After changing a model (for example, adding a column), inside the container, create a revision, e.g.:
 
 ```console
-$ alembic revision --autogenerate -m "Add column last_name to User model"
+alembic revision --autogenerate -m "Add column last_name to User model"
 ```
 
 * Commit to the git repository the files generated in the alembic directory.
@@ -190,7 +190,7 @@ $ alembic revision --autogenerate -m "Add column last_name to User model"
 * After creating the revision, run the migration in the database (this is what will actually change the database):
 
 ```console
-$ alembic upgrade head
+alembic upgrade head
 ```
 
 If you don't want to use migrations at all, uncomment the lines in the file at `./backend/app/core/db.py` that end in:
@@ -202,7 +202,7 @@ SQLModel.metadata.create_all(engine)
 and comment the line in the file `prestart.sh` that contains:
 
 ```console
-$ alembic upgrade head
+alembic upgrade head
 ```
 
 If you don't want to start with the default models and want to remove them / modify them, from the beginning, without having any previous revision, you can remove the revision files (`.py` Python files) under `./backend/app/alembic/versions/`. And then create a first migration as described above.
