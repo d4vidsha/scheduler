@@ -113,7 +113,7 @@ class NewPassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=40)
 
 
-class Priority(SQLModel):
+class Priority(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str | None = Field(default=None, max_length=255)
     value: int | None = Field(default=None)
