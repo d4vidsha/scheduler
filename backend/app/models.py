@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -42,6 +44,7 @@ class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     hashed_password: str
     items: list["Item"] = Relationship(back_populates="owner")
+    tasks: list["Task"] = Relationship(back_populates="owner")
 
 
 # Properties to return via API, id is always required
@@ -108,3 +111,35 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+
+
+class Priority(SQLModel):
+    id: int | None = Field(default=None, primary_key=True)
+    name: str | None = Field(default=None, max_length=255)
+    value: int | None = Field(default=None)
+
+
+class TaskBase(SQLModel):
+    title: str | None = Field(default=None, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+    priority_id: int | None = Field(
+        default=None, foreign_key="priority.id", nullable=True
+    )
+    duration: int | None = Field(default=None)
+    due: datetime | None = Field(default=None)
+
+
+class Task(TaskBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    owner_id: int | None = Field(default=None, foreign_key="user.id", nullable=False)
+    owner: User | None = Relationship(back_populates="tasks")
+
+
+class TaskPublic(TaskBase):
+    id: int
+    owner_id: int
+
+
+class TasksPublic(SQLModel):
+    data: list[TaskPublic]
+    count: int
