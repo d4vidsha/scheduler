@@ -12,7 +12,7 @@ But you have to configure a couple things first.
 
 - Have a remote server ready and available.
 - Configure the DNS records of your domain to point to the IP of the server you just created.
-- Configure a wildcard subdomain for your domain, so that you can have multiple subdomains for different services, e.g. `*.project.example.com`. This will be useful for accessing different components, like `traefik.project.example.com`, `adminer.project.example.com`, etc. And also for `staging`, like `staging.project.example.com`, `staging.adminer.project.example.com`, etc.
+- Configure a wildcard subdomain for your domain, so that you can have multiple subdomains for different services, e.g. `*.project.example.com`. This will be useful for accessing different components, like `traefik.project.example.com`, `adminer.project.example.com`, etc. And also for `staging`, like `staging.project.example.com`, `staging.adminer.project.example.com`, etc. Note that this wouldn't be necessary if you have domains of the format similar to `adminer-staging-project.example.com`, `traefik-project.example.com`, etc.
 - Install and configure [Docker](https://docs.docker.com/engine/install/) on the remote server (Docker Engine, not Docker Desktop).
 
 ## Public Traefik
@@ -281,9 +281,11 @@ Replace `project.example.com` with your domain.
 
 ### Main Traefik Dashboard
 
-Traefik UI: `https://traefik.project.example.com`
+Traefik UI: `https://traefik-project.example.com`
 
 ### Production
+
+When `DOMAIN_PRODUCTION=project.example.com`:
 
 Frontend: `https://project.example.com`
 
@@ -291,14 +293,16 @@ Backend API docs: `https://project.example.com/docs`
 
 Backend API base URL: `https://project.example.com/api/`
 
-Adminer: `https://adminer.project.example.com`
+Adminer: `https://adminer-project.example.com`
 
 ### Staging
 
-Frontend: `https://staging.project.example.com`
+When `DOMAIN_STAGING=staging-project.example.com`:
 
-Backend API docs: `https://staging.project.example.com/docs`
+Frontend: `https://staging-project.example.com`
 
-Backend API base URL: `https://staging.project.example.com/api/`
+Backend API docs: `https://staging-project.example.com/docs`
 
-Adminer: `https://adminer.staging.project.example.com`
+Backend API base URL: `https://staging-project.example.com/api/`
+
+Adminer: `https://adminer-staging-project.example.com`
