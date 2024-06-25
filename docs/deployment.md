@@ -103,6 +103,19 @@ Now with the environment variables set and the `docker-compose.traefik.yml` in p
 docker compose -f docker-compose.traefik.yml up -d
 ```
 
+#### Cloudflare
+
+If you are using Cloudflare, you should use the Cloudflare origin certificate. To do so, you will need to perform additional steps.
+
+1. Obtain the Cloudflare origin certificate and private key.
+2. Create a directory to store the certificate and key, and copy the certificate and key to that directory.
+
+    ```bash
+    mkdir -p /root/code/traefik-public/cloudflare-ca/
+    vim /root/code/traefik-public/cloudflare-ca/davidsha-me.pem
+    vim /root/code/traefik-public/cloudflare-ca/davidsha-me.key
+    ```
+
 ## Deploy the FastAPI Project
 
 Now that you have Traefik in place you can deploy your FastAPI project with Docker Compose.
