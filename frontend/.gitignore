@@ -23,3 +23,5 @@ openapi.json
 *.njsproj
 *.sln
 *.sw?
+
+*storybook.log
