@@ -36,7 +36,7 @@ def read_tasks(
         )
         tasks = session.exec(statement).all()
 
-    return TasksPublic(data=tasks, count=count)  # type: ignore
+    return TasksPublic(data=tasks, count=count)
 
 
 @router.get("/{id}", response_model=TaskPublic)
