@@ -179,7 +179,9 @@ docker compose exec backend bash
 
 * Alembic is already configured to import your SQLModel models from `./backend/app/models.py`.
 
-* After changing a model (for example, adding a column), inside the container, create a revision, e.g.:
+* After changing a model (for example, adding a column), inside the container, create a revision.
+
+* Alternatively, you can just run the command outside of the container in the backend directory (where the `alembic.ini` file is located). We also prefer this way as it can avoid root user permission errors originated from running the command inside the container:
 
 ```console
 alembic revision --autogenerate -m "Add column last_name to User model"

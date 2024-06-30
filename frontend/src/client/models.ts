@@ -58,6 +58,37 @@ export type NewPassword = {
 
 
 
+export type Task = {
+	title?: string | null;
+	description?: string | null;
+	priority_id?: number | null;
+	duration?: number | null;
+	due?: string | null;
+	id?: number | null;
+	owner_id?: number | null;
+};
+
+
+
+export type TaskPublic = {
+	title?: string | null;
+	description?: string | null;
+	priority_id?: number | null;
+	duration?: number | null;
+	due?: string | null;
+	id: number;
+	owner_id: number;
+};
+
+
+
+export type TasksPublic = {
+	data: Array<TaskPublic>;
+	count: number;
+};
+
+
+
 export type Token = {
 	access_token: string;
 	token_type?: string;

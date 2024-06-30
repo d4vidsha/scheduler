@@ -28,7 +28,7 @@ nvm install
 
 ```bash
 # If using fnm
-fnm use 
+fnm use
 
 # If using nvm
 nvm use

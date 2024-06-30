@@ -2,7 +2,7 @@ import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
 
-import type { Body_login_login_access_token,Message,NewPassword,Token,UserPublic,UpdatePassword,UserCreate,UserRegister,UsersPublic,UserUpdate,UserUpdateMe,ItemCreate,ItemPublic,ItemsPublic,ItemUpdate } from './models';
+import type { Body_login_login_access_token,Message,NewPassword,Token,UserPublic,UpdatePassword,UserCreate,UserRegister,UsersPublic,UserUpdate,UserUpdateMe,ItemCreate,ItemPublic,ItemsPublic,ItemUpdate,Task,TaskPublic,TasksPublic } from './models';
 
 export type TDataLoginAccessToken = {
                 formData: Body_login_login_access_token
@@ -525,6 +525,146 @@ id,
 		return __request(OpenAPI, {
 			method: 'DELETE',
 			url: '/api/v1/items/{id}',
+			path: {
+				id
+			},
+			errors: {
+				422: `Validation Error`,
+			},
+		});
+	}
+
+}
+
+export type TDataReadTasks = {
+                limit?: number
+skip?: number
+                
+            }
+export type TDataCreateTask = {
+                requestBody: Task
+                
+            }
+export type TDataReadTask = {
+                id: number
+                
+            }
+export type TDataUpdateTask = {
+                id: number
+requestBody: Task
+                
+            }
+export type TDataDeleteTask = {
+                id: number
+                
+            }
+
+export class TasksService {
+
+	/**
+	 * Read Tasks
+	 * Retrieve tasks.
+	 * @returns TasksPublic Successful Response
+	 * @throws ApiError
+	 */
+	public static readTasks(data: TDataReadTasks = {}): CancelablePromise<TasksPublic> {
+		const {
+limit = 100,
+skip = 0,
+} = data;
+		return __request(OpenAPI, {
+			method: 'GET',
+			url: '/api/v1/tasks/',
+			query: {
+				skip, limit
+			},
+			errors: {
+				422: `Validation Error`,
+			},
+		});
+	}
+
+	/**
+	 * Create Task
+	 * Create new task.
+	 * @returns TaskPublic Successful Response
+	 * @throws ApiError
+	 */
+	public static createTask(data: TDataCreateTask): CancelablePromise<TaskPublic> {
+		const {
+requestBody,
+} = data;
+		return __request(OpenAPI, {
+			method: 'POST',
+			url: '/api/v1/tasks/',
+			body: requestBody,
+			mediaType: 'application/json',
+			errors: {
+				422: `Validation Error`,
+			},
+		});
+	}
+
+	/**
+	 * Read Task
+	 * Get task by ID.
+	 * @returns TaskPublic Successful Response
+	 * @throws ApiError
+	 */
+	public static readTask(data: TDataReadTask): CancelablePromise<TaskPublic> {
+		const {
+id,
+} = data;
+		return __request(OpenAPI, {
+			method: 'GET',
+			url: '/api/v1/tasks/{id}',
+			path: {
+				id
+			},
+			errors: {
+				422: `Validation Error`,
+			},
+		});
+	}
+
+	/**
+	 * Update Task
+	 * Update a task.
+	 * @returns TaskPublic Successful Response
+	 * @throws ApiError
+	 */
+	public static updateTask(data: TDataUpdateTask): CancelablePromise<TaskPublic> {
+		const {
+id,
+requestBody,
+} = data;
+		return __request(OpenAPI, {
+			method: 'PUT',
+			url: '/api/v1/tasks/{id}',
+			path: {
+				id
+			},
+			body: requestBody,
+			mediaType: 'application/json',
+			errors: {
+				422: `Validation Error`,
+			},
+		});
+	}
+
+	/**
+	 * Delete Task
+	 * Delete an task.
+	 * @returns Message Successful Response
+	 * @throws ApiError
+	 */
+	public static deleteTask(data: TDataDeleteTask): CancelablePromise<Message> {
+		const {
+id,
+} = data;
+		return __request(OpenAPI, {
+			method: 'DELETE',
+			url: '/api/v1/tasks/{id}',
 			path: {
 				id
 			},
