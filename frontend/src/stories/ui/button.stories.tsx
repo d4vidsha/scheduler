@@ -7,7 +7,6 @@ const meta = {
   parameters: {
     layout: 'centered',
   },
-  tags: ['autodocs'],
   argTypes: {
     variant: { control: 'text' },
     asChild: { control: 'boolean' },
