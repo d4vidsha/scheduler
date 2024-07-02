@@ -8,6 +8,7 @@ import { StrictMode } from "react"
 import { OpenAPI } from "./client"
 import theme from "./theme"
 import './index.css'
+import { ThemeProvider } from "./components/theme-provider"
 
 OpenAPI.BASE = import.meta.env.VITE_API_URL
 OpenAPI.TOKEN = async () => {
@@ -26,9 +27,11 @@ declare module "@tanstack/react-router" {
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ChakraProvider theme={theme}>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
       </QueryClientProvider>
-    </ChakraProvider>
+      </ThemeProvider>
+      </ChakraProvider>
   </StrictMode>,
 )
