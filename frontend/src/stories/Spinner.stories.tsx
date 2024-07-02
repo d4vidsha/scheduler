@@ -10,7 +10,6 @@ const meta = {
         source: { type: 'code' }
       }
     },
-    tags: ['autodocs'],
     argTypes: {
       size: {
         options: ['small', 'medium', 'large'],
@@ -44,8 +43,14 @@ export const Medium: Story = {
     },
   };
 
-  export const Large: Story = {
-    args: {
-      size: 'large',
-    },
-  };
+export const Large: Story = {
+  args: {
+    size: 'large',
+  },
+};
+
+export const WithText: Story = {
+  args: {
+    children: 'Loading...',
+  },
+};
