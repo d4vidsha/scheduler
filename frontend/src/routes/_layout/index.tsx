@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 
 import Calendar from "@/components/calendar"
-import useAuth from "../../hooks/useAuth"
 import { Card } from "@/components/ui/card"
+import useAuth from "../../hooks/useAuth"
 
 export const Route = createFileRoute("/_layout/")({
   component: Dashboard,
