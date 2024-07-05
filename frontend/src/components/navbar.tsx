@@ -1,28 +1,28 @@
-import { useState } from "react";
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import {
   Disclosure,
   DisclosureButton,
   DisclosurePanel,
-} from "@headlessui/react";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Calendar, CheckSquare2 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
-import { cn } from "@/lib/utils";
-import { ModeToggle } from "./mode-toggle";
-import { buttonVariants } from "@/components/ui/button";
+} from "@headlessui/react"
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline"
+import { Link } from "@tanstack/react-router"
+import { Calendar, CheckSquare2 } from "lucide-react"
+import { useState } from "react"
+import { ModeToggle } from "./mode-toggle"
 
-import UserMenu from "./user-menu";
+import UserMenu from "./user-menu"
 
 const navigation = [
   { icon: Calendar, title: "Calendar", path: "/" },
   { icon: CheckSquare2, title: "Tasks", path: "/items" },
-];
+]
 
 const NavBar = () => {
-  const [navIndex, setNavIndex] = useState(0);
+  const [navIndex, setNavIndex] = useState(0)
 
   function handleClick(index: number) {
-    setNavIndex(index);
+    setNavIndex(index)
   }
 
   return (
@@ -31,7 +31,6 @@ const NavBar = () => {
         <>
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
             <div className="relative flex h-16 items-center justify-between">
-
               {/* Mobile menu button*/}
               <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
                 <DisclosureButton className="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
@@ -60,9 +59,9 @@ const NavBar = () => {
                       <Link
                         key={item.title}
                         to={item.path}
-                        aria-current={index == navIndex ? "page" : undefined}
+                        aria-current={index === navIndex ? "page" : undefined}
                         className={buttonVariants({
-                          variant: index == navIndex ? "default" : "ghost",
+                          variant: index === navIndex ? "default" : "ghost",
                         })}
                         onClick={() => handleClick(index)}
                       >
@@ -94,9 +93,9 @@ const NavBar = () => {
                   to={item.path}
                   className={cn(
                     "text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-sm font-medium",
-                    index == navIndex && "bg-gray-900 text-white"
+                    index === navIndex && "bg-gray-900 text-white",
                   )}
-                  aria-current={index == navIndex ? "page" : undefined}
+                  aria-current={index === navIndex ? "page" : undefined}
                 >
                   {item.title}
                 </DisclosureButton>
@@ -106,7 +105,7 @@ const NavBar = () => {
         </>
       )}
     </Disclosure>
-  );
-};
+  )
+}
 
-export default NavBar;
+export default NavBar

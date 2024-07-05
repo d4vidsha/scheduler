@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,19 +8,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+} from "@/components/ui/dropdown-menu"
 
-import { LogOut, Settings, Users } from "lucide-react";
-import { Link } from "@tanstack/react-router";
-import useAuth from "@/hooks/useAuth";
+import useAuth from "@/hooks/useAuth"
+import { Link } from "@tanstack/react-router"
+import { LogOut, Settings, Users } from "lucide-react"
 
 const UserMenu = () => {
-  const { logout } = useAuth();
+  const { logout } = useAuth()
 
   const handleLogout = async () => {
-    logout();
-  };
+    logout()
+  }
 
   return (
     <DropdownMenu>
@@ -55,7 +55,7 @@ const UserMenu = () => {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-};
+  )
+}
 
-export default UserMenu;
+export default UserMenu

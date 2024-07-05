@@ -55,7 +55,6 @@
     "@storybook/react-vite": "^8.1.11",
     "@storybook/test": "^8.1.11",
     "@tailwindcss/forms": "^0.5.7",
-    "@tanstack/eslint-plugin-query": "^5.49.0",
     "@tanstack/router-devtools": "1.19.1",
     "@tanstack/router-vite-plugin": "1.19.0",
     "@types/node": "^20.10.5",

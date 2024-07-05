@@ -1,56 +1,56 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { Spinner } from '../components/Common/Spinner.tsx'
+import type { Meta, StoryObj } from "@storybook/react"
+import { Spinner } from "../components/Common/Spinner.tsx"
 
 const meta = {
-    title: 'Components/Common/Spinner',
-    component: Spinner,
-    parameters: {
-      layout: 'centered',
-      docs: {
-        source: { type: 'code' }
-      }
+  title: "Components/Common/Spinner",
+  component: Spinner,
+  parameters: {
+    layout: "centered",
+    docs: {
+      source: { type: "code" },
     },
-    argTypes: {
-      size: {
-        options: ['small', 'medium', 'large'],
-        control: 'radio',
-      },
-      show: {
-        control: { type: 'boolean' }
-      },
-      children: {
-        control: { type: 'text' }
-      }
+  },
+  argTypes: {
+    size: {
+      options: ["small", "medium", "large"],
+      control: "radio",
     },
-    args: {
-      size: 'medium',
-      show: true,
+    show: {
+      control: { type: "boolean" },
     },
-  } satisfies Meta<typeof Spinner>;
+    children: {
+      control: { type: "text" },
+    },
+  },
+  args: {
+    size: "medium",
+    show: true,
+  },
+} satisfies Meta<typeof Spinner>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Small: Story = {
   args: {
-    size: 'small',
+    size: "small",
   },
-};
+}
 
 export const Medium: Story = {
-    args: {
-      size: 'medium',
-    },
-  };
+  args: {
+    size: "medium",
+  },
+}
 
 export const Large: Story = {
   args: {
-    size: 'large',
+    size: "large",
   },
-};
+}
 
 export const WithText: Story = {
   args: {
-    children: 'Loading...',
+    children: "Loading...",
   },
-};
+}

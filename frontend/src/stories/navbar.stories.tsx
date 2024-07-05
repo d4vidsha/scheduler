@@ -1,31 +1,31 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import NavBar from '../components/navbar.tsx'
+import type { Meta, StoryObj } from "@storybook/react"
+import NavBar from "../components/navbar.tsx"
 
 const meta = {
-  title: 'Components/Common/NavBar',
+  title: "Components/Common/NavBar",
   component: NavBar,
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
     docs: {
-      source: { type: 'code' }
-    }
+      source: { type: "code" },
+    },
   },
-} satisfies Meta<typeof NavBar>;
+} satisfies Meta<typeof NavBar>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Desktop: Story = {
   parameters: {
     viewport: {
-      defaultViewport: 'desktop'
-    }
-  }
-};
+      defaultViewport: "desktop",
+    },
+  },
+}
 export const Mobile: Story = {
   parameters: {
     viewport: {
-      defaultViewport: 'mobile1'
-    }
-  }
-};
+      defaultViewport: "mobile1",
+    },
+  },
+}
