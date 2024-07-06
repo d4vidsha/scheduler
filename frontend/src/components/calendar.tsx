@@ -8,19 +8,21 @@ import {
 import { useEffect, useRef } from "react"
 
 export default function Example() {
-  const container = useRef(null)
-  const containerNav = useRef(null)
-  const containerOffset = useRef(null)
+  const container = useRef<HTMLDivElement>(null)
+  const containerNav = useRef<HTMLDivElement>(null)
+  const containerOffset = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     // Set the container scroll position based on the current time.
     const currentMinute = new Date().getHours() * 60
-    container.current.scrollTop =
-      ((container.current.scrollHeight -
-        containerNav.current.offsetHeight -
-        containerOffset.current.offsetHeight) *
-        currentMinute) /
-      1440
+    if (container.current && containerNav.current && containerOffset.current) {
+      container.current.scrollTop =
+        ((container.current.scrollHeight -
+          containerNav.current.offsetHeight -
+          containerOffset.current.offsetHeight) *
+          currentMinute) /
+        1440
+    }
   }, [])
 
   return (
