@@ -23,16 +23,14 @@ function Layout() {
   return (
     <>
       <NavBar />
-      <div className="flex max-w-large h-auto relative">
-        {/* <Sidebar /> */}
-        {isLoading ? (
-          <div className="flex justify-center items-center h-screen w-full">
-            <Spinner size="large" />
-          </div>
-        ) : (
-          <Outlet />
-        )}
-      </div>
+      {/* <Sidebar /> */}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-[calc(100vh-64px)] w-full">
+          <Spinner size="large" />
+        </div>
+      ) : (
+        <Outlet />
+      )}
     </>
   )
 }
