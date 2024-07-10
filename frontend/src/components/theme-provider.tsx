@@ -36,7 +36,6 @@ export function ThemeProvider({
     root.classList.remove("light", "dark")
 
     if (theme === "system") {
-
       // set the initial theme based on the system preference
       const queryMedia = window.matchMedia("(prefers-color-scheme: dark)")
       const systemTheme = queryMedia.matches ? "dark" : "light"
