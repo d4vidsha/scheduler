@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils"
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react"
 import {
   ChevronDownIcon,
@@ -5,7 +6,18 @@ import {
   ChevronRightIcon,
   EllipsisHorizontalIcon,
 } from "@heroicons/react/20/solid"
-import { useEffect, useRef } from "react"
+import {
+  eachDayOfInterval,
+  eachHourOfInterval,
+  endOfDay,
+  endOfWeek,
+  format,
+  isToday,
+  startOfDay,
+  startOfToday,
+  startOfWeek,
+} from "date-fns"
+import React, { useEffect, useRef } from "react"
 
 export default function Example() {
   const container = useRef<HTMLDivElement>(null)
@@ -25,19 +37,28 @@ export default function Example() {
     }
   }, [])
 
+  const today = startOfToday()
+  const hours = eachHourOfInterval({
+    start: startOfDay(today),
+    end: endOfDay(today),
+  }).map((hour) => format(hour, "ha"))
+  const daysOfWeek = eachDayOfInterval({
+    start: startOfWeek(today),
+    end: endOfWeek(today),
+  })
+
   return (
     <div className="flex h-full flex-col">
-
       {/* Calendar header */}
       <header className="flex flex-none items-center justify-between border-b px-6 py-4">
-
         {/* Calendar title date */}
         <h1 className="text-base font-semibold leading-6 text-foreground">
-          <time dateTime="2022-01">January 2022</time>
+          <time dateTime={format(today, "yyyy-MM")}>
+            {format(today, "MMMM y")}
+          </time>
         </h1>
 
         <div className="flex items-center">
-
           {/* Today navigation buttons */}
           <div className="relative flex items-center rounded-md bg-card shadow-sm md:items-stretch">
             <button
@@ -189,7 +210,6 @@ export default function Example() {
         </div>
       </header>
 
-
       <div
         ref={container}
         className="isolate flex flex-auto flex-col overflow-auto bg-card"
@@ -273,62 +293,27 @@ export default function Example() {
             {/* Desktop view */}
             <div className="-mr-px hidden grid-cols-7 divide-x border-r text-sm leading-6 text-gray-500 sm:grid">
               <div className="col-end-1 w-14" />
-              <div className="flex items-center justify-center py-3">
-                <span>
-                  Mon{" "}
-                  <span className="items-center justify-center font-semibold text-foreground">
-                    10
+              {daysOfWeek.map((day) => (
+                <div
+                  key={day.toString()}
+                  className="flex items-center justify-center py-3"
+                >
+                  <span
+                    className={cn(!isToday(day) ? "" : "flex items-baseline")}
+                  >
+                    {format(day, "EEE")}{" "}
+                    <span
+                      className={cn(
+                        !isToday(day)
+                          ? "items-center justify-center font-semibold text-foreground"
+                          : "ml-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 font-semibold text-white",
+                      )}
+                    >
+                      {format(day, "d")}
+                    </span>
                   </span>
-                </span>
-              </div>
-              <div className="flex items-center justify-center py-3">
-                <span>
-                  Tue{" "}
-                  <span className="items-center justify-center font-semibold text-foreground">
-                    11
-                  </span>
-                </span>
-              </div>
-              <div className="flex items-center justify-center py-3">
-                <span className="flex items-baseline">
-                  Wed{" "}
-                  <span className="ml-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 font-semibold text-white">
-                    12
-                  </span>
-                </span>
-              </div>
-              <div className="flex items-center justify-center py-3">
-                <span>
-                  Thu{" "}
-                  <span className="items-center justify-center font-semibold text-foreground">
-                    13
-                  </span>
-                </span>
-              </div>
-              <div className="flex items-center justify-center py-3">
-                <span>
-                  Fri{" "}
-                  <span className="items-center justify-center font-semibold text-foreground">
-                    14
-                  </span>
-                </span>
-              </div>
-              <div className="flex items-center justify-center py-3">
-                <span>
-                  Sat{" "}
-                  <span className="items-center justify-center font-semibold text-foreground">
-                    15
-                  </span>
-                </span>
-              </div>
-              <div className="flex items-center justify-center py-3">
-                <span>
-                  Sun{" "}
-                  <span className="items-center justify-center font-semibold text-foreground">
-                    16
-                  </span>
-                </span>
-              </div>
+                </div>
+              ))}
             </div>
           </div>
           <div className="flex flex-auto">
@@ -340,150 +325,16 @@ export default function Example() {
                 style={{ gridTemplateRows: "repeat(48, minmax(3.5rem, 1fr))" }}
               >
                 <div ref={containerOffset} className="row-end-1 h-7" />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    12AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    1AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    2AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    3AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    4AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    5AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    6AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    7AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    8AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    9AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    10AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    11AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    12PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    1PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    2PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    3PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    4PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    5PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    6PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    7PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    8PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    9PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    10PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    11PM
-                  </div>
-                </div>
-                <div />
+                {hours.map((hour, index) => (
+                  <React.Fragment key={index}>
+                    <div>
+                      <div className="sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                        {hour}
+                      </div>
+                    </div>
+                    <div />
+                  </React.Fragment>
+                ))}
               </div>
 
               {/* Vertical lines */}
