@@ -112,29 +112,7 @@ export default function WeekCalendar() {
 
           {/* Desktop week view dropdown */}
           <div className="hidden md:ml-4 md:flex md:items-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="relative">
-                  Week view <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuRadioGroup value={view} onValueChange={setView}>
-                  <DropdownMenuRadioItem value="day">
-                    Day view
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="week">
-                    Week view
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="month">
-                    Month view
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="year">
-                    Year view
-                  </DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ViewMenu view={view} setView={setView} />
           </div>
 
           {/* Mobile three dot menu */}
@@ -349,5 +327,32 @@ export default function WeekCalendar() {
         </div>
       </div>
     </div>
+  )
+}
+
+interface ViewMenuProps {
+  view: string
+  setView: React.Dispatch<React.SetStateAction<string>>
+}
+
+function ViewMenu({ view, setView }: ViewMenuProps) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="relative">
+          Week view <ChevronDown className="ml-2 h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuRadioGroup value={view} onValueChange={setView}>
+          <DropdownMenuRadioItem value="day">Day view</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="week">Week view</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="month">
+            Month view
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="year">Year view</DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
