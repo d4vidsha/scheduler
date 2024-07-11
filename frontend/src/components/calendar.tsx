@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils"
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react"
 import {
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   EllipsisHorizontalIcon,
@@ -20,7 +19,16 @@ import {
   startOfToday,
   startOfWeek,
 } from "date-fns"
-import React, { useEffect, useRef } from "react"
+import { ChevronDown } from "lucide-react"
+import React, { useEffect, useRef, useState } from "react"
+import { Button } from "./ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu"
 
 export default function WeekCalendar() {
   const container = useRef<HTMLDivElement>(null)
@@ -39,7 +47,7 @@ export default function WeekCalendar() {
         1440
     }
   }, [])
-
+  const [view, setView] = useState("week")
   const today = startOfToday()
   const hours = eachHourOfInterval({
     start: startOfDay(today),
@@ -51,10 +59,19 @@ export default function WeekCalendar() {
   })
   const events = [
     { id: 1, title: "Breakfast", time: addHours(today, 8), duration: 60 },
-    { id: 2, title: "Flight to Paris", time: addHours(today, 11), duration: 30 },
-    { id: 3, title: "Meeting with design team at Disney Land", time: addHours(today, 13), duration: 120 },
+    {
+      id: 2,
+      title: "Flight to Paris",
+      time: addHours(today, 11),
+      duration: 30,
+    },
+    {
+      id: 3,
+      title: "Meeting with design team at Disney Land",
+      time: addHours(today, 13),
+      duration: 120,
+    },
   ]
-
 
   return (
     <div className="flex h-full flex-col">
@@ -95,58 +112,29 @@ export default function WeekCalendar() {
 
           {/* Desktop week view dropdown */}
           <div className="hidden md:ml-4 md:flex md:items-center">
-            <Menu as="div" className="relative">
-              <MenuButton
-                type="button"
-                className="flex items-center gap-x-1.5 rounded-md bg-card px-3 py-2 text-sm font-semibold text-foreground shadow-sm ring-1 ring-inset ring-ring hover:bg-accent"
-              >
-                Week view
-                <ChevronDownIcon
-                  className="-mr-1 h-5 w-5 text-gray-400"
-                  aria-hidden="true"
-                />
-              </MenuButton>
-
-              <MenuItems
-                transition
-                className="absolute right-0 z-10 mt-3 w-36 origin-top-right overflow-hidden rounded-md bg-card shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:scale-95 data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-              >
-                <div className="py-1">
-                  <MenuItem>
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-                    >
-                      Day view
-                    </a>
-                  </MenuItem>
-                  <MenuItem>
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-                    >
-                      Week view
-                    </a>
-                  </MenuItem>
-                  <MenuItem>
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-                    >
-                      Month view
-                    </a>
-                  </MenuItem>
-                  <MenuItem>
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-                    >
-                      Year view
-                    </a>
-                  </MenuItem>
-                </div>
-              </MenuItems>
-            </Menu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="relative">
+                  Week view <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuRadioGroup value={view} onValueChange={setView}>
+                  <DropdownMenuRadioItem value="day">
+                    Day view
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="week">
+                    Week view
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="month">
+                    Month view
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="year">
+                    Year view
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Mobile three dot menu */}
@@ -241,7 +229,14 @@ export default function WeekCalendar() {
                   className="flex flex-col items-center pb-3 pt-2"
                 >
                   {format(day, "EEEEE")}{" "}
-                  <span className={cn("mt-1 flex h-8 w-8 items-center justify-center font-semibold", !isToday(day) ? "text-foreground" : "bg-indigo-600 rounded-full text-white")}>
+                  <span
+                    className={cn(
+                      "mt-1 flex h-8 w-8 items-center justify-center font-semibold",
+                      !isToday(day)
+                        ? "text-foreground"
+                        : "bg-indigo-600 rounded-full text-white",
+                    )}
+                  >
                     {format(day, "d")}
                   </span>
                 </button>
@@ -317,8 +312,21 @@ export default function WeekCalendar() {
                 {events.map(({ id, title, time, duration }) => (
                   <li
                     key={id}
-                    className={cn("relative mt-px flex", "sm:col-start-".concat((differenceInDays(time, startOfWeek(time)) + 1).toString()))}
-                    style={{ gridRow: cn(differenceInMinutes(time, today) * 12 / 60 + 2, "/ span", duration * 12 / 60) }}
+                    className={cn(
+                      "relative mt-px flex",
+                      "sm:col-start-".concat(
+                        (
+                          differenceInDays(time, startOfWeek(time)) + 1
+                        ).toString(),
+                      ),
+                    )}
+                    style={{
+                      gridRow: cn(
+                        (differenceInMinutes(time, today) * 12) / 60 + 2,
+                        "/ span",
+                        (duration * 12) / 60,
+                      ),
+                    }}
                   >
                     <a
                       href="#"
@@ -328,7 +336,9 @@ export default function WeekCalendar() {
                         {title}
                       </p>
                       <p className="text-blue-500 group-hover:text-blue-700">
-                        <time dateTime={format(time, "yyyy-MM-dd HH:mm")}>{format(time, "h:mma")}</time>
+                        <time dateTime={format(time, "yyyy-MM-dd HH:mm")}>
+                          {format(time, "h:mma")}
+                        </time>
                       </p>
                     </a>
                   </li>
@@ -338,6 +348,6 @@ export default function WeekCalendar() {
           </div>
         </div>
       </div>
-    </div >
+    </div>
   )
 }
