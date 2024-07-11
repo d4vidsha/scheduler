@@ -7,6 +7,9 @@ import {
   EllipsisHorizontalIcon,
 } from "@heroicons/react/20/solid"
 import {
+  addHours,
+  differenceInDays,
+  differenceInMinutes,
   eachDayOfInterval,
   eachHourOfInterval,
   endOfDay,
@@ -19,7 +22,7 @@ import {
 } from "date-fns"
 import React, { useEffect, useRef } from "react"
 
-export default function Example() {
+export default function WeekCalendar() {
   const container = useRef<HTMLDivElement>(null)
   const containerNav = useRef<HTMLDivElement>(null)
   const containerOffset = useRef<HTMLDivElement>(null)
@@ -46,6 +49,12 @@ export default function Example() {
     start: startOfWeek(today),
     end: endOfWeek(today),
   })
+  const events = [
+    { id: 1, title: "Breakfast", time: addHours(today, 8), duration: 60 },
+    { id: 2, title: "Flight to Paris", time: addHours(today, 11), duration: 30 },
+    { id: 3, title: "Meeting with design team at Disney Land", time: addHours(today, 13), duration: 120 },
+  ]
+
 
   return (
     <div className="flex h-full flex-col">
@@ -225,69 +234,18 @@ export default function Example() {
           >
             {/* Mobile view */}
             <div className="grid grid-cols-7 text-sm leading-6 text-gray-500 sm:hidden">
-              <button
-                type="button"
-                className="flex flex-col items-center pb-3 pt-2"
-              >
-                M{" "}
-                <span className="mt-1 flex h-8 w-8 items-center justify-center font-semibold text-foreground">
-                  10
-                </span>
-              </button>
-              <button
-                type="button"
-                className="flex flex-col items-center pb-3 pt-2"
-              >
-                T{" "}
-                <span className="mt-1 flex h-8 w-8 items-center justify-center font-semibold text-foreground">
-                  11
-                </span>
-              </button>
-              <button
-                type="button"
-                className="flex flex-col items-center pb-3 pt-2"
-              >
-                W{" "}
-                <span className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 font-semibold text-white">
-                  12
-                </span>
-              </button>
-              <button
-                type="button"
-                className="flex flex-col items-center pb-3 pt-2"
-              >
-                T{" "}
-                <span className="mt-1 flex h-8 w-8 items-center justify-center font-semibold text-foreground">
-                  13
-                </span>
-              </button>
-              <button
-                type="button"
-                className="flex flex-col items-center pb-3 pt-2"
-              >
-                F{" "}
-                <span className="mt-1 flex h-8 w-8 items-center justify-center font-semibold text-foreground">
-                  14
-                </span>
-              </button>
-              <button
-                type="button"
-                className="flex flex-col items-center pb-3 pt-2"
-              >
-                S{" "}
-                <span className="mt-1 flex h-8 w-8 items-center justify-center font-semibold text-foreground">
-                  15
-                </span>
-              </button>
-              <button
-                type="button"
-                className="flex flex-col items-center pb-3 pt-2"
-              >
-                S{" "}
-                <span className="mt-1 flex h-8 w-8 items-center justify-center font-semibold text-foreground">
-                  16
-                </span>
-              </button>
+              {daysOfWeek.map((day) => (
+                <button
+                  key={day.toString()}
+                  type="button"
+                  className="flex flex-col items-center pb-3 pt-2"
+                >
+                  {format(day, "EEEEE")}{" "}
+                  <span className={cn("mt-1 flex h-8 w-8 items-center justify-center font-semibold", !isToday(day) ? "text-foreground" : "bg-indigo-600 rounded-full text-white")}>
+                    {format(day, "d")}
+                  </span>
+                </button>
+              ))}
             </div>
 
             {/* Desktop view */}
@@ -356,59 +314,30 @@ export default function Example() {
                   gridTemplateRows: "1.75rem repeat(288, minmax(0, 1fr)) auto",
                 }}
               >
-                <li
-                  className="relative mt-px flex sm:col-start-3"
-                  style={{ gridRow: "74 / span 12" }}
-                >
-                  <a
-                    href="#"
-                    className="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg bg-blue-50 p-2 text-xs leading-5 hover:bg-blue-100"
+                {events.map(({ id, title, time, duration }) => (
+                  <li
+                    key={id}
+                    className={cn("relative mt-px flex", "sm:col-start-".concat((differenceInDays(time, startOfWeek(time)) + 1).toString()))}
+                    style={{ gridRow: cn(differenceInMinutes(time, today) * 12 / 60 + 2, "/ span", duration * 12 / 60) }}
                   >
-                    <p className="order-1 font-semibold text-blue-700">
-                      Breakfast
-                    </p>
-                    <p className="text-blue-500 group-hover:text-blue-700">
-                      <time dateTime="2022-01-12T06:00">6:00 AM</time>
-                    </p>
-                  </a>
-                </li>
-                <li
-                  className="relative mt-px flex sm:col-start-3"
-                  style={{ gridRow: "92 / span 30" }}
-                >
-                  <a
-                    href="#"
-                    className="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg bg-pink-50 p-2 text-xs leading-5 hover:bg-pink-100"
-                  >
-                    <p className="order-1 font-semibold text-pink-700">
-                      Flight to Paris
-                    </p>
-                    <p className="text-pink-500 group-hover:text-pink-700">
-                      <time dateTime="2022-01-12T07:30">7:30 AM</time>
-                    </p>
-                  </a>
-                </li>
-                <li
-                  className="relative mt-px hidden sm:col-start-6 sm:flex"
-                  style={{ gridRow: "122 / span 24" }}
-                >
-                  <a
-                    href="#"
-                    className="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg bg-gray-100 p-2 text-xs leading-5 hover:bg-gray-200"
-                  >
-                    <p className="order-1 font-semibold text-gray-700">
-                      Meeting with design team at Disney
-                    </p>
-                    <p className="text-gray-500 group-hover:text-gray-700">
-                      <time dateTime="2022-01-15T10:00">10:00 AM</time>
-                    </p>
-                  </a>
-                </li>
+                    <a
+                      href="#"
+                      className="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg bg-blue-50 p-2 text-xs leading-5 hover:bg-blue-100"
+                    >
+                      <p className="order-1 font-semibold text-blue-700">
+                        {title}
+                      </p>
+                      <p className="text-blue-500 group-hover:text-blue-700">
+                        <time dateTime={format(time, "yyyy-MM-dd HH:mm")}>{format(time, "h:mma")}</time>
+                      </p>
+                    </a>
+                  </li>
+                ))}
               </ol>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </div >
   )
 }
