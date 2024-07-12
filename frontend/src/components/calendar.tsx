@@ -16,7 +16,7 @@ import {
   startOfWeek,
 } from "date-fns"
 import { ChevronDown, ChevronLeft, ChevronRight, Ellipsis } from "lucide-react"
-import React, { useEffect, useRef, useState } from "react"
+import React, { Children, ReactNode, useEffect, useRef, useState } from "react"
 import { Button } from "./ui/button"
 import {
   DropdownMenu,
@@ -98,53 +98,26 @@ export default function WeekCalendar() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Calendar header */}
-      <header className="flex flex-none items-center justify-between border-b px-6 py-4">
-        {/* Calendar title date */}
+      <CalendarHeader>
         <h1 className="text-base font-semibold leading-6 text-foreground">
           <time dateTime={format(firstDayCurrentWeek, "yyyy-MM")}>
             {format(firstDayCurrentWeek, "MMMM y")}
           </time>
         </h1>
-
         <div className="flex items-center">
-          {/* Today navigation buttons */}
-          <div className="relative flex items-center rounded-md bg-card shadow-sm md:items-stretch">
-            <button
-              onClick={previousWeek}
-              type="button"
-              className="flex h-9 w-12 items-center justify-center rounded-l-md border-y border-l pr-1 text-accent-foreground focus:relative md:w-9 md:pr-0 md:hover:bg-accent"
-            >
-              <span className="sr-only">Previous week</span>
-              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-            </button>
-            <button
-              onClick={thisWeek}
-              type="button"
-              className="hidden border-y px-3.5 text-sm font-semibold text-foreground hover:bg-accent focus:relative md:block"
-            >
-              Today
-            </button>
-            <span className="relative -mx-px h-5 w-px bg-muted md:hidden" />
-            <button
-              onClick={nextWeek}
-              type="button"
-              className="flex h-9 w-12 items-center justify-center rounded-r-md border-y border-r pl-1 text-accent-foreground focus:relative md:w-9 md:pl-0 md:hover:bg-accent"
-            >
-              <span className="sr-only">Next week</span>
-              <ChevronRight className="h-5 w-5" aria-hidden="true" />
-            </button>
-          </div>
-
-          {/* Desktop week view dropdown */}
+          <NavigationButtons
+            previousWeek={previousWeek}
+            nextWeek={nextWeek}
+            thisWeek={thisWeek}
+          />
           <div className="hidden md:ml-4 md:flex md:items-center">
             <ViewMenu view={view} setView={setView} />
           </div>
-
-          {/* Mobile three dot menu */}
-          <ThreeDotMenu view={view} setView={setView} />
+          <div className="relative ml-6 md:hidden">
+            <ThreeDotMenu view={view} setView={setView} />
+          </div>
         </div>
-      </header>
+      </CalendarHeader>
 
       <div
         ref={container}
@@ -284,7 +257,7 @@ export default function WeekCalendar() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   )
 }
 
@@ -317,32 +290,83 @@ function ViewMenu({ view, setView }: ViewMenuProps) {
 
 function ThreeDotMenu({ view, setView }: ViewMenuProps) {
   return (
-    <div className="relative ml-6 md:hidden">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon">
-            <Ellipsis className="h-5 w-5" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem>
-            <span>Go to today</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuRadioGroup value={view} onValueChange={setView}>
-            <DropdownMenuRadioItem value="day">Day view</DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="week">
-              Week view
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="month">
-              Month view
-            </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="year">
-              Year view
-            </DropdownMenuRadioItem>
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon">
+          <Ellipsis className="h-5 w-5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem>
+          <span>Go to today</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuRadioGroup value={view} onValueChange={setView}>
+          <DropdownMenuRadioItem value="day">Day view</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="week">
+            Week view
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="month">
+            Month view
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="year">
+            Year view
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+interface NavigationButtonsProps {
+  previousWeek: () => void
+  nextWeek: () => void
+  thisWeek: () => void
+}
+
+function NavigationButtons({
+  previousWeek,
+  nextWeek,
+  thisWeek,
+}: NavigationButtonsProps) {
+  return (
+    <div className="relative flex items-center rounded-md bg-card shadow-sm md:items-stretch">
+      <button
+        onClick={previousWeek}
+        type="button"
+        className="flex h-9 w-12 items-center justify-center rounded-l-md border-y border-l pr-1 text-accent-foreground focus:relative md:w-9 md:pr-0 md:hover:bg-accent"
+      >
+        <span className="sr-only">Previous week</span>
+        <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+      </button>
+      <button
+        onClick={thisWeek}
+        type="button"
+        className="hidden border-y px-3.5 text-sm font-semibold text-foreground hover:bg-accent focus:relative md:block"
+      >
+        Today
+      </button>
+      <span className="relative -mx-px h-5 w-px bg-muted md:hidden" />
+      <button
+        onClick={nextWeek}
+        type="button"
+        className="flex h-9 w-12 items-center justify-center rounded-r-md border-y border-r pl-1 text-accent-foreground focus:relative md:w-9 md:pl-0 md:hover:bg-accent"
+      >
+        <span className="sr-only">Next week</span>
+        <ChevronRight className="h-5 w-5" aria-hidden="true" />
+      </button>
     </div>
+  )
+}
+
+interface HeaderProps {
+  children: ReactNode
+}
+
+function CalendarHeader({ children }: HeaderProps) {
+  return (
+    <header className="flex flex-none items-center justify-between border-b px-6 py-4">
+      {children}
+    </header>
   )
 }
