@@ -1,12 +1,7 @@
 import { cn } from "@/lib/utils"
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react"
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  EllipsisHorizontalIcon,
-} from "@heroicons/react/20/solid"
 import {
   addHours,
+  addWeeks,
   differenceInDays,
   differenceInMinutes,
   eachDayOfInterval,
@@ -15,18 +10,21 @@ import {
   endOfWeek,
   format,
   isToday,
+  parse,
   startOfDay,
   startOfToday,
   startOfWeek,
 } from "date-fns"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, ChevronLeft, ChevronRight, Ellipsis } from "lucide-react"
 import React, { useEffect, useRef, useState } from "react"
 import { Button } from "./ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 
@@ -34,7 +32,15 @@ export default function WeekCalendar() {
   const container = useRef<HTMLDivElement>(null)
   const containerNav = useRef<HTMLDivElement>(null)
   const containerOffset = useRef<HTMLDivElement>(null)
-  const columnPosition: Array<string> = ["sm:col-start-1", "sm:col-start-2", "sm:col-start-3", "sm:col-start-4", "sm:col-start-5", "sm:col-start-6", "sm:col-start-7"]
+  const columnPosition: Array<string> = [
+    "sm:col-start-1",
+    "sm:col-start-2",
+    "sm:col-start-3",
+    "sm:col-start-4",
+    "sm:col-start-5",
+    "sm:col-start-6",
+    "sm:col-start-7",
+  ]
 
   useEffect(() => {
     // Set the container scroll position based on the current time.
@@ -54,9 +60,11 @@ export default function WeekCalendar() {
     start: startOfDay(today),
     end: endOfDay(today),
   }).map((hour) => format(hour, "ha"))
+  const [currentWeek, setCurrentWeek] = useState(format(today, "yyyy-MM-dd"))
+  const firstDayCurrentWeek = parse(currentWeek, "yyyy-MM-dd", new Date())
   const daysOfWeek = eachDayOfInterval({
-    start: startOfWeek(today),
-    end: endOfWeek(today),
+    start: startOfWeek(firstDayCurrentWeek),
+    end: endOfWeek(firstDayCurrentWeek),
   })
   const events = [
     { id: 1, title: "Breakfast", time: addHours(today, 8), duration: 60 },
@@ -74,14 +82,28 @@ export default function WeekCalendar() {
     },
   ]
 
+  function previousWeek() {
+    const firstDayPreviousWeek = addWeeks(firstDayCurrentWeek, -1)
+    setCurrentWeek(format(firstDayPreviousWeek, "yyyy-MM-dd"))
+  }
+
+  function nextWeek() {
+    const firstDayNextWeek = addWeeks(firstDayCurrentWeek, 1)
+    setCurrentWeek(format(firstDayNextWeek, "yyyy-MM-dd"))
+  }
+
+  function thisWeek() {
+    setCurrentWeek(format(today, "yyyy-MM-dd"))
+  }
+
   return (
     <div className="flex h-full flex-col">
       {/* Calendar header */}
       <header className="flex flex-none items-center justify-between border-b px-6 py-4">
         {/* Calendar title date */}
         <h1 className="text-base font-semibold leading-6 text-foreground">
-          <time dateTime={format(today, "yyyy-MM")}>
-            {format(today, "MMMM y")}
+          <time dateTime={format(firstDayCurrentWeek, "yyyy-MM")}>
+            {format(firstDayCurrentWeek, "MMMM y")}
           </time>
         </h1>
 
@@ -89,13 +111,15 @@ export default function WeekCalendar() {
           {/* Today navigation buttons */}
           <div className="relative flex items-center rounded-md bg-card shadow-sm md:items-stretch">
             <button
+              onClick={previousWeek}
               type="button"
               className="flex h-9 w-12 items-center justify-center rounded-l-md border-y border-l pr-1 text-accent-foreground focus:relative md:w-9 md:pr-0 md:hover:bg-accent"
             >
               <span className="sr-only">Previous week</span>
-              <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
             </button>
             <button
+              onClick={thisWeek}
               type="button"
               className="hidden border-y px-3.5 text-sm font-semibold text-foreground hover:bg-accent focus:relative md:block"
             >
@@ -103,11 +127,12 @@ export default function WeekCalendar() {
             </button>
             <span className="relative -mx-px h-5 w-px bg-muted md:hidden" />
             <button
+              onClick={nextWeek}
               type="button"
               className="flex h-9 w-12 items-center justify-center rounded-r-md border-y border-r pl-1 text-accent-foreground focus:relative md:w-9 md:pl-0 md:hover:bg-accent"
             >
               <span className="sr-only">Next week</span>
-              <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
 
@@ -117,7 +142,7 @@ export default function WeekCalendar() {
           </div>
 
           {/* Mobile three dot menu */}
-          <ThreeDotMenu />
+          <ThreeDotMenu view={view} setView={setView} />
         </div>
       </header>
 
@@ -145,7 +170,7 @@ export default function WeekCalendar() {
                   {format(day, "EEEEE")}{" "}
                   <span
                     className={cn(
-                      "mt-1 flex h-8 w-8 items-center justify-center font-semibold",
+                      "mt-1 flex h-6 w-6 items-center justify-center font-semibold",
                       !isToday(day)
                         ? "text-foreground"
                         : "bg-indigo-600 rounded-full text-white",
@@ -171,9 +196,10 @@ export default function WeekCalendar() {
                     {format(day, "EEE")}{" "}
                     <span
                       className={cn(
+                        "items-center justify-center font-semibold",
                         !isToday(day)
-                          ? "items-center justify-center font-semibold text-foreground"
-                          : "ml-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 font-semibold text-white",
+                          ? "text-foreground"
+                          : "ml-1.5 flex h-6 w-6 rounded-full bg-indigo-600 text-white",
                       )}
                     >
                       {format(day, "d")}
@@ -228,7 +254,7 @@ export default function WeekCalendar() {
                     key={id}
                     className={cn(
                       "relative mt-px flex",
-                      columnPosition[differenceInDays(time, startOfWeek(time))]
+                      columnPosition[differenceInDays(time, startOfWeek(time))],
                     )}
                     style={{
                       gridRow: cn(
@@ -258,7 +284,7 @@ export default function WeekCalendar() {
           </div>
         </div>
       </div>
-    </div >
+    </div>
   )
 }
 
@@ -289,73 +315,34 @@ function ViewMenu({ view, setView }: ViewMenuProps) {
   )
 }
 
-function ThreeDotMenu() {
+function ThreeDotMenu({ view, setView }: ViewMenuProps) {
   return (
-    <Menu as="div" className="relative ml-6 md:hidden">
-      <MenuButton className="-mx-2 flex items-center rounded-full border border-transparent p-2 text-accent-foreground">
-        <span className="sr-only">Open menu</span>
-        <EllipsisHorizontalIcon className="h-5 w-5" aria-hidden="true" />
-      </MenuButton>
-
-      <MenuItems
-        transition
-        className="absolute right-0 z-10 mt-3 w-36 origin-top-right divide-y divide-gray-100 overflow-hidden rounded-md bg-card shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:scale-95 data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-      >
-        <div className="py-1">
-          <MenuItem>
-            <a
-              href="#"
-              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-            >
-              Create event
-            </a>
-          </MenuItem>
-        </div>
-        <div className="py-1">
-          <MenuItem>
-            <a
-              href="#"
-              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-            >
-              Go to today
-            </a>
-          </MenuItem>
-        </div>
-        <div className="py-1">
-          <MenuItem>
-            <a
-              href="#"
-              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-            >
-              Day view
-            </a>
-          </MenuItem>
-          <MenuItem>
-            <a
-              href="#"
-              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-            >
+    <div className="relative ml-6 md:hidden">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon">
+            <Ellipsis className="h-5 w-5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>
+            <span>Go to today</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuRadioGroup value={view} onValueChange={setView}>
+            <DropdownMenuRadioItem value="day">Day view</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="week">
               Week view
-            </a>
-          </MenuItem>
-          <MenuItem>
-            <a
-              href="#"
-              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-            >
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="month">
               Month view
-            </a>
-          </MenuItem>
-          <MenuItem>
-            <a
-              href="#"
-              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-            >
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="year">
               Year view
-            </a>
-          </MenuItem>
-        </div>
-      </MenuItems>
-    </Menu>
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }
