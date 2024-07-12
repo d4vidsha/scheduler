@@ -34,6 +34,7 @@ export default function WeekCalendar() {
   const container = useRef<HTMLDivElement>(null)
   const containerNav = useRef<HTMLDivElement>(null)
   const containerOffset = useRef<HTMLDivElement>(null)
+  const columnPosition: Array<string> = ["sm:col-start-1", "sm:col-start-2", "sm:col-start-3", "sm:col-start-4", "sm:col-start-5", "sm:col-start-6", "sm:col-start-7"]
 
   useEffect(() => {
     // Set the container scroll position based on the current time.
@@ -227,11 +228,7 @@ export default function WeekCalendar() {
                     key={id}
                     className={cn(
                       "relative mt-px flex",
-                      "sm:col-start-".concat(
-                        (
-                          differenceInDays(time, startOfWeek(time)) + 1
-                        ).toString(),
-                      ),
+                      columnPosition[differenceInDays(time, startOfWeek(time))]
                     )}
                     style={{
                       gridRow: cn(
@@ -261,7 +258,7 @@ export default function WeekCalendar() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   )
 }
 
