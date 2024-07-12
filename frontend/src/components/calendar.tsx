@@ -116,72 +116,7 @@ export default function WeekCalendar() {
           </div>
 
           {/* Mobile three dot menu */}
-          <Menu as="div" className="relative ml-6 md:hidden">
-            <MenuButton className="-mx-2 flex items-center rounded-full border border-transparent p-2 text-accent-foreground">
-              <span className="sr-only">Open menu</span>
-              <EllipsisHorizontalIcon className="h-5 w-5" aria-hidden="true" />
-            </MenuButton>
-
-            <MenuItems
-              transition
-              className="absolute right-0 z-10 mt-3 w-36 origin-top-right divide-y divide-gray-100 overflow-hidden rounded-md bg-card shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:scale-95 data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-            >
-              <div className="py-1">
-                <MenuItem>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-                  >
-                    Create event
-                  </a>
-                </MenuItem>
-              </div>
-              <div className="py-1">
-                <MenuItem>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-                  >
-                    Go to today
-                  </a>
-                </MenuItem>
-              </div>
-              <div className="py-1">
-                <MenuItem>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-                  >
-                    Day view
-                  </a>
-                </MenuItem>
-                <MenuItem>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-                  >
-                    Week view
-                  </a>
-                </MenuItem>
-                <MenuItem>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-                  >
-                    Month view
-                  </a>
-                </MenuItem>
-                <MenuItem>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
-                  >
-                    Year view
-                  </a>
-                </MenuItem>
-              </div>
-            </MenuItems>
-          </Menu>
+          <ThreeDotMenu />
         </div>
       </header>
 
@@ -354,5 +289,76 @@ function ViewMenu({ view, setView }: ViewMenuProps) {
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+function ThreeDotMenu() {
+  return (
+    <Menu as="div" className="relative ml-6 md:hidden">
+      <MenuButton className="-mx-2 flex items-center rounded-full border border-transparent p-2 text-accent-foreground">
+        <span className="sr-only">Open menu</span>
+        <EllipsisHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+      </MenuButton>
+
+      <MenuItems
+        transition
+        className="absolute right-0 z-10 mt-3 w-36 origin-top-right divide-y divide-gray-100 overflow-hidden rounded-md bg-card shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:scale-95 data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
+      >
+        <div className="py-1">
+          <MenuItem>
+            <a
+              href="#"
+              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
+            >
+              Create event
+            </a>
+          </MenuItem>
+        </div>
+        <div className="py-1">
+          <MenuItem>
+            <a
+              href="#"
+              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
+            >
+              Go to today
+            </a>
+          </MenuItem>
+        </div>
+        <div className="py-1">
+          <MenuItem>
+            <a
+              href="#"
+              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
+            >
+              Day view
+            </a>
+          </MenuItem>
+          <MenuItem>
+            <a
+              href="#"
+              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
+            >
+              Week view
+            </a>
+          </MenuItem>
+          <MenuItem>
+            <a
+              href="#"
+              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
+            >
+              Month view
+            </a>
+          </MenuItem>
+          <MenuItem>
+            <a
+              href="#"
+              className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-foreground"
+            >
+              Year view
+            </a>
+          </MenuItem>
+        </div>
+      </MenuItems>
+    </Menu>
   )
 }
