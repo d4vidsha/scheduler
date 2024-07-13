@@ -36,7 +36,13 @@ The **latest changes** from the main branch are deployed at <https://staging-sch
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=d4vidsha/scheduler&type=Date)](https://star-history.com/#d4vidsha/scheduler&Date)
+<a href="https://star-history.com/#d4vidsha/scheduler&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=d4vidsha/scheduler&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=d4vidsha/scheduler&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=d4vidsha/scheduler&type=Date" />
+ </picture>
+</a>
 
 ## Contributing
 
