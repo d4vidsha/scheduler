@@ -1,0 +1,75 @@
+import { Canvas, Meta, Controls } from '@storybook/blocks';
+import * as ButtonStories from './button.stories';
+
+<Meta of={ButtonStories} />
+
+# Button
+
+Displays a button or a component that looks like a button. This was originally taken from [shadcn/ui](https://ui.shadcn.com/docs/components/button).
+
+<Canvas of={ButtonStories.Primary} />
+<Controls of={ButtonStories.Primary} />
+
+## Link
+
+You can use the buttonVariants helper to create a link that looks like a button.
+
+```tsx
+import { buttonVariants } from "@/components/ui/button"
+```
+
+```tsx
+<Link className={buttonVariants({ variant: "outline" })}>Click here</Link>
+```
+
+Alternatively, you can set the asChild parameter and nest the link component.
+
+```tsx
+<Button asChild>
+  <Link href="/login">Login</Link>
+</Button>
+```
+
+## Examples
+
+### Primary
+
+<Canvas of={ButtonStories.Primary} />
+
+### Secondary
+
+<Canvas of={ButtonStories.Secondary} />
+
+### Destructive
+
+<Canvas of={ButtonStories.Destructive} />
+
+### Outline
+
+<Canvas of={ButtonStories.Outline} />
+
+### Ghost
+
+<Canvas of={ButtonStories.Ghost} />
+
+### Link
+
+<Canvas of={ButtonStories.Link} />
+
+### Icon
+
+<Canvas of={ButtonStories.Icon} />
+
+### With Icon
+
+<Canvas of={ButtonStories.WithIcon} />
+
+### Button Loading
+
+<Canvas of={ButtonStories.ButtonLoading} />
+
+### As Child
+
+Read more about Radix's `asChild` prop [at Radix UI official docs](https://www.radix-ui.com/primitives/docs/guides/composition) or at this [blog post](https://www.jacobparis.com/content/react-as-child).
+
+<Canvas of={ButtonStories.AsChild} />

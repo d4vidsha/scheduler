@@ -1,0 +1,29 @@
+import { Canvas, Meta, Controls } from '@storybook/blocks';
+import * as SpinnerStories from './Spinner.stories';
+
+<Meta of={SpinnerStories} />
+
+# Spinner
+
+A simple spinner for displaying loading state. It was originally taken from [shadcn/ui expansions](https://shadcnui-expansions.typeart.cc/docs/spinner).
+
+<Canvas of={SpinnerStories.Medium} />
+<Controls of={SpinnerStories.Medium} />
+
+## Examples
+
+### Small
+
+<Canvas of={SpinnerStories.Small} />
+
+### Medium
+
+<Canvas of={SpinnerStories.Medium} />
+
+### Large
+
+<Canvas of={SpinnerStories.Large} />
+
+### With Text
+
+<Canvas of={SpinnerStories.WithText} />
