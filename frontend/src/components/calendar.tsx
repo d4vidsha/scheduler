@@ -16,7 +16,7 @@ import {
   startOfWeek,
 } from "date-fns"
 import { ChevronDown, ChevronLeft, ChevronRight, Ellipsis } from "lucide-react"
-import React, { Children, ReactNode, useEffect, useRef, useState } from "react"
+import React, { type ReactNode, useEffect, useRef, useState } from "react"
 import { Button } from "./ui/button"
 import {
   DropdownMenu,
@@ -257,7 +257,7 @@ export default function WeekCalendar() {
           </div>
         </div>
       </div>
-    </div >
+    </div>
   )
 }
 
@@ -303,15 +303,11 @@ function ThreeDotMenu({ view, setView }: ViewMenuProps) {
         <DropdownMenuSeparator />
         <DropdownMenuRadioGroup value={view} onValueChange={setView}>
           <DropdownMenuRadioItem value="day">Day view</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="week">
-            Week view
-          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="week">Week view</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="month">
             Month view
           </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="year">
-            Year view
-          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="year">Year view</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
