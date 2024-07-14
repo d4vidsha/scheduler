@@ -9,11 +9,11 @@
 <p align="center">
 <img src="frontend/public/assets/images/calendar-icon.svg" width="200" title="Scheduler">
 </p>
-<h3 align="center">Automatically schedule your tasks and see it in a calendar view</h3>
+<h3 align="center">Automatically schedule tasks and see it in a calendar view</h3>
 
 # Scheduler
 
-All existing solutions to task management have some task-calendar separation which makes it difficult to see what tasks can be accomplished in a given day or week. This app aims to solve this problem by automatically scheduling tasks into your calendar so you always know how much can be accomplished.
+All existing solutions to task management have some calendar-to-task separation which makes it difficult to see what tasks can be accomplished in a given day or week. This app aims to solve this problem by automatically scheduling tasks right into your calendar.
 
 - [Demo](#demo)
 - [Repository Activity](#repository-activity)
@@ -22,7 +22,7 @@ All existing solutions to task management have some task-calendar separation whi
 
 ## Demo
 
-The **latest changes** from the main branch are deployed at <https://staging-scheduler.davidsha.me>. Use the login credentials below to sign in.
+The **latest changes** from the main branch are deployed at <https://staging-scheduler.davidsha.me>.
 
 ### Login credentials
 
