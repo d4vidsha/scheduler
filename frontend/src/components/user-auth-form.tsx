@@ -37,6 +37,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   })
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState<boolean>(false)
+  const EyeToggle = showPassword ? EyeOff : Eye
 
   const onSubmit: SubmitHandler<AccessToken> = async (data) => {
     setIsLoading(true)
@@ -79,23 +80,14 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                       type={showPassword ? "text" : "password"}
                       {...field}
                     />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <div className="text-muted-foreground">
-                        {showPassword ? (
-                          <EyeOff
-                            size={18}
-                            onClick={() => setShowPassword(!showPassword)}
-                            aria-label="Hide password"
-                          />
-                        ) : (
-                          <Eye
-                            size={18}
-                            onClick={() => setShowPassword(!showPassword)}
-                            aria-label="Show password"
-                          />
-                        )}
-                      </div>
-                    </div>
+                    <EyeToggle
+                      className="text-muted-foreground absolute right-3 top-1/2 transform -translate-y-1/2"
+                      size={18}
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                    />
                   </div>
                 </FormControl>
                 <FormMessage />
