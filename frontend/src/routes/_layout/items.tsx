@@ -16,6 +16,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 
+import AddItem from "@/components/Items/AddItem"
 import { useEffect } from "react"
 import { ItemsService } from "../../client"
 import ActionsMenu from "../../components/Common/ActionsMenu"
@@ -135,7 +136,7 @@ function Items() {
         Items Management
       </Heading>
 
-      <Navbar type={"Item"} />
+      <Navbar type={"Item"} addModalAs={AddItem} />
       <ItemsTable />
     </Container>
   )
