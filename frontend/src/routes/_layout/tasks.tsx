@@ -14,23 +14,25 @@ const tasks = [
 
 function Tasks() {
   return (
-    <div className="flex justify-center mx-20 my-10">
-      <div className="w-[800px]">
-        <header className="mb-4">
-          <h1 className="text-3xl font-bold">
-            Inbox
-          </h1>
-        </header>
-        <main className="flex flex-col">
-          {tasks.map((task) => (
-            <div key={task.id.toString()} className="flex border-b py-1">
-              <Circle className="flex-none h-4 w-4 self-start mr-2 mt-3" />
-              <div className="flex py-2">
-                <p>{task.title}</p>
+    <div className="mx-20 my-10">
+      <div className="flex justify-center">
+        <div className="flex-col shrink w-[800px] min-w-56">
+          <header className="mb-4">
+            <h1 className="text-3xl font-bold">
+              Inbox
+            </h1>
+          </header>
+          <main className="flex flex-col">
+            {tasks.map((task) => (
+              <div key={task.id.toString()} className="flex shrink-1 border-b py-3">
+                <button className="self-start">
+                  <Circle className="flex-none h-5 w-5 mr-2 transition-colors hover:bg-accent rounded-full" />
+                </button>
+                <p className="text-sm line-clamp-4 text-ellipsis">{task.title}</p>
               </div>
-            </div>
-          ))}
-        </main>
+            ))}
+          </main>
+        </div>
       </div>
     </div>
   )
