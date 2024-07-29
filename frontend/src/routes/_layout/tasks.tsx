@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { motion } from "framer-motion"
 import { Check, Circle } from "lucide-react"
+import { useState } from "react"
 
 export const Route = createFileRoute("/_layout/tasks")({
   component: Tasks,
@@ -12,9 +13,6 @@ const tasks = [
   { id: 3, title: "Clean bedroom", completed: false },
   { id: 4, title: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.", completed: false }
 ]
-
-function onCheckmarkTap(event, info) {
-}
 
 function Tasks() {
   return (
@@ -28,24 +26,31 @@ function Tasks() {
           </header>
           <main className="flex flex-col">
             {tasks.map((task) => (
-              <div key={task.id.toString()} className="flex gap-2 shrink-1 border-b py-3">
-                <motion.button
-                  whileTap={{ scale: 1.2 }}
-                  onTap={onCheckmarkTap}
-                  className="flex-none self-start">
-                  <div className="grid grid-cols-1 grid-rows-1">
-                    <Circle className="h-5 w-5 row-start-1 row-end-1 col-start-1 col-end-1" />
-                    <div className="group flex justify-center items-center row-start-1 row-end-1 col-start-1 col-end-1" >
-                      <Check strokeWidth={4.5} className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity ease-in-out duration-300" />
-                    </div>
-                  </div>
-                </motion.button>
-                <p className="text-sm line-clamp-4 text-ellipsis">{task.title}</p>
-              </div>
+              <Task key={task.id} task={task} />
             ))}
           </main>
         </div>
       </div>
+    </div>
+  )
+}
+
+function Task({ task }: { task: { id: number; title: string; completed: boolean } }) {
+  const [isCompleted, setIsCompleted] = useState(task.completed)
+  return (
+    <div className="flex gap-2 shrink-1 border-b py-3">
+      <motion.button
+        whileTap={{ scale: 1.2 }}
+        onTap={() => setIsCompleted(!isCompleted)}
+        className="flex-none self-start">
+        <div className="grid grid-cols-1 grid-rows-1">
+          <Circle className="h-5 w-5 row-start-1 row-end-1 col-start-1 col-end-1" />
+          <div className="flex justify-center items-center row-start-1 row-end-1 col-start-1 col-end-1" >
+            {isCompleted && <Check strokeWidth={4.5} className="h-3 w-3" />}
+          </div>
+        </div>
+      </motion.button>
+      <p className="text-sm line-clamp-4 text-ellipsis">{task.title}</p>
     </div>
   )
 }
