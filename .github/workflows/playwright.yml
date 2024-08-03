@@ -39,6 +39,7 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
       working-directory: frontend
+    - run: cp .env.example .env
     - run: docker compose build
     - run: docker compose down -v --remove-orphans
     - run: docker compose up -d
