@@ -20,7 +20,7 @@ import { Spinner } from "./Common/Spinner"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 
-interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> { }
+interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 type FormData = z.infer<typeof userAuthSchema>
 
@@ -62,7 +62,12 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input placeholder="Email" type="email" disabled={isLoading} {...field} />
+                  <Input
+                    placeholder="Email"
+                    type="email"
+                    disabled={isLoading}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
