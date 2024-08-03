@@ -62,7 +62,12 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input placeholder="Email" type="email" {...field} />
+                  <Input
+                    placeholder="Email"
+                    type="email"
+                    disabled={isLoading}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -78,6 +83,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                     <Input
                       placeholder="Password"
                       type={showPassword ? "text" : "password"}
+                      disabled={isLoading}
                       {...field}
                     />
                     <EyeToggle

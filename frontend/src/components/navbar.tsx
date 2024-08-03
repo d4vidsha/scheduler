@@ -15,7 +15,7 @@ import UserMenu from "./user-menu"
 
 const navigation = [
   { icon: Calendar, title: "Calendar", path: "/" },
-  { icon: CheckSquare2, title: "Tasks", path: "/items" },
+  { icon: CheckSquare2, title: "Tasks", path: "/tasks" },
 ]
 
 const NavBar = () => {
