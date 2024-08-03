@@ -48,7 +48,7 @@ function Login() {
         <UserAuthForm />
         <p className="px-8 text-center text-sm text-muted-foreground">
           {/* use /register when we have the route */}
-          <RouterLink to="/" className="underline underline-offset-4">
+          <RouterLink to="/signup" className="underline underline-offset-4">
             Don&apos;t have an account? Sign Up
           </RouterLink>
         </p>

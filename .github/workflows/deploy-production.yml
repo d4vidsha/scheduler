@@ -23,7 +23,6 @@ jobs:
       EMAILS_FROM_EMAIL: ${{ secrets.EMAILS_FROM_EMAIL }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-      USERS_OPEN_REGISTRATION: ${{ secrets.USERS_OPEN_REGISTRATION_PRODUCTION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
