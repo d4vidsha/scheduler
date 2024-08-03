@@ -24,7 +24,7 @@ const UserMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="relative ml-3">
+        <Avatar className="relative ml-3 cursor-pointer ">
           <AvatarImage src="https://github.com/d4vidsha.png" />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
