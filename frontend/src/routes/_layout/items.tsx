@@ -1,6 +1,4 @@
 import {
-  Badge,
-  Box,
   Button,
   Container,
   Flex,
@@ -19,53 +17,52 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect } from "react"
 import { z } from "zod"
 
-import { type UserPublic, UsersService } from "../../client"
-import AddUser from "../../components/Admin/AddUser"
+import { ItemsService } from "../../client"
 import ActionsMenu from "../../components/Common/ActionsMenu"
 import Navbar from "../../components/Common/Navbar"
+import AddItem from "../../components/Items/AddItem"
 
-const usersSearchSchema = z.object({
+const itemsSearchSchema = z.object({
   page: z.number().catch(1),
 })
 
-export const Route = createFileRoute("/_layout/admin")({
-  component: Admin,
-  validateSearch: (search) => usersSearchSchema.parse(search),
+export const Route = createFileRoute("/_layout/items")({
+  component: Items,
+  validateSearch: (search) => itemsSearchSchema.parse(search),
 })
 
 const PER_PAGE = 5
 
-function getUsersQueryOptions({ page }: { page: number }) {
+function getItemsQueryOptions({ page }: { page: number }) {
   return {
     queryFn: () =>
-      UsersService.readUsers({ skip: (page - 1) * PER_PAGE, limit: PER_PAGE }),
-    queryKey: ["users", { page }],
+      ItemsService.readItems({ skip: (page - 1) * PER_PAGE, limit: PER_PAGE }),
+    queryKey: ["items", { page }],
   }
 }
 
-function UsersTable() {
+function ItemsTable() {
   const queryClient = useQueryClient()
-  const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
   const { page } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
   const setPage = (page: number) =>
     navigate({ search: (prev) => ({ ...prev, page }) })
 
   const {
-    data: users,
+    data: items,
     isPending,
     isPlaceholderData,
   } = useQuery({
-    ...getUsersQueryOptions({ page }),
+    ...getItemsQueryOptions({ page }),
     placeholderData: (prevData) => prevData,
   })
 
-  const hasNextPage = !isPlaceholderData && users?.data.length === PER_PAGE
+  const hasNextPage = !isPlaceholderData && items?.data.length === PER_PAGE
   const hasPreviousPage = page > 1
 
   useEffect(() => {
     if (hasNextPage) {
-      queryClient.prefetchQuery(getUsersQueryOptions({ page: page + 1 }))
+      queryClient.prefetchQuery(getItemsQueryOptions({ page: page + 1 }))
     }
   }, [page, queryClient, hasNextPage])
 
@@ -75,11 +72,10 @@ function UsersTable() {
         <Table size={{ base: "sm", md: "md" }}>
           <Thead>
             <Tr>
-              <Th width="20%">Full name</Th>
-              <Th width="50%">Email</Th>
-              <Th width="10%">Role</Th>
-              <Th width="10%">Status</Th>
-              <Th width="10%">Actions</Th>
+              <Th>ID</Th>
+              <Th>Title</Th>
+              <Th>Description</Th>
+              <Th>Actions</Th>
             </Tr>
           </Thead>
           {isPending ? (
@@ -94,42 +90,21 @@ function UsersTable() {
             </Tbody>
           ) : (
             <Tbody>
-              {users?.data.map((user) => (
-                <Tr key={user.id}>
+              {items?.data.map((item) => (
+                <Tr key={item.id} opacity={isPlaceholderData ? 0.5 : 1}>
+                  <Td>{item.id}</Td>
+                  <Td isTruncated maxWidth="150px">
+                    {item.title}
+                  </Td>
                   <Td
-                    color={!user.full_name ? "ui.dim" : "inherit"}
+                    color={!item.description ? "ui.dim" : "inherit"}
                     isTruncated
                     maxWidth="150px"
                   >
-                    {user.full_name || "N/A"}
-                    {currentUser?.id === user.id && (
-                      <Badge ml="1" colorScheme="teal">
-                        You
-                      </Badge>
-                    )}
-                  </Td>
-                  <Td isTruncated maxWidth="150px">
-                    {user.email}
-                  </Td>
-                  <Td>{user.is_superuser ? "Superuser" : "User"}</Td>
-                  <Td>
-                    <Flex gap={2}>
-                      <Box
-                        w="2"
-                        h="2"
-                        borderRadius="50%"
-                        bg={user.is_active ? "ui.success" : "ui.danger"}
-                        alignSelf="center"
-                      />
-                      {user.is_active ? "Active" : "Inactive"}
-                    </Flex>
+                    {item.description || "N/A"}
                   </Td>
                   <Td>
-                    <ActionsMenu
-                      type="User"
-                      value={user}
-                      disabled={currentUser?.id === user.id ? true : false}
-                    />
+                    <ActionsMenu type={"Item"} value={item} />
                   </Td>
                 </Tr>
               ))}
@@ -156,15 +131,15 @@ function UsersTable() {
   )
 }
 
-function Admin() {
+function Items() {
   return (
     <Container maxW="full">
       <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={12}>
-        Users Management
+        Items Management
       </Heading>
 
-      <Navbar type={"User"} addModalAs={AddUser} />
-      <UsersTable />
+      <Navbar type={"Item"} addModalAs={AddItem} />
+      <ItemsTable />
     </Container>
   )
 }
