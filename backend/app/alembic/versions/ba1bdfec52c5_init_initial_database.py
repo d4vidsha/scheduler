@@ -1,8 +1,8 @@
-"""init: initial databases
+"""init: initial database
 
-Revision ID: 119709b3f9bb
-Revises:
-Create Date: 2024-06-24 12:29:36.756635
+Revision ID: ba1bdfec52c5
+Revises: 
+Create Date: 2024-08-03 22:04:39.316036
 
 """
 from alembic import op
@@ -11,7 +11,7 @@ import sqlmodel.sql.sqltypes
 
 
 # revision identifiers, used by Alembic.
-revision = '119709b3f9bb'
+revision = 'ba1bdfec52c5'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -30,17 +30,17 @@ def upgrade():
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('is_superuser', sa.Boolean(), nullable=False),
     sa.Column('full_name', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('hashed_password', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)
     op.create_table('item',
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('title', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
-    sa.Column('owner_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['owner_id'], ['user.id'], ),
+    sa.Column('owner_id', sa.Uuid(), nullable=False),
+    sa.ForeignKeyConstraint(['owner_id'], ['user.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('task',
@@ -49,9 +49,9 @@ def upgrade():
     sa.Column('priority_id', sa.Integer(), nullable=True),
     sa.Column('duration', sa.Integer(), nullable=True),
     sa.Column('due', sa.DateTime(), nullable=True),
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('owner_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['owner_id'], ['user.id'], ),
+    sa.Column('id', sa.Uuid(), nullable=False),
+    sa.Column('owner_id', sa.Uuid(), nullable=False),
+    sa.ForeignKeyConstraint(['owner_id'], ['user.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['priority_id'], ['priority.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
