@@ -1,4 +1,5 @@
 import { buttonVariants } from "@/components/ui/button"
+import logo from "../../public/assets/images/calendar-icon.svg"
 import { cn } from "@/lib/utils"
 import {
   Disclosure,
@@ -49,7 +50,7 @@ const NavBar = () => {
                 <div className="flex flex-shrink-0 items-center">
                   <img
                     className="h-8 w-auto"
-                    src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                    src={logo}
                     alt="Scheduler"
                   />
                 </div>

@@ -172,7 +172,7 @@ export default function WeekCalendar() {
                         "items-center justify-center font-semibold",
                         !isToday(day)
                           ? "text-foreground"
-                          : "ml-1.5 flex h-6 w-6 rounded-full bg-indigo-600 text-white",
+                          : "ml-1.5 flex h-6 w-6 rounded-full bg-[#e74c3c] text-white",
                       )}
                     >
                       {format(day, "d")}
