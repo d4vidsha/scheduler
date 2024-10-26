@@ -69,11 +69,24 @@ Done, you have a frontend-less (api-only) app. 🤓
 If you want, you can also remove the `FRONTEND` environment variables from:
 
 - `.env`
-- `./scripts/-.sh`
+- `./scripts/*.sh`
 
 But it would be only to clean them up, leaving them won't really have any effect either way.
 
 ## Generate Client
+
+### Automatically
+
+- Activate the backend virtual environment.
+- From the top level project directory, run the script:
+
+```bash
+./scripts/generate-frontend-client.sh
+```
+
+- Commit the changes.
+
+### Manually
 
 - Start the Docker Compose stack.
 
@@ -100,7 +113,7 @@ Notice that everytime the backend changes (changing the OpenAPI schema), you sho
 If you want to use a remote API, you can set the environment variable `VITE_API_URL` to the URL of the remote API. For example, you can set it in the `frontend/.env` file:
 
 ```env
-VITE_API_URL=https://my-remote-api.example.com
+VITE_API_URL=https://api.my-domain.example.com
 ```
 
 Then, when you run the frontend, it will use that URL as the base URL for the API.
@@ -122,7 +135,7 @@ The frontend code is structured as follows:
 The frontend includes initial end-to-end tests using Playwright. To run the tests, you need to have the Docker Compose stack running. Start the stack with the following command:
 
 ```bash
-docker compose up -d
+docker compose up -d --wait backend
 ```
 
 Then, you can run the tests with the following command:

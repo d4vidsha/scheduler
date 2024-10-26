@@ -6,7 +6,7 @@ This project expects you to have a Traefik proxy handling communication to the o
 
 You can use CI/CD (continuous integration and continuous deployment) systems to deploy automatically, there are already configurations to do it with GitHub Actions.
 
-But you have to configure a couple things first.
+But you have to configure a couple things first. 🤓
 
 ## Preparation
 
@@ -297,24 +297,20 @@ Traefik UI: `https://traefik-project.example.com`
 
 ### Production
 
-When `DOMAIN_PRODUCTION=project.example.com`:
+Frontend: `https://dashboard-project.example.com`
 
-Frontend: `https://project.example.com`
+Backend API docs: `https://api-project.example.com/docs`
 
-Backend API docs: `https://project.example.com/docs`
-
-Backend API base URL: `https://project.example.com/api/`
+Backend API base URL: `https://api-project.example.com`
 
 Adminer: `https://adminer-project.example.com`
 
 ### Staging
 
-When `DOMAIN_STAGING=staging-project.example.com`:
+Frontend: `https://dashboard-staging-project.example.com`
 
-Frontend: `https://staging-project.example.com`
+Backend API docs: `https://api-staging-project.example.com/docs`
 
-Backend API docs: `https://staging-project.example.com/docs`
-
-Backend API base URL: `https://staging-project.example.com/api/`
+Backend API base URL: `https://api-staging-project.example.com`
 
 Adminer: `https://adminer-staging-project.example.com`
