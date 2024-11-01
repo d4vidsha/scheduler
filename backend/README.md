@@ -157,7 +157,7 @@ If you don't want to use migrations at all, uncomment the lines in the file at `
 SQLModel.metadata.create_all(engine)
 ```
 
-and comment the line in the file `prestart.sh` that contains:
+and comment the line in the file `scripts/prestart.sh` that contains:
 
 ```console
 alembic upgrade head
