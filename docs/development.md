@@ -186,6 +186,8 @@ Adminer: <http://localhost:8080>
 
 Traefik UI: <http://localhost:8090>
 
+MailCatcher: <http://localhost:1080>
+
 ### Development URLs with `localhost.davidsha.me` Configured
 
 Development URLs, for local development.
@@ -201,3 +203,5 @@ Automatic Alternative Docs (ReDoc): <http://localhost.davidsha.me:8000/redoc>
 Adminer: <http://localhost.davidsha.me:8080>
 
 Traefik UI: <http://localhost.davidsha.me:8090>
+
+MailCatcher: <http://localhost.davidsha.me:1080>
