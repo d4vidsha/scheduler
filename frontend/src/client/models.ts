@@ -19,8 +19,8 @@ export type ItemCreate = {
 export type ItemPublic = {
   title: string
   description?: string | null
-  id: number
-  owner_id: number
+  id: string
+  owner_id: string
 }
 
 export type ItemUpdate = {
@@ -48,8 +48,8 @@ export type Task = {
   priority_id?: number | null
   duration?: number | null
   due?: string | null
-  id?: number | null
-  owner_id?: number | null
+  id?: string
+  owner_id: string
 }
 
 export type TaskPublic = {
@@ -58,8 +58,8 @@ export type TaskPublic = {
   priority_id?: number | null
   duration?: number | null
   due?: string | null
-  id: number
-  owner_id: number
+  id: string
+  owner_id: string
 }
 
 export type TasksPublic = {
@@ -90,7 +90,7 @@ export type UserPublic = {
   is_active?: boolean
   is_superuser?: boolean
   full_name?: string | null
-  id: number
+  id: string
 }
 
 export type UserRegister = {
