@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "lint": "biome check --apply-unsafe --no-errors-on-unmatched --files-ignore-unknown=true ./",
     "preview": "vite preview",
-    "generate-client": "openapi-ts --input ./openapi.json --output ./src/client --client axios --exportSchemas true && biome format --write ./src/client",
+    "generate-client": "openapi-ts --input ./openapi.json --output ./src/client --client axios --exportSchemas true",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -27,7 +27,7 @@
     "@tanstack/react-query": "^5.49.0",
     "@tanstack/react-query-devtools": "^5.49.1",
     "@tanstack/react-router": "1.19.1",
-    "axios": "1.6.2",
+    "axios": "1.7.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cssnano": "^7.0.3",

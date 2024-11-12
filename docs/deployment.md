@@ -6,7 +6,7 @@ This project expects you to have a Traefik proxy handling communication to the o
 
 You can use CI/CD (continuous integration and continuous deployment) systems to deploy automatically, there are already configurations to do it with GitHub Actions.
 
-But you have to configure a couple things first.
+But you have to configure a couple things first. 🤓
 
 ## Preparation
 
@@ -196,22 +196,22 @@ There are already two environments configured, `staging` and `production`. 🚀
 
 ### Install GitHub Actions Runner
 
-- On your remote server, if you are running as the `root` user, create a user for your GitHub Actions:
+- On your remote server, create a user for your GitHub Actions:
 
 ```bash
-adduser github
+sudo adduser github
 ```
 
 - Add Docker permissions to the `github` user:
 
 ```bash
-usermod -aG docker github
+sudo usermod -aG docker github
 ```
 
 - Temporarily switch to the `github` user:
 
 ```bash
-su - github
+sudo su - github
 ```
 
 - Go to the `github` user's home directory:
@@ -232,9 +232,15 @@ To make sure it runs on startup and continues running, you can install it as a s
 exit
 ```
 
-After you do it, you would be on the `root` user again. And you will be on the previous directory, belonging to the `root` user.
+After you do it, you will be on the previous user again. And you will be on the previous directory, belonging to the that user.
 
-- Go to the `actions-runner` directory inside of the `github` user's home directory:
+Before being able to go the `github` user directory, you need to become the `root` user (you might already be):
+
+```bash
+sudo su
+```
+
+- As the `root` user, go to the `actions-runner` directory inside of the `github` user's home directory:
 
 ```bash
 cd /home/github/actions-runner
@@ -297,24 +303,20 @@ Traefik UI: `https://traefik-project.example.com`
 
 ### Production
 
-When `DOMAIN_PRODUCTION=project.example.com`:
+Frontend: `https://dashboard-project.example.com`
 
-Frontend: `https://project.example.com`
+Backend API docs: `https://api-project.example.com/docs`
 
-Backend API docs: `https://project.example.com/docs`
-
-Backend API base URL: `https://project.example.com/api/`
+Backend API base URL: `https://api-project.example.com`
 
 Adminer: `https://adminer-project.example.com`
 
 ### Staging
 
-When `DOMAIN_STAGING=staging-project.example.com`:
+Frontend: `https://dashboard-staging-project.example.com`
 
-Frontend: `https://staging-project.example.com`
+Backend API docs: `https://api-staging-project.example.com/docs`
 
-Backend API docs: `https://staging-project.example.com/docs`
-
-Backend API base URL: `https://staging-project.example.com/api/`
+Backend API base URL: `https://api-staging-project.example.com`
 
 Adminer: `https://adminer-staging-project.example.com`

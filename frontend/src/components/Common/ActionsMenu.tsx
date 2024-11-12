@@ -63,7 +63,7 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
         )}
         <Delete
           type={type}
-          id={value.id}
+          id={Number(value.id)}
           isOpen={deleteModal.isOpen}
           onClose={deleteModal.onClose}
         />

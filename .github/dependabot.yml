@@ -1,16 +1,16 @@
 version: 2
 updates:
-  # github actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "daily"
+      interval: daily
     commit-message:
-      prefix: ":arrow_up:"
-  # python
-  - package-ecosystem: "pip"
-    directory: "/"
+      prefix: ⬆
+  # Python
+  - package-ecosystem: pip
+    directory: /
     schedule:
-      interval: "daily"
+      interval: daily
     commit-message:
-      prefix: ":arrow_up:"
+      prefix: ⬆

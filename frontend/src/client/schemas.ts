@@ -104,12 +104,14 @@ export const $ItemPublic = {
       ],
     },
     id: {
-      type: "number",
+      type: "string",
       isRequired: true,
+      format: "uuid",
     },
     owner_id: {
-      type: "number",
+      type: "string",
       isRequired: true,
+      format: "uuid",
     },
   },
 } as const
@@ -245,26 +247,13 @@ export const $Task = {
       ],
     },
     id: {
-      type: "any-of",
-      contains: [
-        {
-          type: "number",
-        },
-        {
-          type: "null",
-        },
-      ],
+      type: "string",
+      format: "uuid",
     },
     owner_id: {
-      type: "any-of",
-      contains: [
-        {
-          type: "number",
-        },
-        {
-          type: "null",
-        },
-      ],
+      type: "string",
+      isRequired: true,
+      format: "uuid",
     },
   },
 } as const
@@ -330,12 +319,14 @@ export const $TaskPublic = {
       ],
     },
     id: {
-      type: "number",
+      type: "string",
       isRequired: true,
+      format: "uuid",
     },
     owner_id: {
-      type: "number",
+      type: "string",
       isRequired: true,
+      format: "uuid",
     },
   },
 } as const
@@ -452,8 +443,9 @@ export const $UserPublic = {
       ],
     },
     id: {
-      type: "number",
+      type: "string",
       isRequired: true,
+      format: "uuid",
     },
   },
 } as const
