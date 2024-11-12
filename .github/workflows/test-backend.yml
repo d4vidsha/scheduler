@@ -11,8 +11,6 @@ on:
 
 jobs:
   test-backend:
-    env:
-      STACK_NAME: scheduler
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,6 +24,7 @@ jobs:
         with:
           version: "0.4.15"
           enable-cache: true
+      - run: cp .env.example .env
       - run: docker compose down -v --remove-orphans
       - run: docker compose up -d db mailcatcher
       - name: Migrate DB
