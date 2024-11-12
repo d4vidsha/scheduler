@@ -59,6 +59,8 @@ jobs:
       if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled == 'true' }}
       with:
         limit-access-to-actor: true
+    - run: cp .env.example .env
+    - run: cp frontend/.env.example frontend/.env
     - run: docker compose build
     - run: docker compose down -v --remove-orphans
     - name: Run Playwright tests
