@@ -84,7 +84,7 @@ DOMAIN=localhost.davidsha.me
 
 That will be used by the Docker Compose files to configure the base domain for the services.
 
-Traefik will use this to transmit traffic at `api-localhost.davidsha.me` to the backend, and traffic at `dashboard-localhost.davidsha.me` to the frontend.
+Traefik will use this to transmit traffic at `api-localhost.davidsha.me` to the backend, and traffic at `localhost.davidsha.me` to the frontend.
 
 The domain `localhost.davidsha.me` is a special domain that is configured (with all its subdomains) to point to `127.0.0.1`. This way you can use that for your local development.
 

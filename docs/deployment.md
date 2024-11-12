@@ -303,7 +303,7 @@ Traefik UI: `https://traefik-project.example.com`
 
 ### Production
 
-Frontend: `https://dashboard-project.example.com`
+Frontend: `https://project.example.com`
 
 Backend API docs: `https://api-project.example.com/docs`
 
@@ -313,7 +313,7 @@ Adminer: `https://adminer-project.example.com`
 
 ### Staging
 
-Frontend: `https://dashboard-staging-project.example.com`
+Frontend: `https://staging-project.example.com`
 
 Backend API docs: `https://api-staging-project.example.com/docs`
 
