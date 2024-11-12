@@ -8,6 +8,12 @@ on:
 
 jobs:
   generate-client:
+    env:
+      PROJECT_NAME: Scheduler
+      POSTGRES_SERVER: localhost
+      POSTGRES_USER: postgres
+      FIRST_SUPERUSER: admin@example.com
+      FIRST_SUPERUSER_PASSWORD: changethis
     permissions:
       contents: write
     runs-on: ubuntu-latest
