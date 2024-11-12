@@ -11,6 +11,8 @@ on:
 
 jobs:
   test-backend:
+    env:
+      STACK_NAME: scheduler
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
