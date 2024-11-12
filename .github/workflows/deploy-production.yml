@@ -12,6 +12,7 @@ jobs:
       - production
     env:
       ENVIRONMENT: production
+      FRONTEND_HOST: ${{ secrets.FRONTEND_HOST_PRODUCTION }}
       DOMAIN: ${{ secrets.DOMAIN_PRODUCTION }}
       STACK_NAME: ${{ secrets.STACK_NAME_PRODUCTION }}
       SECRET_KEY: ${{ secrets.SECRET_KEY }}

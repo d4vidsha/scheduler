@@ -12,6 +12,7 @@ jobs:
       - staging
     env:
       ENVIRONMENT: staging
+      FRONTEND_HOST: ${{ secrets.FRONTEND_HOST_STAGING }}
       DOMAIN: ${{ secrets.DOMAIN_STAGING }}
       STACK_NAME: ${{ secrets.STACK_NAME_STAGING }}
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
