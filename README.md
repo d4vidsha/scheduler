@@ -1,6 +1,6 @@
 <p align="center">
 <br/>
-<a href="https://github.com/d4vidsha/scheduler/actions?query=workflow%3ATest" target="_blank"><img src="https://github.com/d4vidsha/scheduler/workflows/Test/badge.svg" alt="Test"></a>
+<a href="https://github.com/d4vidsha/scheduler/actions?query=workflow%3ATest" target="_blank"><img src="https://github.com/d4vidsha/scheduler/actions/workflows/test-backend.yml/badge.svg" alt="Test backend"></a>
 <a href="https://coverage-badge.samuelcolvin.workers.dev/redirect/d4vidsha/scheduler" target="_blank"><img src="https://coverage-badge.samuelcolvin.workers.dev/d4vidsha/scheduler.svg" alt="Coverage"></a>
 <br/>
 <br/>
@@ -15,10 +15,12 @@
 
 All existing solutions to task management have some calendar-to-task separation which makes it difficult to see what tasks can be accomplished in a given day or week. This app aims to solve this problem by automatically scheduling tasks right into your calendar.
 
-- [Demo](#demo)
-- [Repository Activity](#repository-activity)
-- [Star History](#star-history)
-- [Contibuting](#contributing)
+- [Scheduler](#scheduler)
+  - [Demo](#demo)
+    - [Login credentials](#login-credentials)
+  - [Repository Activity](#repository-activity)
+  - [Star History](#star-history)
+  - [Contributing](#contributing)
 
 ## Demo
 
