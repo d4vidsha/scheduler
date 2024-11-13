@@ -1,13 +1,18 @@
 # Contributing
 
-- [Contributing](#contributing)
-  - [Technology stack and features](#technology-stack-and-features)
-  - [Development](#development)
-    - [Backend development](#backend-development)
-    - [Frontend development](#frontend-development)
-    - [Deployment](#deployment)
+It's great that you want to contribute to this project! 🎉
 
-## Technology stack and features
+## Contents
+
+- [Contributing](#contributing)
+  - [Contents](#contents)
+  - [Technology stack](#technology-stack)
+  - [Development setup](#development-setup)
+
+## Technology stack
+
+> [!TIP]
+> The below is a high level overview of this project's architecture.
 
 - [FastAPI](https://fastapi.tiangolo.com/) for the Python backend API.
   - [SQLModel](https://sqlmodel.tiangolo.com) for the Python SQL database interactions (ORM).
@@ -27,18 +32,15 @@
 - [Traefik](https://traefik.io) as a reverse proxy / load balancer.
 - CI (continuous integration) and CD (continuous deployment) based on GitHub Actions.
 
-## Development
+## Development setup
 
-Start by reading the [development guide](docs/development.md).
+1. Fork this repository and then clone your fork.
 
-### Backend development
+2. Create your `.env` files. These new environment files store all the default environment variables. You can leave the defaults as is for now.
 
-Read more at [backend/README.md](backend/README.md).
+    ```bash
+    cp .env.example .env
+    cp frontend/.env.example frontend/.env
+    ```
 
-### Frontend development
-
-Read more at [frontend/README.md](frontend/README.md).
-
-### Deployment
-
-Read more at [docs/deployment.md](docs/deployment.md).
+3. You can now read on to the [development guide](docs/development.md).
