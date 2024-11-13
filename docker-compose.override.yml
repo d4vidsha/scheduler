@@ -1,10 +1,10 @@
 services:
 
   # Local services are available on their ports, but also available on:
-  # http://api.localhost.tiangolo.com: backend
-  # http://dashboard.localhost.tiangolo.com: frontend
+  # http://api.localhost.davidsha.me: backend
+  # http://dashboard.localhost.davidsha.me: frontend
   # etc. To enable it, update .env, set:
-  # DOMAIN=localhost.tiangolo.com
+  # DOMAIN=localhost.davidsha.me
   proxy:
     image: traefik:3.0
     volumes:
