@@ -1,6 +1,6 @@
 # Development
 
-Here you can find the general development instructions for all new contributors. This guide serves as your first step into this project. Later in the guide, you can find more specific instructions for the frontend or backend.
+Here you can find the general development instructions for all new contributors. This guide serves as your first proper introduction into this project. Later in the guide, you can find more specific instructions for the frontend or backend development. Lastly, make sure you have read [CONTRIBUTING.md](CONTRIBUTING.md) before coming here.
 
 ## Contents
 
