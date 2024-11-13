@@ -211,13 +211,13 @@ MailCatcher: <http://localhost:1080>
 
 Development URLs, for local development.
 
-Frontend: <http://localhost.davidsha.me:5173>
+Frontend: <http://localhost.davidsha.me>
 
-Backend: <http://localhost.davidsha.me:8000>
+Backend: <http://api-localhost.davidsha.me>
 
-Automatic Interactive Docs (Swagger UI): <http://localhost.davidsha.me:8000/docs>
+Automatic Interactive Docs (Swagger UI): <http://api-localhost.davidsha.me/docs>
 
-Automatic Alternative Docs (ReDoc): <http://localhost.davidsha.me:8000/redoc>
+Automatic Alternative Docs (ReDoc): <http://api-localhost.davidsha.me/redoc>
 
 Adminer: <http://localhost.davidsha.me:8080>
 
