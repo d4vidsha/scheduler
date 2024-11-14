@@ -11,7 +11,7 @@ It's great that you want to contribute to this project! 🎉
 
 ## Technology stack
 
-The below is a high level overview of this project's architecture.
+The below is a high level overview of this project's architecture. This should give you a good idea of what technologies you're going to work with.
 
 - [FastAPI](https://fastapi.tiangolo.com/) for the Python backend API.
   - [SQLModel](https://sqlmodel.tiangolo.com) for the Python SQL database interactions (ORM).
