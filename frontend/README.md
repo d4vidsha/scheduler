@@ -2,10 +2,10 @@
 
 The frontend is built with [Vite](https://vitejs.dev/), [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/), [TanStack Query](https://tanstack.com/query), [TanStack Router](https://tanstack.com/router) and [shadcn/ui](https://ui.shadcn.com/docs).
 
-## Content
+## Contents
 
 - [Frontend](#frontend)
-  - [Content](#content)
+  - [Contents](#contents)
   - [Frontend development](#frontend-development)
     - [Removing the frontend](#removing-the-frontend)
   - [Generate Client](#generate-client)
