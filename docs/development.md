@@ -71,7 +71,7 @@ docker compose stop frontend
 And then start the local frontend development server:
 
 > [!TIP]
-> If this is your first time reading this guide, you might not have the frontend or backend dependencies installed yet. As such, the below commands may fail. Don't worry, you can always come back to this section later as reference. For now, just know that this functionality exists.
+> If you are reading this guide for the first time, you might not have the frontend or backend dependencies installed yet. As such, the below commands may fail. Don't worry, you can always come back to this section later as reference. For now, just know that this functionality exists.
 
 ```bash
 cd frontend

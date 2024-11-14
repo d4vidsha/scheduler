@@ -35,7 +35,7 @@ The below is a high level overview of this project's architecture. This should g
 
 1. Fork this repository and then clone your fork.
 
-2. Create your `.env` files. These new environment files store all the default environment variables. You can leave the defaults as is for now.
+2. Create your `.env` files. These newly created environment files store all the default environment variables. You can leave the defaults as they are for now.
 
     ```bash
     cp .env.example .env
