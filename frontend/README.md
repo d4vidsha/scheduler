@@ -1,6 +1,19 @@
 # Frontend
 
-The frontend is built with [Vite](https://vitejs.dev/), [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/), [TanStack Query](https://tanstack.com/query), [TanStack Router](https://tanstack.com/router) and [Chakra UI](https://chakra-ui.com/).
+The frontend is built with [Vite](https://vitejs.dev/), [React](https://reactjs.org/), [TypeScript](https://www.typescriptlang.org/), [TanStack Query](https://tanstack.com/query), [TanStack Router](https://tanstack.com/router) and [shadcn/ui](https://ui.shadcn.com/docs).
+
+## Contents
+
+- [Frontend](#frontend)
+  - [Contents](#contents)
+  - [Frontend development](#frontend-development)
+    - [Removing the frontend](#removing-the-frontend)
+  - [Generate Client](#generate-client)
+    - [Automatically](#automatically)
+    - [Manually](#manually)
+  - [Using a Remote API](#using-a-remote-api)
+  - [Code Structure](#code-structure)
+  - [End-to-End Testing with Playwright](#end-to-end-testing-with-playwright)
 
 ## Frontend development
 
@@ -128,7 +141,7 @@ The frontend code is structured as follows:
 - `frontend/src/components` -  The different components of the frontend.
 - `frontend/src/hooks` - Custom hooks.
 - `frontend/src/routes` - The different routes of the frontend which include the pages.
-- `theme.tsx` - The Chakra UI custom theme.
+- `theme.tsx` - The Chakra UI custom theme (to be removed).
 
 ## End-to-End Testing with Playwright
 

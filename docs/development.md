@@ -1,26 +1,46 @@
 # Development
 
+Here you can find the general development instructions for all new contributors. This guide serves as your first proper introduction into this project. Later in the guide, you can find more specific instructions for the frontend or backend development. Lastly, make sure you have read [CONTRIBUTING.md](../CONTRIBUTING.md) before coming here.
+
+## Contents
+
+- [Development](#development)
+  - [Contents](#contents)
+  - [Docker Compose](#docker-compose)
+  - [Local development](#local-development)
+  - [Docker Compose in `localhost.davidsha.me`](#docker-compose-in-localhostdavidshame)
+  - [Docker Compose files and env vars](#docker-compose-files-and-env-vars)
+  - [The .env file](#the-env-file)
+  - [Pre-commits and code linting](#pre-commits-and-code-linting)
+    - [Install pre-commit to run automatically](#install-pre-commit-to-run-automatically)
+    - [Running pre-commit hooks manually](#running-pre-commit-hooks-manually)
+  - [URLs](#urls)
+    - [Development URLs](#development-urls)
+    - [Development URLs with `localhost.davidsha.me` Configured](#development-urls-with-localhostdavidshame-configured)
+  - [Next steps](#next-steps)
+
 ## Docker Compose
 
-- Start the local stack with Docker Compose:
+1. Start the local stack with Docker Compose:
 
-```bash
-docker compose watch
-```
+    ```bash
+    docker compose watch
+    ```
 
-- Now you can open your browser and interact with these URLs:
+2. Now you can open your browser and interact with these URLs:
 
-Frontend, built with Docker, with routes handled based on the path: http://localhost:5173
+    - Frontend, built with Docker, with routes handled based on the path: <http://localhost:5173>
 
-Backend, JSON based web API based on OpenAPI: http://localhost:8000
+    - Backend, JSON based web API based on OpenAPI: <http://localhost:8000>
 
-Automatic interactive documentation with Swagger UI (from the OpenAPI backend): http://localhost:8000/docs
+    - Automatic interactive documentation with Swagger UI (from the OpenAPI backend): <http://localhost:8000/docs>
 
-Adminer, database web administration: http://localhost:8080
+    - Adminer, database web administration: <http://localhost:8080>
 
-Traefik UI, to see how the routes are being handled by the proxy: http://localhost:8090
+    - Traefik UI, to see how the routes are being handled by the proxy: <http://localhost:8090>
 
-**Note**: The first time you start your stack, it might take a minute for it to be ready. While the backend waits for the database to be ready and configures everything. You can check the logs to monitor it.
+> [!NOTE]
+> The first time you start your stack, it might take a minute for it to be ready. While the backend waits for the database to be ready and configures everything. You can check the logs to monitor it.
 
 To check the logs, run (in another terminal):
 
@@ -34,7 +54,7 @@ To check the logs of a specific service, add the name of the service, e.g.:
 docker compose logs backend
 ```
 
-## Local Development
+## Local development
 
 The Docker Compose files are configured so that each of the services is available in a different port in `localhost`.
 
@@ -49,6 +69,9 @@ docker compose stop frontend
 ```
 
 And then start the local frontend development server:
+
+> [!TIP]
+> If you are reading this guide for the first time, you might not have the frontend or backend dependencies installed yet. As such, the below commands may fail. Don't worry, you can always come back to this section later as reference. For now, just know that this functionality exists.
 
 ```bash
 cd frontend
@@ -128,11 +151,14 @@ When you install it, it runs right before making a commit in git. This way it en
 
 You can find a file `.pre-commit-config.yaml` with configurations at the root of the project.
 
-#### Install pre-commit to run automatically
+### Install pre-commit to run automatically
 
 `pre-commit` is already part of the dependencies of the project, but you could also install it globally if you prefer to, following [the official pre-commit docs](https://pre-commit.com/).
 
 After having the `pre-commit` tool installed and available, you need to "install" it in the local repository, so that it runs automatically before each commit.
+
+> [!TIP]
+> If this is your first time going through this guide, you might not have [`uv`](https://docs.astral.sh/uv/) installed yet. Go there and install it.
 
 Using `uv`, you could do it with:
 
@@ -151,7 +177,7 @@ git commit
 
 Then you can `git add` the modified/fixed files again and now you can commit.
 
-#### Running pre-commit hooks manually
+### Running pre-commit hooks manually
 
 you can also run `pre-commit` manually on all the files, you can do it using `uv` with:
 
@@ -192,16 +218,23 @@ MailCatcher: <http://localhost:1080>
 
 Development URLs, for local development.
 
-Frontend: <http://localhost.davidsha.me:5173>
+Frontend: <http://localhost.davidsha.me>
 
-Backend: <http://localhost.davidsha.me:8000>
+Backend: <http://api-localhost.davidsha.me>
 
-Automatic Interactive Docs (Swagger UI): <http://localhost.davidsha.me:8000/docs>
+Automatic Interactive Docs (Swagger UI): <http://api-localhost.davidsha.me/docs>
 
-Automatic Alternative Docs (ReDoc): <http://localhost.davidsha.me:8000/redoc>
+Automatic Alternative Docs (ReDoc): <http://api-localhost.davidsha.me/redoc>
 
 Adminer: <http://localhost.davidsha.me:8080>
 
 Traefik UI: <http://localhost.davidsha.me:8090>
 
 MailCatcher: <http://localhost.davidsha.me:1080>
+
+## Next steps
+
+Now that you are familiar with the general development tips, you can pick and choose to learn more about frontend development, backend development or both!
+
+- Go to [frontend development guide](../frontend/README.md).
+- Go to [backend development guide](../backend/README.md).
