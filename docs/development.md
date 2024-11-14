@@ -7,7 +7,7 @@ Here you can find the general development instructions for all new contributors.
 - [Development](#development)
   - [Contents](#contents)
   - [Docker Compose](#docker-compose)
-  - [Local Development](#local-development)
+  - [Local development](#local-development)
   - [Docker Compose in `localhost.davidsha.me`](#docker-compose-in-localhostdavidshame)
   - [Docker Compose files and env vars](#docker-compose-files-and-env-vars)
   - [The .env file](#the-env-file)
@@ -17,6 +17,7 @@ Here you can find the general development instructions for all new contributors.
   - [URLs](#urls)
     - [Development URLs](#development-urls)
     - [Development URLs with `localhost.davidsha.me` Configured](#development-urls-with-localhostdavidshame-configured)
+  - [Next steps](#next-steps)
 
 ## Docker Compose
 
@@ -53,7 +54,7 @@ To check the logs of a specific service, add the name of the service, e.g.:
 docker compose logs backend
 ```
 
-## Local Development
+## Local development
 
 The Docker Compose files are configured so that each of the services is available in a different port in `localhost`.
 
@@ -68,6 +69,9 @@ docker compose stop frontend
 ```
 
 And then start the local frontend development server:
+
+> [!TIP]
+> If this is your first time reading this guide, you might not have the frontend or backend dependencies installed yet. As such, the below commands may fail. Don't worry, you can always come back to this section later as reference. For now, just know that this functionality exists.
 
 ```bash
 cd frontend
@@ -153,6 +157,9 @@ You can find a file `.pre-commit-config.yaml` with configurations at the root of
 
 After having the `pre-commit` tool installed and available, you need to "install" it in the local repository, so that it runs automatically before each commit.
 
+> [!TIP]
+> If this is your first time going through this guide, you might not have [`uv`](https://docs.astral.sh/uv/) installed yet. Go there and install it.
+
 Using `uv`, you could do it with:
 
 ```bash
@@ -224,3 +231,10 @@ Adminer: <http://localhost.davidsha.me:8080>
 Traefik UI: <http://localhost.davidsha.me:8090>
 
 MailCatcher: <http://localhost.davidsha.me:1080>
+
+## Next steps
+
+Now that you are familiar with the general development tips, you can pick and choose to learn more about frontend development, backend development or both!
+
+- Go to [frontend development guide](../frontend/README.md).
+- Go to [backend development guide](../backend/README.md).
