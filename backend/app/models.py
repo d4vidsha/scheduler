@@ -145,6 +145,10 @@ class TaskPublic(TaskBase):
     owner_id: uuid.UUID
 
 
+class TaskCreate(TaskBase):
+    pass
+
+
 class TasksPublic(SQLModel):
     data: list[TaskPublic]
     count: int
