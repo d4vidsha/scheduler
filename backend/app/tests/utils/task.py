@@ -15,7 +15,9 @@ def create_random_task(db: Session) -> Task:
   duration = random.randint(1,100) #This is just an int, no sure how large it gets
   year = random.randint(2024,9999)
   month = random.randint(1,12)
-  day = random.randint(1,28) #not going higher as random chance of tests failing due to days in months, ie 29th of Feb should fail
+  day = random.randint(1,29) #not going higher as random chance of tests failing due to days in months, ie 30th of Feb errors
   due = datetime.datetime(year, month, day)
-  task_id = uuid.uuid4
+  task_id = uuid.uuid4()
   owner_id = create_random_user(db).id
+  item_in = TaskCreate(title=title, description=description, priority_id=priority_id, duration=duration, due=due)
+  return crud.create_task(session=db, task_in=item_in,owner_id=owner_id)
