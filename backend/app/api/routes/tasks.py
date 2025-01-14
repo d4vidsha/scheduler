@@ -1,10 +1,11 @@
+import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Message, Task, TaskPublic, TasksPublic
+from app.models import Message, Task, TaskCreate, TaskPublic, TasksPublic
 
 router = APIRouter()
 
@@ -40,7 +41,7 @@ def read_tasks(
 
 
 @router.get("/{id}", response_model=TaskPublic)
-def read_task(session: SessionDep, current_user: CurrentUser, id: int) -> Any:
+def read_task(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Any:
     """
     Get task by ID.
     """
@@ -54,7 +55,7 @@ def read_task(session: SessionDep, current_user: CurrentUser, id: int) -> Any:
 
 @router.post("/", response_model=TaskPublic)
 def create_task(
-    *, session: SessionDep, current_user: CurrentUser, task_in: Task
+    *, session: SessionDep, current_user: CurrentUser, task_in: TaskCreate
 ) -> Any:
     """
     Create new task.
@@ -68,7 +69,11 @@ def create_task(
 
 @router.put("/{id}", response_model=TaskPublic)
 def update_task(
-    *, session: SessionDep, current_user: CurrentUser, id: int, task_in: Task
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    id: uuid.UUID,
+    task_in: TaskCreate,
 ) -> Any:
     """
     Update a task.
@@ -87,7 +92,9 @@ def update_task(
 
 
 @router.delete("/{id}")
-def delete_task(session: SessionDep, current_user: CurrentUser, id: int) -> Message:
+def delete_task(
+    session: SessionDep, current_user: CurrentUser, id: uuid.UUID
+) -> Message:
     """
     Delete an task.
     """

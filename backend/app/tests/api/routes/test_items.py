@@ -38,6 +38,8 @@ def test_read_item(
     assert content["description"] == item.description
     assert content["id"] == str(item.id)
     assert content["owner_id"] == str(item.owner_id)
+    assert "id" in content
+    assert "owner_id" in content
 
 
 def test_read_item_not_found(
