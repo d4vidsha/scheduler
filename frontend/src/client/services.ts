@@ -19,6 +19,7 @@ import type {
   ItemsPublic,
   ItemUpdate,
   Task,
+  TaskCreate,
   TaskPublic,
   TasksPublic,
 } from "./models"
@@ -537,7 +538,7 @@ export type TDataReadTasks = {
   skip?: number
 }
 export type TDataCreateTask = {
-  requestBody: Task
+  requestBody: TaskCreate
 }
 export type TDataReadTask = {
   id: number
