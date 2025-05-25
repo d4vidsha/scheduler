@@ -2,24 +2,20 @@ import { createFileRoute } from "@tanstack/react-router"
 import { motion } from "framer-motion"
 import { Check, Circle } from "lucide-react"
 import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { TasksService } from "@/client/services"
+import { AddTaskForm } from "@/components/tasks/AddTaskForm"
 
 export const Route = createFileRoute("/_layout/tasks")({
   component: Tasks,
 })
 
-const tasks = [
-  { id: 1, title: "Study for 3 hours", completed: true },
-  { id: 2, title: "Create task list", completed: false },
-  { id: 3, title: "Clean bedroom", completed: false },
-  {
-    id: 4,
-    title:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-    completed: false,
-  },
-]
-
 function Tasks() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["tasks"],
+    queryFn: () => TasksService.readTasks(),
+  })
+
   return (
     <div className="mx-20 my-10">
       <div className="flex justify-center">
@@ -27,8 +23,12 @@ function Tasks() {
           <header className="mb-4">
             <h1 className="text-3xl font-bold">Inbox</h1>
           </header>
-          <main className="flex flex-col">
-            {tasks.map((task) => (
+          <AddTaskForm />
+          <main className="flex flex-col mt-6">
+            {isLoading && <div>Loading...</div>}
+            {error && <div className="text-red-500">Error loading tasks</div>}
+            {data?.data?.length === 0 && <div>No tasks yet.</div>}
+            {data?.data?.map((task) => (
               <Task key={task.id} task={task} />
             ))}
           </main>
@@ -40,8 +40,8 @@ function Tasks() {
 
 function Task({
   task,
-}: { task: { id: number; title: string; completed: boolean } }) {
-  const [isCompleted, setIsCompleted] = useState(task.completed)
+}: { task: { id: string; title?: string | null; completed?: boolean } }) {
+  const [isCompleted, setIsCompleted] = useState(task.completed ?? false)
   return (
     <div className="flex gap-2 shrink-1 border-b py-3">
       <motion.button

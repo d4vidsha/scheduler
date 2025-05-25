@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Message, Task, TaskPublic, TasksPublic
+from app.models import Message, Task, TaskPublic, TasksPublic, TaskCreate
 
 router = APIRouter()
 
@@ -54,7 +54,7 @@ def read_task(session: SessionDep, current_user: CurrentUser, id: int) -> Any:
 
 @router.post("/", response_model=TaskPublic)
 def create_task(
-    *, session: SessionDep, current_user: CurrentUser, task_in: Task
+    *, session: SessionDep, current_user: CurrentUser, task_in: TaskCreate
 ) -> Any:
     """
     Create new task.

@@ -132,6 +132,10 @@ class TaskBase(SQLModel):
     due: datetime | None = Field(default=None)
 
 
+class TaskCreate(TaskBase):
+    pass
+
+
 class Task(TaskBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     owner_id: uuid.UUID = Field(
