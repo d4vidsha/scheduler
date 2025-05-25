@@ -60,3 +60,5 @@ function Task({
     </div>
   )
 }
+
+export default Tasks;
