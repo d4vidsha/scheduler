@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
 import useAuth from "@/hooks/useAuth"
+import useCustomToast from "@/hooks/useCustomToast"
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -18,6 +19,8 @@ type TaskFormValues = z.infer<typeof taskSchema>
 export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const showToast = useCustomToast()
+
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: { title: "", description: "" },
@@ -26,12 +29,25 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
   const mutation = useMutation({
     mutationFn: (data: TaskFormValues) => {
       if (!user) throw new Error("Not authenticated")
-      return TasksService.createTask({ requestBody: { ...data, owner_id: user.id } })
+
+      // Only send the required fields
+      return TasksService.createTask({
+        requestBody: {
+          title: data.title,
+          description: data.description || "",
+          owner_id: user.id
+        }
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] })
       form.reset()
+      showToast("Success", "Task created successfully", "success")
       onSuccess?.()
+    },
+    onError: (error) => {
+      console.error("Error creating task:", error)
+      showToast("Error", "Failed to create task. Please try again.", "error")
     },
   })
 
