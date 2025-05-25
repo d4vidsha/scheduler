@@ -52,14 +52,6 @@ export type Task = {
   owner_id: string
 }
 
-export type TaskCreate = {
-  title?: string | null
-  description?: string | null
-  priority_id?: number | null
-  duration?: number | null
-  due?: string | null
-}
-
 export type TaskPublic = {
   title?: string | null
   description?: string | null
