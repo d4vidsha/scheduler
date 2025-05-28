@@ -98,14 +98,14 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                 </FormControl>
                 <FormMessage />
                 <FormDescription>
-                  <p className="ml-1 text-sm">
+                  <span className="ml-1 text-sm">
                     <Link
                       to="/recover-password"
                       className="underline underline-offset-4"
                     >
                       Forgot password?
                     </Link>
-                  </p>
+                  </span>
                 </FormDescription>
               </FormItem>
             )}

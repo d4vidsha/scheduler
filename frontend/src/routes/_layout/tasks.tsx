@@ -60,6 +60,29 @@ function Task({
     }
   })
 
+  const toggleCompletedMutation = useMutation({
+    mutationFn: () => {
+      return TasksService.toggleTaskCompleted({ id: task.id })
+    },
+    onSuccess: (data) => {
+      setIsCompleted(data.completed ?? false)
+      queryClient.invalidateQueries({ queryKey: ["tasks"] })
+    },
+    onError: (error) => {
+      // Revert the local state if the API call fails
+      setIsCompleted(task.completed ?? false)
+      showToast("Error", "Failed to update task status. Please try again.", "error")
+      console.error("Error updating task status:", error)
+    }
+  })
+
+  const handleToggleCompleted = () => {
+    // Optimistically update the UI
+    setIsCompleted(!isCompleted)
+    // Then make the API call
+    toggleCompletedMutation.mutate()
+  }
+
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (confirm("Are you sure you want to delete this task?")) {
@@ -71,8 +94,9 @@ function Task({
     <div className="flex gap-2 shrink-1 border-b py-3 group">
       <motion.button
         whileTap={{ scale: 1.2 }}
-        onTap={() => setIsCompleted(!isCompleted)}
+        onTap={handleToggleCompleted}
         className="flex-none self-start"
+        disabled={toggleCompletedMutation.status === 'pending'}
       >
         <div className="grid grid-cols-1 grid-rows-1">
           <Circle className="h-5 w-5 row-start-1 row-end-1 col-start-1 col-end-1" />
@@ -81,7 +105,7 @@ function Task({
           </div>
         </div>
       </motion.button>
-      <p className="text-sm line-clamp-4 text-ellipsis flex-grow">{task.title}</p>
+      <p className={`text-sm line-clamp-4 text-ellipsis flex-grow ${isCompleted ? 'line-through text-gray-500' : ''}`}>{task.title}</p>
       <button
         className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:opacity-100 focus:opacity-100 flex items-center justify-center"
         onClick={handleDelete}

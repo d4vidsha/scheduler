@@ -549,6 +549,9 @@ export type TDataUpdateTask = {
 export type TDataDeleteTask = {
   id: string
 }
+export type TDataToggleTaskCompleted = {
+  id: string
+}
 
 export class TasksService {
   /**
@@ -650,6 +653,28 @@ export class TasksService {
     return __request(OpenAPI, {
       method: "DELETE",
       url: "/api/v1/tasks/{id}",
+      path: {
+        id,
+      },
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * Toggle Task Completed
+   * Toggle the completed status of a task.
+   * @returns TaskPublic Successful Response
+   * @throws ApiError
+   */
+  public static toggleTaskCompleted(
+    data: TDataToggleTaskCompleted,
+  ): CancelablePromise<TaskPublic> {
+    const { id } = data
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: "/api/v1/tasks/{id}/toggle-completed",
       path: {
         id,
       },

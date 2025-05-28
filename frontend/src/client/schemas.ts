@@ -246,6 +246,10 @@ export const $Task = {
         },
       ],
     },
+    completed: {
+      type: "boolean",
+      default: false,
+    },
     id: {
       type: "string",
       format: "uuid",
@@ -317,6 +321,10 @@ export const $TaskPublic = {
           type: "null",
         },
       ],
+    },
+    completed: {
+      type: "boolean",
+      default: false,
     },
     id: {
       type: "string",

@@ -130,6 +130,7 @@ class TaskBase(SQLModel):
     )
     duration: int | None = Field(default=None)
     due: datetime | None = Field(default=None)
+    completed: bool = Field(default=False)
 
 
 class Task(TaskBase, table=True):
