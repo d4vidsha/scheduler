@@ -119,3 +119,28 @@ def delete_task(session: SessionDep, current_user: CurrentUser, id: str) -> Mess
         return Message(message="Task deleted successfully")
     except ValueError:
         raise HTTPException(status_code=422, detail="Invalid task ID format")
+
+
+@router.put("/{id}/toggle-completed", response_model=TaskPublic)
+def toggle_task_completed(
+    *, session: SessionDep, current_user: CurrentUser, id: str
+) -> Any:
+    """
+    Toggle the completed status of a task.
+    """
+    try:
+        task_id = uuid.UUID(id)
+        task = session.get(Task, task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+        if not current_user.is_superuser and (task.owner_id != current_user.id):
+            raise HTTPException(status_code=400, detail="Not enough permissions")
+
+        task.completed = not task.completed
+
+        session.add(task)
+        session.commit()
+        session.refresh(task)
+        return task
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Invalid task ID format")

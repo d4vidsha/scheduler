@@ -48,6 +48,7 @@ export type Task = {
   priority_id?: number | null
   duration?: number | null
   due?: string | null
+  completed?: boolean
   id?: string
   owner_id: string
 }
@@ -58,6 +59,7 @@ export type TaskPublic = {
   priority_id?: number | null
   duration?: number | null
   due?: string | null
+  completed?: boolean
   id: string
   owner_id: string
 }
