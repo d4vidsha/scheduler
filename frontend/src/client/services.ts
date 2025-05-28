@@ -540,14 +540,14 @@ export type TDataCreateTask = {
   requestBody: Task
 }
 export type TDataReadTask = {
-  id: number
+  id: string
 }
 export type TDataUpdateTask = {
-  id: number
+  id: string
   requestBody: Task
 }
 export type TDataDeleteTask = {
-  id: number
+  id: string
 }
 
 export class TasksService {
@@ -641,7 +641,7 @@ export class TasksService {
 
   /**
    * Delete Task
-   * Delete an task.
+   * Delete a task.
    * @returns Message Successful Response
    * @throws ApiError
    */

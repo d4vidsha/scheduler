@@ -1,7 +1,7 @@
 """init: initial database
 
 Revision ID: ba1bdfec52c5
-Revises: 
+Revises:
 Create Date: 2024-08-03 22:04:39.316036
 
 """
