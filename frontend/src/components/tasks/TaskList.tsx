@@ -3,7 +3,7 @@ import { motion } from "framer-motion"
 import { Check, Circle, GripVertical, Trash2 } from "lucide-react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { TasksService } from "@/client/services"
-import useCustomToast from "@/hooks/useCustomToast"
+import { useToast } from "@/hooks/use-toast"
 import { TaskPublic } from "@/client/models"
 
 const reorder = <T,>(list: T[], startIndex: number, endIndex: number): T[] => {
@@ -15,7 +15,7 @@ const reorder = <T,>(list: T[], startIndex: number, endIndex: number): T[] => {
 
 export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   const queryClient = useQueryClient()
-  const showToast = useCustomToast()
+  const { toast } = useToast()
   const [orderedTasks, setOrderedTasks] = useState<TaskPublic[]>(tasks)
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
   const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null)
@@ -33,10 +33,17 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] })
-      showToast("Success", "Tasks reordered successfully", "success")
+      toast({
+        title: "Success",
+        description: "Tasks reordered successfully",
+      })
     },
     onError: () => {
-      showToast("Error", "Failed to reorder tasks", "error")
+      toast({
+        title: "Error",
+        description: "Failed to reorder tasks",
+        variant: "destructive"
+      })
       // Revert to original order on error
       setOrderedTasks(tasks)
     }
@@ -154,7 +161,7 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
 function TaskItem({ task }: { task: TaskPublic }) {
   const [isCompleted, setIsCompleted] = useState(task.completed ?? false)
   const queryClient = useQueryClient()
-  const showToast = useCustomToast()
+  const { toast } = useToast()
 
   const deleteMutation = useMutation({
     mutationFn: () => {
@@ -162,10 +169,17 @@ function TaskItem({ task }: { task: TaskPublic }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] })
-      showToast("Success", "Task deleted successfully", "success")
+      toast({
+        title: "Success",
+        description: "Task deleted successfully",
+      })
     },
     onError: (error) => {
-      showToast("Error", "Failed to delete task", "error")
+      toast({
+        title: "Error",
+        description: "Failed to delete task",
+        variant: "destructive"
+      })
       console.error("Error deleting task:", error)
     }
   })
@@ -180,7 +194,11 @@ function TaskItem({ task }: { task: TaskPublic }) {
     onError: (error) => {
       // revert the local state if the API call fails
       setIsCompleted(task.completed ?? false)
-      showToast("Error", "Failed to update task status", "error")
+      toast({
+        title: "Error",
+        description: "Failed to update task status",
+        variant: "destructive"
+      })
       console.error("Error updating task status:", error)
     }
   })
