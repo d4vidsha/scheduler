@@ -34,8 +34,7 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
       return TasksService.createTask({
         requestBody: {
           title: data.title,
-          description: data.description || "",
-          owner_id: user.id
+          description: data.description || ""
         }
       })
     },

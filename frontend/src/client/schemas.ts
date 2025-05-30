@@ -250,6 +250,17 @@ export const $Task = {
       type: "boolean",
       default: false,
     },
+    position: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
     id: {
       type: "string",
       format: "uuid",
@@ -258,6 +269,78 @@ export const $Task = {
       type: "string",
       isRequired: true,
       format: "uuid",
+    },
+  },
+} as const
+
+export const $TaskCreate = {
+  properties: {
+    title: {
+      type: "string",
+      isRequired: true,
+      maxLength: 255,
+      minLength: 1,
+    },
+    description: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    priority_id: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    duration: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    due: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          format: "date-time",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    completed: {
+      type: "boolean",
+      default: false,
+    },
+    position: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
     },
   },
 } as const
@@ -325,6 +408,17 @@ export const $TaskPublic = {
     completed: {
       type: "boolean",
       default: false,
+    },
+    position: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
     },
     id: {
       type: "string",
