@@ -2,7 +2,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException
-from sqlmodel import func, select
+from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import Message, Task, TaskCreate, TaskPublic, TasksPublic
@@ -13,14 +13,14 @@ router = APIRouter()
 @router.get("/", response_model=TasksPublic)
 def read_tasks(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
-) -> Any:
+) -> TasksPublic:
     """
     Retrieve tasks.
     """
     if current_user.is_superuser:
         count_statement = select(func.count()).select_from(Task)
         count = session.exec(count_statement).one()
-        statement = select(Task).order_by(Task.position).offset(skip).limit(limit)
+        statement = select(Task).order_by(col(Task.position)).offset(skip).limit(limit)
         tasks = session.exec(statement).all()
     else:
         count_statement = (
@@ -32,7 +32,7 @@ def read_tasks(
         statement = (
             select(Task)
             .where(Task.owner_id == current_user.id)
-            .order_by(Task.position)
+            .order_by(col(Task.position))
             .offset(skip)
             .limit(limit)
         )
@@ -42,7 +42,7 @@ def read_tasks(
 
 
 @router.get("/{id}", response_model=TaskPublic)
-def read_task(session: SessionDep, current_user: CurrentUser, id: str) -> Any:
+def read_task(session: SessionDep, current_user: CurrentUser, id: str) -> Task:
     """
     Get task by ID.
     """
@@ -61,12 +61,12 @@ def read_task(session: SessionDep, current_user: CurrentUser, id: str) -> Any:
 @router.post("/", response_model=TaskPublic)
 def create_task(
     *, session: SessionDep, current_user: CurrentUser, task_in: TaskCreate
-) -> Any:
+) -> Task:
     """
     Create new task.
     """
     # get the highest position value for the current user's tasks
-    max_position_query = select(func.max(Task.position)).where(
+    max_position_query: Any = select(func.max(Task.position)).where(
         Task.owner_id == current_user.id
     )
     max_position = session.exec(max_position_query).one() or 0
@@ -84,7 +84,7 @@ def create_task(
 @router.put("/{id}", response_model=TaskPublic)
 def update_task(
     *, session: SessionDep, current_user: CurrentUser, id: str, task_in: Task
-) -> Any:
+) -> Task:
     """
     Update a task.
     """
@@ -130,7 +130,7 @@ def reorder_tasks(
     session: SessionDep,
     current_user: CurrentUser,
     task_ids: list[str] = Body(..., description="List of task IDs in the new order"),
-) -> Any:
+) -> Message:
     """
     Reorder tasks based on the provided list of task IDs.
     """
@@ -161,7 +161,7 @@ def reorder_tasks(
 @router.put("/{id}/toggle-completed", response_model=TaskPublic)
 def toggle_task_completed(
     *, session: SessionDep, current_user: CurrentUser, id: str
-) -> Any:
+) -> Task:
     """
     Toggle the completed status of a task.
     """
