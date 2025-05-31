@@ -29,17 +29,15 @@ test.describe('Tasks', () => {
     const taskElement = page.getByText(taskTitle);
     await expect(taskElement).toBeVisible();
 
-    // find the task's parent element that contains the checkbox
+    // find the checkbox button (Circle icon) and click it to toggle completion
     const taskContainer = taskElement.locator('xpath=..');
-
-    // click the checkbox to toggle completion
-    await taskContainer.locator('button').first().click();
+    await taskContainer.getByRole('button').first().click();
 
     // verify task is marked as completed (has line-through style)
     await expect(taskElement).toHaveClass(/line-through/);
 
     // toggle back to incomplete
-    await taskContainer.locator('button').first().click();
+    await taskContainer.getByRole('button').first().click();
 
     // verify task is no longer marked as completed
     await expect(taskElement).not.toHaveClass(/line-through/);
@@ -58,15 +56,17 @@ test.describe('Tasks', () => {
     await expect(page.getByText(taskTitle)).toBeVisible();
 
     // hover over the task to make delete button visible
-    await page.getByText(taskTitle).hover();
+    const taskRow = page.getByText(taskTitle).locator('xpath=../..');
+    await taskRow.hover();
 
-    // click the delete button (trash icon)
-    await page.getByRole('button', { name: 'Delete task' }).click();
+    // Set up dialog handler before clicking delete
+    page.once('dialog', dialog => dialog.accept());
 
-    // accept the confirmation dialog
-    page.on('dialog', dialog => dialog.accept());
+    // click the delete button (trash icon) - using a more specific selector
+    // Find the button within the task row that contains the Trash2 icon
+    await taskRow.locator('button[aria-label="Delete task"]').click();
 
     // verify task is removed
-    await expect(page.getByText(taskTitle)).not.toBeVisible();
+    await expect(page.getByText(taskTitle)).not.toBeVisible({ timeout: 5000 });
   });
 });
