@@ -19,6 +19,7 @@ import type {
   ItemsPublic,
   ItemUpdate,
   Task,
+  TaskCreate,
   TaskPublic,
   TasksPublic,
 } from "./models"
@@ -537,7 +538,7 @@ export type TDataReadTasks = {
   skip?: number
 }
 export type TDataCreateTask = {
-  requestBody: Task
+  requestBody: TaskCreate
 }
 export type TDataReadTask = {
   id: string
@@ -548,6 +549,9 @@ export type TDataUpdateTask = {
 }
 export type TDataDeleteTask = {
   id: string
+}
+export type TDataReorderTasks = {
+  requestBody: Array<string>
 }
 export type TDataToggleTaskCompleted = {
   id: string
@@ -656,6 +660,27 @@ export class TasksService {
       path: {
         id,
       },
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * Reorder Tasks
+   * Reorder tasks based on the provided list of task IDs.
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static reorderTasks(
+    data: TDataReorderTasks,
+  ): CancelablePromise<Message> {
+    const { requestBody } = data
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/tasks/reorder",
+      body: requestBody,
+      mediaType: "application/json",
       errors: {
         422: `Validation Error`,
       },

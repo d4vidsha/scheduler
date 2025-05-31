@@ -131,6 +131,11 @@ class TaskBase(SQLModel):
     duration: int | None = Field(default=None)
     due: datetime | None = Field(default=None)
     completed: bool = Field(default=False)
+    position: int | None = Field(default=None, index=True)
+
+
+class TaskCreate(TaskBase):
+    title: str = Field(min_length=1, max_length=255)
 
 
 class Task(TaskBase, table=True):

@@ -49,8 +49,19 @@ export type Task = {
   duration?: number | null
   due?: string | null
   completed?: boolean
+  position?: number | null
   id?: string
   owner_id: string
+}
+
+export type TaskCreate = {
+  title: string
+  description?: string | null
+  priority_id?: number | null
+  duration?: number | null
+  due?: string | null
+  completed?: boolean
+  position?: number | null
 }
 
 export type TaskPublic = {
@@ -60,6 +71,7 @@ export type TaskPublic = {
   duration?: number | null
   due?: string | null
   completed?: boolean
+  position?: number | null
   id: string
   owner_id: string
 }

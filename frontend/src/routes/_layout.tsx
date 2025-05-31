@@ -2,6 +2,7 @@ import { Outlet, createFileRoute, redirect } from "@tanstack/react-router"
 
 import { Spinner } from "@/components/Common/Spinner"
 import NavBar from "@/components/navbar"
+import { Toaster } from "@/components/ui/toaster"
 import useAuth, { isLoggedIn } from "../hooks/useAuth"
 
 export const Route = createFileRoute("/_layout")({
@@ -28,6 +29,7 @@ function Layout() {
       ) : (
         <Outlet />
       )}
+      <Toaster />
     </>
   )
 }

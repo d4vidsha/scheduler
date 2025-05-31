@@ -1,11 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { motion } from "framer-motion"
-import { Check, Circle, Trash2 } from "lucide-react"
-import { useState } from "react"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { TasksService } from "@/client/services"
 import { AddTaskForm } from "@/components/tasks/AddTaskForm"
-import useCustomToast from "@/hooks/useCustomToast"
+import { TaskList } from "@/components/tasks/TaskList"
 
 export const Route = createFileRoute("/_layout/tasks")({
   component: Tasks,
@@ -28,92 +25,10 @@ function Tasks() {
           <main className="flex flex-col mt-6">
             {isLoading && <div>Loading...</div>}
             {error && <div className="text-red-500">Error loading tasks</div>}
-            {data?.data?.length === 0 && <div>No tasks yet.</div>}
-            {data?.data?.map((task) => (
-              <Task key={task.id} task={task} />
-            ))}
+            {data?.data && <TaskList tasks={data.data} />}
           </main>
         </div>
       </div>
-    </div>
-  )
-}
-
-function Task({
-  task,
-}: { task: { id: string; title?: string | null; completed?: boolean } }) {
-  const [isCompleted, setIsCompleted] = useState(task.completed ?? false)
-  const queryClient = useQueryClient()
-  const showToast = useCustomToast()
-
-  const deleteMutation = useMutation({
-    mutationFn: () => {
-      return TasksService.deleteTask({ id: task.id })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] })
-      showToast("Success", "Task deleted successfully", "success")
-    },
-    onError: (error) => {
-      showToast("Error", "Failed to delete task. Please try again.", "error")
-      console.error("Error deleting task:", error)
-    }
-  })
-
-  const toggleCompletedMutation = useMutation({
-    mutationFn: () => {
-      return TasksService.toggleTaskCompleted({ id: task.id })
-    },
-    onSuccess: (data) => {
-      setIsCompleted(data.completed ?? false)
-      queryClient.invalidateQueries({ queryKey: ["tasks"] })
-    },
-    onError: (error) => {
-      // Revert the local state if the API call fails
-      setIsCompleted(task.completed ?? false)
-      showToast("Error", "Failed to update task status. Please try again.", "error")
-      console.error("Error updating task status:", error)
-    }
-  })
-
-  const handleToggleCompleted = () => {
-    // Optimistically update the UI
-    setIsCompleted(!isCompleted)
-    // Then make the API call
-    toggleCompletedMutation.mutate()
-  }
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (confirm("Are you sure you want to delete this task?")) {
-      deleteMutation.mutate()
-    }
-  }
-
-  return (
-    <div className="flex gap-2 shrink-1 border-b py-3 group">
-      <motion.button
-        whileTap={{ scale: 1.2 }}
-        onTap={handleToggleCompleted}
-        className="flex-none self-start"
-        disabled={toggleCompletedMutation.status === 'pending'}
-      >
-        <div className="grid grid-cols-1 grid-rows-1">
-          <Circle className="h-5 w-5 row-start-1 row-end-1 col-start-1 col-end-1" />
-          <div className="flex justify-center items-center row-start-1 row-end-1 col-start-1 col-end-1">
-            {isCompleted && <Check strokeWidth={4.5} className="h-3 w-3" />}
-          </div>
-        </div>
-      </motion.button>
-      <p className={`text-sm line-clamp-4 text-ellipsis flex-grow ${isCompleted ? 'line-through text-gray-500' : ''}`}>{task.title}</p>
-      <button
-        className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:opacity-100 focus:opacity-100 flex items-center justify-center"
-        onClick={handleDelete}
-        disabled={deleteMutation.status === 'pending'}
-        aria-label="Delete task"
-      >
-        <Trash2 className="h-4 w-4 text-red-500" />
-      </button>
     </div>
   )
 }
