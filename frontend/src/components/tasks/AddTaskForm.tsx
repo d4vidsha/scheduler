@@ -1,13 +1,20 @@
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { TasksService } from "@/client/services"
 import { Button } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -34,8 +41,8 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
       return TasksService.createTask({
         requestBody: {
           title: data.title,
-          description: data.description || ""
-        }
+          description: data.description || "",
+        },
       })
     },
     onSuccess: () => {
@@ -83,8 +90,8 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={mutation.status === 'pending'}>
-          {mutation.status === 'pending' ? "Adding..." : "Add Task"}
+        <Button type="submit" disabled={mutation.status === "pending"}>
+          {mutation.status === "pending" ? "Adding..." : "Add Task"}
         </Button>
       </form>
     </Form>

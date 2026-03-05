@@ -1,10 +1,10 @@
-import { useState, useRef } from "react"
-import { motion } from "framer-motion"
-import { Check, Circle, GripVertical, Trash2 } from "lucide-react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import type { TaskPublic } from "@/client/models"
 import { TasksService } from "@/client/services"
 import { useToast } from "@/hooks/use-toast"
-import { TaskPublic } from "@/client/models"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { motion } from "framer-motion"
+import { Check, Circle, GripVertical, Trash2 } from "lucide-react"
+import { useRef, useState } from "react"
 
 const reorder = <T,>(list: T[], startIndex: number, endIndex: number): T[] => {
   const result = Array.from(list)
@@ -19,11 +19,16 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   const [orderedTasks, setOrderedTasks] = useState<TaskPublic[]>(tasks)
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
   const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null)
-  const [dropPosition, setDropPosition] = useState<'before' | 'after' | null>(null)
+  const [dropPosition, setDropPosition] = useState<"before" | "after" | null>(
+    null,
+  )
   const taskRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
   // update local state when tasks prop changes
-  if (JSON.stringify(tasks.map(t => t.id)) !== JSON.stringify(orderedTasks.map(t => t.id))) {
+  if (
+    JSON.stringify(tasks.map((t) => t.id)) !==
+    JSON.stringify(orderedTasks.map((t) => t.id))
+  ) {
     setOrderedTasks(tasks)
   }
 
@@ -42,11 +47,11 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
       toast({
         title: "Error",
         description: "Failed to reorder tasks",
-        variant: "destructive"
+        variant: "destructive",
       })
       // Revert to original order on error
       setOrderedTasks(tasks)
-    }
+    },
   })
 
   const handleDragStart = (taskId: string) => {
@@ -66,7 +71,7 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
     const midpoint = rect.top + rect.height / 2
 
     // if cursor is above midpoint, drop before; otherwise, drop after
-    const newDropPosition = e.clientY < midpoint ? 'before' : 'after'
+    const newDropPosition = e.clientY < midpoint ? "before" : "after"
 
     setDragOverTaskId(taskId)
     setDropPosition(newDropPosition)
@@ -75,18 +80,25 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
 
-    if (!draggedTaskId || !dragOverTaskId || draggedTaskId === dragOverTaskId || !dropPosition) {
+    if (
+      !draggedTaskId ||
+      !dragOverTaskId ||
+      draggedTaskId === dragOverTaskId ||
+      !dropPosition
+    ) {
       resetDragState()
       return
     }
 
-    const draggedIndex = orderedTasks.findIndex(task => task.id === draggedTaskId)
-    let dropIndex = orderedTasks.findIndex(task => task.id === dragOverTaskId)
+    const draggedIndex = orderedTasks.findIndex(
+      (task) => task.id === draggedTaskId,
+    )
+    let dropIndex = orderedTasks.findIndex((task) => task.id === dragOverTaskId)
 
     if (draggedIndex === -1 || dropIndex === -1) return
 
     // adjust drop index based on drop position and drag direction
-    if (dropPosition === 'after') {
+    if (dropPosition === "after") {
       dropIndex += 1
     }
 
@@ -100,7 +112,7 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
     setOrderedTasks(newOrderedTasks)
 
     // send new order to backend
-    const taskIds = newOrderedTasks.map(task => task.id)
+    const taskIds = newOrderedTasks.map((task) => task.id)
     reorderMutation.mutate(taskIds)
 
     resetDragState()
@@ -123,21 +135,24 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   return (
     <div className="space-y-1">
       {orderedTasks.map((task) => {
-        const isDraggedOver = dragOverTaskId === task.id;
-        const isDragged = draggedTaskId === task.id;
+        const isDraggedOver = dragOverTaskId === task.id
+        const isDragged = draggedTaskId === task.id
 
         // determine border class based on drop position
-        let borderClass = '';
+        let borderClass = ""
         if (isDraggedOver && dropPosition) {
-          borderClass = dropPosition === 'before' ? 'border-t-2 border-primary' : 'border-b-2 border-primary';
+          borderClass =
+            dropPosition === "before"
+              ? "border-t-2 border-primary"
+              : "border-b-2 border-primary"
         }
 
         return (
           <div
             key={task.id}
             ref={(el) => {
-              if (el) taskRefs.current.set(task.id, el);
-              else taskRefs.current.delete(task.id);
+              if (el) taskRefs.current.set(task.id, el)
+              else taskRefs.current.delete(task.id)
             }}
             draggable
             onDragStart={() => handleDragStart(task.id)}
@@ -146,13 +161,13 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
             onDragEnd={handleDragEnd}
             className={`
               relative mb-1 transition-all duration-200
-              ${isDragged ? 'opacity-50 scale-105 z-10' : ''}
+              ${isDragged ? "opacity-50 scale-105 z-10" : ""}
               ${borderClass}
             `}
           >
             <TaskItem task={task} />
           </div>
-        );
+        )
       })}
     </div>
   )
@@ -178,10 +193,10 @@ function TaskItem({ task }: { task: TaskPublic }) {
       toast({
         title: "Error",
         description: "Failed to delete task",
-        variant: "destructive"
+        variant: "destructive",
       })
       console.error("Error deleting task:", error)
-    }
+    },
   })
 
   const toggleCompletedMutation = useMutation({
@@ -197,10 +212,10 @@ function TaskItem({ task }: { task: TaskPublic }) {
       toast({
         title: "Error",
         description: "Failed to update task status",
-        variant: "destructive"
+        variant: "destructive",
       })
       console.error("Error updating task status:", error)
-    }
+    },
   })
 
   const handleToggleCompleted = (e: React.MouseEvent) => {
@@ -227,7 +242,7 @@ function TaskItem({ task }: { task: TaskPublic }) {
         whileTap={{ scale: 1.2 }}
         onClick={handleToggleCompleted}
         className="flex-none self-start"
-        disabled={toggleCompletedMutation.status === 'pending'}
+        disabled={toggleCompletedMutation.status === "pending"}
       >
         <div className="grid grid-cols-1 grid-rows-1">
           <Circle className="h-5 w-5 row-start-1 row-end-1 col-start-1 col-end-1" />
@@ -236,13 +251,17 @@ function TaskItem({ task }: { task: TaskPublic }) {
           </div>
         </div>
       </motion.button>
-      <p className={`text-sm line-clamp-4 text-ellipsis flex-grow ${isCompleted ? 'line-through text-gray-500' : ''}`}>
+      <p
+        className={`text-sm line-clamp-4 text-ellipsis flex-grow ${
+          isCompleted ? "line-through text-gray-500" : ""
+        }`}
+      >
         {task.title}
       </p>
       <button
         className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:opacity-100 focus:opacity-100 flex items-center justify-center"
         onClick={handleDelete}
-        disabled={deleteMutation.status === 'pending'}
+        disabled={deleteMutation.status === "pending"}
         aria-label="Delete task"
       >
         <Trash2 className="h-4 w-4 text-red-500" />

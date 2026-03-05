@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 
 from pydantic import EmailStr
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -132,6 +133,7 @@ class TaskBase(SQLModel):
     due: datetime | None = Field(default=None)
     completed: bool = Field(default=False)
     position: int | None = Field(default=None, index=True)
+    tags: list[str] | None = Field(default=None, sa_column=Column(JSON))
 
 
 class TaskCreate(TaskBase):

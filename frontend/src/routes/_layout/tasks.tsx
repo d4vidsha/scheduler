@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { useQuery } from "@tanstack/react-query"
 import { TasksService } from "@/client/services"
 import { AddTaskForm } from "@/components/tasks/AddTaskForm"
 import { TaskList } from "@/components/tasks/TaskList"
+import { useQuery } from "@tanstack/react-query"
+import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/_layout/tasks")({
   component: Tasks,
@@ -33,4 +33,4 @@ function Tasks() {
   )
 }
 
-export default Tasks;
+export default Tasks
