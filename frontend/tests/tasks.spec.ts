@@ -3,70 +3,106 @@ import { randomString } from "./utils/random"
 
 test.describe("Tasks", () => {
   test("should create and display tasks", async ({ page }) => {
-    // navigate to tasks page
     await page.goto("/tasks")
 
-    // create a new task
     const taskTitle = `Test Task ${randomString(5)}`
-    await page.getByLabel("Title").fill(taskTitle)
-    await page.getByLabel("Description").fill("This is a test task description")
-    await page.getByRole("button", { name: "Add Task" }).click()
+    await page.getByPlaceholder(/Task title/).fill(taskTitle)
+    await page.getByRole("button", { name: "Add" }).click()
 
-    // verify task is displayed
+    await expect(page.getByText(taskTitle)).toBeVisible()
+  })
+
+  test("should strip @tag from displayed title", async ({ page }) => {
+    await page.goto("/tasks")
+
+    const baseTitle = `Tag Task ${randomString(5)}`
+    await page.getByPlaceholder(/Task title/).fill(`${baseTitle} @work`)
+    await page.getByRole("button", { name: "Add" }).click()
+
+    await expect(page.getByText(baseTitle)).toBeVisible()
+    await expect(page.getByText(`${baseTitle} @work`)).not.toBeVisible()
+  })
+
+  test("should strip priority token from displayed title", async ({ page }) => {
+    await page.goto("/tasks")
+
+    const baseTitle = `Priority Task ${randomString(5)}`
+    await page.getByPlaceholder(/Task title/).fill(`${baseTitle} p1`)
+    await page.getByRole("button", { name: "Add" }).click()
+
+    await expect(page.getByText(baseTitle)).toBeVisible()
+    await expect(page.getByText(`${baseTitle} p1`)).not.toBeVisible()
+  })
+
+  test("should strip date token from displayed title", async ({ page }) => {
+    await page.goto("/tasks")
+
+    const baseTitle = `Date Task ${randomString(5)}`
+    await page.getByPlaceholder(/Task title/).fill(`${baseTitle} tuesday`)
+    await page.getByRole("button", { name: "Add" }).click()
+
+    await expect(page.getByText(baseTitle)).toBeVisible()
+    await expect(page.getByText(`${baseTitle} tuesday`)).not.toBeVisible()
+  })
+
+  test("should strip all natural language tokens combined", async ({ page }) => {
+    await page.goto("/tasks")
+
+    const baseTitle = `NL Task ${randomString(5)}`
+    await page
+      .getByPlaceholder(/Task title/)
+      .fill(`${baseTitle} @work p2 monday`)
+    await page.getByRole("button", { name: "Add" }).click()
+
+    await expect(page.getByText(baseTitle)).toBeVisible()
+    await expect(page.getByText(`${baseTitle} @work p2 monday`)).not.toBeVisible()
+  })
+
+  test("should submit on Enter key", async ({ page }) => {
+    await page.goto("/tasks")
+
+    const taskTitle = `Enter Task ${randomString(5)}`
+    await page.getByPlaceholder(/Task title/).fill(taskTitle)
+    await page.getByPlaceholder(/Task title/).press("Enter")
+
     await expect(page.getByText(taskTitle)).toBeVisible()
   })
 
   test("should toggle task completion status", async ({ page }) => {
-    // navigate to tasks page
     await page.goto("/tasks")
 
-    // create a new task
     const taskTitle = `Toggle Task ${randomString(5)}`
-    await page.getByLabel("Title").fill(taskTitle)
-    await page.getByRole("button", { name: "Add Task" }).click()
+    await page.getByPlaceholder(/Task title/).fill(taskTitle)
+    await page.getByRole("button", { name: "Add" }).click()
 
-    // find the task and get its container
     const taskElement = page.getByText(taskTitle)
     await expect(taskElement).toBeVisible()
 
-    // find the checkbox button (Circle icon) and click it to toggle completion
     const taskContainer = taskElement.locator("xpath=..")
     await taskContainer.getByRole("button").first().click()
 
-    // verify task is marked as completed (has line-through style)
     await expect(taskElement).toHaveClass(/line-through/)
 
-    // toggle back to incomplete
     await taskContainer.getByRole("button").first().click()
 
-    // verify task is no longer marked as completed
     await expect(taskElement).not.toHaveClass(/line-through/)
   })
 
   test("should delete a task", async ({ page }) => {
-    // navigate to tasks page
     await page.goto("/tasks")
 
-    // create a new task
     const taskTitle = `Delete Task ${randomString(5)}`
-    await page.getByLabel("Title").fill(taskTitle)
-    await page.getByRole("button", { name: "Add Task" }).click()
+    await page.getByPlaceholder(/Task title/).fill(taskTitle)
+    await page.getByRole("button", { name: "Add" }).click()
 
-    // verify task is displayed
     await expect(page.getByText(taskTitle)).toBeVisible()
 
-    // hover over the task to make delete button visible
     const taskRow = page.getByText(taskTitle).locator("xpath=../..")
     await taskRow.hover()
 
-    // Set up dialog handler before clicking delete
     page.once("dialog", (dialog) => dialog.accept())
-
-    // click the delete button (trash icon) - using a more specific selector
-    // Find the button within the task row that contains the Trash2 icon
     await taskRow.locator('button[aria-label="Delete task"]').click()
 
-    // verify task is removed
     await expect(page.getByText(taskTitle)).not.toBeVisible({ timeout: 5000 })
   })
 })

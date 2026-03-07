@@ -261,6 +261,20 @@ export const $Task = {
         },
       ],
     },
+    tags: {
+      type: "any-of",
+      contains: [
+        {
+          type: "array",
+          contains: {
+            type: "string",
+          },
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
     id: {
       type: "string",
       format: "uuid",
@@ -342,6 +356,20 @@ export const $TaskCreate = {
         },
       ],
     },
+    tags: {
+      type: "any-of",
+      contains: [
+        {
+          type: "array",
+          contains: {
+            type: "string",
+          },
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
   },
 } as const
 
@@ -414,6 +442,20 @@ export const $TaskPublic = {
       contains: [
         {
           type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    tags: {
+      type: "any-of",
+      contains: [
+        {
+          type: "array",
+          contains: {
+            type: "string",
+          },
         },
         {
           type: "null",

@@ -50,6 +50,7 @@ export type Task = {
   due?: string | null
   completed?: boolean
   position?: number | null
+  tags?: Array<string> | null
   id?: string
   owner_id: string
 }
@@ -62,6 +63,7 @@ export type TaskCreate = {
   due?: string | null
   completed?: boolean
   position?: number | null
+  tags?: Array<string> | null
 }
 
 export type TaskPublic = {
@@ -72,6 +74,7 @@ export type TaskPublic = {
   due?: string | null
   completed?: boolean
   position?: number | null
+  tags?: Array<string> | null
   id: string
   owner_id: string
 }
