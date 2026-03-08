@@ -1,10 +1,87 @@
 import type { TaskPublic } from "@/client/models"
 import { TasksService } from "@/client/services"
+import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { format, isPast, isToday, isTomorrow } from "date-fns"
 import { motion } from "framer-motion"
-import { Check, Circle, GripVertical, Trash2 } from "lucide-react"
+import { CalendarDays, Check, Circle, GripVertical, Trash2 } from "lucide-react"
 import { useRef, useState } from "react"
+
+const PRIORITY_COLORS: Record<number, string> = {
+  1: "text-red-500",
+  2: "text-orange-400",
+  3: "text-blue-400",
+  4: "text-gray-300",
+}
+
+function PriorityDot({ priorityId }: { priorityId: number | null | undefined }) {
+  if (!priorityId) return null
+  const color = PRIORITY_COLORS[priorityId] ?? "text-gray-300"
+  return (
+    <span data-testid="priority-dot" className={`flex-none mt-0.5 ${color}`}>
+      <svg
+        viewBox="0 0 8 8"
+        className="h-2 w-2 fill-current"
+        aria-hidden="true"
+      >
+        <circle cx="4" cy="4" r="4" />
+      </svg>
+    </span>
+  )
+}
+
+function formatDueDate(due: string): { label: string; overdue: boolean } {
+  const date = new Date(due)
+  const overdue = isPast(date) && !isToday(date)
+
+  let label: string
+  if (isToday(date)) label = "Today"
+  else if (isTomorrow(date)) label = "Tomorrow"
+  else label = format(date, "MMM d")
+
+  return { label, overdue }
+}
+
+function TaskMeta({
+  tags,
+  due,
+}: {
+  tags: string[] | null | undefined
+  due: string | null | undefined
+}) {
+  const hasTags = tags && tags.length > 0
+  const hasDue = !!due
+
+  if (!hasTags && !hasDue) return null
+
+  const dueInfo = due ? formatDueDate(due) : null
+
+  return (
+    <div data-testid="task-meta" className="flex items-center gap-1.5 flex-wrap mt-0.5 pl-0">
+      {hasTags &&
+        tags.map((tag) => (
+          <Badge
+            key={tag}
+            variant="secondary"
+            className="text-xs px-1.5 py-0 rounded-full font-normal h-4"
+          >
+            {tag}
+          </Badge>
+        ))}
+      {dueInfo && (
+        <span
+          className={`flex items-center gap-0.5 text-xs ${
+            dueInfo.overdue ? "text-red-500" : "text-muted-foreground"
+          }`}
+        >
+          <CalendarDays className="h-3 w-3" />
+          {dueInfo.label}
+        </span>
+      )}
+    </div>
+  )
+}
 
 const reorder = <T,>(list: T[], startIndex: number, endIndex: number): T[] => {
   const result = Array.from(list)
@@ -234,14 +311,17 @@ function TaskItem({ task }: { task: TaskPublic }) {
   }
 
   return (
-    <div className="flex gap-2 items-center border-b py-3 group bg-background">
-      <div className="flex-none cursor-grab active:cursor-grabbing">
+    <div
+      data-testid="task-item"
+      className="flex gap-2 items-start border-b py-3 group bg-background"
+    >
+      <div className="flex-none cursor-grab active:cursor-grabbing pt-0.5">
         <GripVertical className="h-5 w-5 text-gray-400" />
       </div>
       <motion.button
         whileTap={{ scale: 1.2 }}
         onClick={handleToggleCompleted}
-        className="flex-none self-start"
+        className="flex-none pt-0.5"
         disabled={toggleCompletedMutation.status === "pending"}
       >
         <div className="grid grid-cols-1 grid-rows-1">
@@ -251,16 +331,22 @@ function TaskItem({ task }: { task: TaskPublic }) {
           </div>
         </div>
       </motion.button>
-      <p
-        className={`text-sm line-clamp-4 text-ellipsis flex-grow ${
-          isCompleted ? "line-through text-gray-500" : ""
-        }`}
-      >
-        {task.title}
-      </p>
+      <div className="flex-grow min-w-0">
+        <div className="flex items-start gap-1.5">
+          <PriorityDot priorityId={task.priority_id} />
+          <p
+            className={`text-sm flex-grow ${
+              isCompleted ? "line-through text-gray-500" : ""
+            }`}
+          >
+            {task.title}
+          </p>
+        </div>
+        <TaskMeta tags={task.tags} due={task.due} />
+      </div>
       <button
         type="button"
-        className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:opacity-100 focus:opacity-100 flex items-center justify-center"
+        className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:opacity-100 focus:opacity-100 flex items-center justify-center flex-none"
         onClick={handleDelete}
         disabled={deleteMutation.status === "pending"}
         aria-label="Delete task"
