@@ -1,0 +1,67 @@
+{
+  "agents": {
+    "agent-1773445404965-fesdt4": {
+      "agentId": "agent-1773445404965-fesdt4",
+      "agentType": "orchestrator",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "phases": [
+          "backend-schema",
+          "frontend-calendar",
+          "frontend-duration"
+        ],
+        "dependency": "backend-schema must complete before frontend-calendar",
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-13T23:43:24.965Z",
+      "domain": "phase-1",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "phase1-backend": {
+      "agentId": "phase1-backend",
+      "agentType": "specialist",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-13T23:43:30.027Z",
+      "domain": "backend",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "phase1-duration": {
+      "agentId": "phase1-duration",
+      "agentType": "specialist",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-13T23:43:31.590Z",
+      "domain": "frontend",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "phase1-test-orchestrator": {
+      "agentId": "phase1-test-orchestrator",
+      "agentType": "orchestrator",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-14T01:12:15.988Z",
+      "domain": "testing",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    }
+  },
+  "version": "3.0.0"
+}

@@ -206,6 +206,105 @@ def test_create_task_with_due_date(
     assert content["due"] is not None
 
 
+def test_create_task_with_scheduled_start(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    title = random_lower_string()
+    scheduled_start = "2026-03-15T10:00:00"
+    data = {"title": title, "scheduled_start": scheduled_start}
+    response = client.post(
+        f"{settings.API_V1_STR}/tasks/", headers=superuser_token_headers, json=data
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert content["title"] == title
+    assert content["scheduled_start"] is not None
+    # The returned value should contain the datetime we sent
+    assert scheduled_start in content["scheduled_start"]
+
+
+def test_create_task_without_scheduled_start(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    title = random_lower_string()
+    data = {"title": title}
+    response = client.post(
+        f"{settings.API_V1_STR}/tasks/", headers=superuser_token_headers, json=data
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert content["title"] == title
+    assert content["scheduled_start"] is None
+
+
+def test_update_task_scheduled_start(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    # create a task without scheduled_start
+    title = random_lower_string()
+    data = {"title": title}
+    response = client.post(
+        f"{settings.API_V1_STR}/tasks/", headers=superuser_token_headers, json=data
+    )
+    assert response.status_code == 200
+    task_id = response.json()["id"]
+
+    # update the task to set scheduled_start
+    scheduled_start = "2026-03-16T14:30:00"
+    response = client.put(
+        f"{settings.API_V1_STR}/tasks/{task_id}",
+        headers=superuser_token_headers,
+        json={"scheduled_start": scheduled_start},
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert content["scheduled_start"] is not None
+    assert scheduled_start in content["scheduled_start"]
+
+    # verify via GET
+    response = client.get(
+        f"{settings.API_V1_STR}/tasks/{task_id}", headers=superuser_token_headers
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert content["scheduled_start"] is not None
+    assert scheduled_start in content["scheduled_start"]
+
+
+def test_clear_task_scheduled_start(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    # create a task with scheduled_start
+    title = random_lower_string()
+    scheduled_start = "2026-03-17T09:00:00"
+    data = {"title": title, "scheduled_start": scheduled_start}
+    response = client.post(
+        f"{settings.API_V1_STR}/tasks/", headers=superuser_token_headers, json=data
+    )
+    assert response.status_code == 200
+    content = response.json()
+    task_id = content["id"]
+    assert content["scheduled_start"] is not None
+
+    # clear scheduled_start by setting it to null
+    response = client.put(
+        f"{settings.API_V1_STR}/tasks/{task_id}",
+        headers=superuser_token_headers,
+        json={"scheduled_start": None},
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert content["scheduled_start"] is None
+
+    # verify via GET
+    response = client.get(
+        f"{settings.API_V1_STR}/tasks/{task_id}", headers=superuser_token_headers
+    )
+    assert response.status_code == 200
+    content = response.json()
+    assert content["scheduled_start"] is None
+
+
 def test_toggle_task_completed(
     client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:

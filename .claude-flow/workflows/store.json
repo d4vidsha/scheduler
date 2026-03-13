@@ -1,0 +1,111 @@
+{
+  "workflows": {
+    "workflow-1773445198847-um83ve": {
+      "workflowId": "workflow-1773445198847-um83ve",
+      "name": "Scheduler App Improvement Plan",
+      "description": "Roadmap to fulfill the vision of automatically scheduling tasks into a calendar view. Based on current state: task inbox is solid but the calendar is disconnected (shows hardcoded dummy events) and there is no scheduling engine.",
+      "steps": [
+        {
+          "stepId": "step-1",
+          "name": "Phase 1: Connect Tasks to Calendar",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              "Replace hardcoded dummy calendar events with real user tasks that have a due date",
+              "Render tasks with a duration on the calendar as timed blocks (use 30min default if no duration set)",
+              "Add duration field to AddTaskForm natural language parser (e.g. '1h', '30m', '2h30m')",
+              "Add duration field display and edit in TaskItem component"
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-2",
+          "name": "Phase 2: Auto-Scheduling Engine",
+          "type": "task",
+          "config": {
+            "description": "Build the core scheduling logic that places tasks into available calendar slots",
+            "subtasks": [
+              "Define 'working hours' in user settings (e.g. 9am-6pm) — store in user profile or localStorage initially",
+              "Write a scheduling algorithm: for each unscheduled task (no specific time, but has a due date), find the next available free slot before the due date that fits the task duration",
+              "Handle priority ordering: p1 tasks get earlier slots than p2/p3/p4",
+              "Add a 'scheduled_start' datetime field to the Task model + migration so the scheduler can persist computed start times",
+              "Expose POST /api/v1/tasks/schedule endpoint that runs the algorithm and saves scheduled_start for all unscheduled tasks",
+              "Auto-trigger scheduling when a task is created or updated"
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-3",
+          "name": "Phase 3: Two-Way Calendar Interaction",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              "Allow dragging a task block on the calendar to a new time slot — update scheduled_start via API",
+              "Allow resizing a task block on the calendar to change its duration — update duration via API",
+              "Clicking a task block on the calendar opens an edit drawer/modal",
+              "Show unscheduled tasks (no due date or no slot found) in a sidebar/overflow area on the calendar"
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-4",
+          "name": "Phase 4: Calendar View Completeness",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              "Implement Day view: single-day hourly grid (already has the week grid — adapt it)",
+              "Implement Month view: grid of days with task chips, overflow count",
+              "Implement Year view: heat-map style showing task density per day",
+              "Make the view switcher buttons (Day/Week/Month/Year) functional — they exist but are not wired up",
+              "Add 'Today' highlight and current-time indicator line (already partially present)"
+            ]
+          },
+          "status": "pending"
+        },
+        {
+          "stepId": "step-5",
+          "name": "Phase 5: UX Polish & Intelligence",
+          "type": "parallel",
+          "config": {
+            "tasks": [
+              "Conflict detection: visually highlight overlapping scheduled tasks in red on the calendar",
+              "Smart natural language for scheduling: 'finish report by Friday, takes 2 hours' → sets due=Friday, duration=120min, triggers scheduler",
+              "Add 'Reschedule all' button to re-run the scheduling algorithm (useful after adding many tasks)",
+              "Keyboard shortcut to quickly add a task (e.g. pressing 'n' focuses the AddTaskForm)",
+              "Empty state improvements: guide new users to add their first task with a due date so it appears on the calendar"
+            ]
+          },
+          "status": "pending"
+        }
+      ],
+      "status": "ready",
+      "currentStep": 0,
+      "variables": {
+        "project": "scheduler",
+        "vision": "Automatically schedule tasks into a calendar view — bridge the gap between task inbox and calendar",
+        "current_gaps": [
+          "Calendar shows hardcoded dummy events, not real tasks",
+          "No scheduling algorithm exists",
+          "Duration field exists in DB but has no UI",
+          "No scheduled_start field — tasks can't have a computed calendar time",
+          "Day/Month/Year calendar views are UI-only, not implemented",
+          "No two-way calendar interaction (drag/resize/click)"
+        ],
+        "solid_foundations": [
+          "Task CRUD with position, priority, tags, due date, duration fields",
+          "Natural language input parser (AddTaskForm)",
+          "Drag-and-drop task reordering",
+          "Week calendar grid UI (navigable, auto-scrolls to current time)",
+          "Split-panel dashboard layout",
+          "Auth + user-scoped tasks"
+        ]
+      },
+      "createdAt": "2026-03-13T23:39:58.847Z"
+    }
+  },
+  "templates": {},
+  "version": "3.0.0"
+}

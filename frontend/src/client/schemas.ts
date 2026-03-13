@@ -246,6 +246,18 @@ export const $Task = {
         },
       ],
     },
+    scheduled_start: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          format: "date-time",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
     completed: {
       type: "boolean",
       default: false,
@@ -341,6 +353,18 @@ export const $TaskCreate = {
         },
       ],
     },
+    scheduled_start: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          format: "date-time",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
     completed: {
       type: "boolean",
       default: false,
@@ -422,6 +446,18 @@ export const $TaskPublic = {
       ],
     },
     due: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          format: "date-time",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    scheduled_start: {
       type: "any-of",
       contains: [
         {

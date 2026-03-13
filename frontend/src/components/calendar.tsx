@@ -1,6 +1,6 @@
+import { type TaskPublic } from "@/client/models"
 import { cn } from "@/lib/utils"
 import {
-  addHours,
   addWeeks,
   differenceInDays,
   differenceInMinutes,
@@ -9,8 +9,10 @@ import {
   endOfDay,
   endOfWeek,
   format,
+  isSameDay,
   isToday,
   parse,
+  parseISO,
   startOfDay,
   startOfToday,
   startOfWeek,
@@ -28,7 +30,33 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 
-export default function WeekCalendar() {
+const PRIORITY_BORDER: Record<number, string> = {
+  1: "border-l-red-500",
+  2: "border-l-orange-500",
+  3: "border-l-blue-500",
+  4: "border-l-gray-400",
+}
+
+const PRIORITY_CHIP: Record<number, string> = {
+  1: "bg-red-100 text-red-700",
+  2: "bg-orange-100 text-orange-700",
+  3: "bg-blue-100 text-blue-700",
+  4: "bg-gray-100 text-gray-600",
+}
+
+function priorityBorderClass(priorityId?: number | null): string {
+  return priorityId != null ? (PRIORITY_BORDER[priorityId] ?? "border-l-slate-400") : "border-l-slate-400"
+}
+
+function priorityChipClass(priorityId?: number | null): string {
+  return priorityId != null ? (PRIORITY_CHIP[priorityId] ?? "bg-slate-100 text-slate-600") : "bg-slate-100 text-slate-600"
+}
+
+interface WeekCalendarProps {
+  tasks?: TaskPublic[]
+}
+
+export default function WeekCalendar({ tasks = [] }: WeekCalendarProps) {
   const container = useRef<HTMLDivElement>(null)
   const containerNav = useRef<HTMLDivElement>(null)
   const containerOffset = useRef<HTMLDivElement>(null)
@@ -66,21 +94,16 @@ export default function WeekCalendar() {
     start: startOfWeek(firstDayCurrentWeek),
     end: endOfWeek(firstDayCurrentWeek),
   })
-  const events = [
-    { id: 1, title: "Breakfast", time: addHours(today, 8), duration: 60 },
-    {
-      id: 2,
-      title: "Flight to Paris",
-      time: addHours(today, 11),
-      duration: 30,
-    },
-    {
-      id: 3,
-      title: "Meeting with design team at Disney Land",
-      time: addHours(today, 13),
-      duration: 120,
-    },
-  ]
+
+  const activeTasks = tasks.filter((t) => !t.completed)
+
+  // Tasks with scheduled_start → timed blocks
+  const timedTasks = activeTasks.filter((t) => t.scheduled_start != null)
+
+  // Tasks with only due date (no scheduled_start) → all-day chips
+  const dueTasks = activeTasks.filter(
+    (t) => t.scheduled_start == null && t.due != null,
+  )
 
   function previousWeek() {
     const firstDayPreviousWeek = addWeeks(firstDayCurrentWeek, -1)
@@ -161,7 +184,7 @@ export default function WeekCalendar() {
               {daysOfWeek.map((day) => (
                 <div
                   key={day.toString()}
-                  className="flex items-center justify-center py-3"
+                  className="flex flex-col items-center justify-start py-3 gap-1"
                 >
                   <span
                     className={cn(!isToday(day) ? "" : "flex items-baseline")}
@@ -178,6 +201,22 @@ export default function WeekCalendar() {
                       {format(day, "d")}
                     </span>
                   </span>
+                  <div className="flex flex-col gap-0.5 w-full px-1">
+                    {dueTasks
+                      .filter((t) => isSameDay(parseISO(t.due!), day))
+                      .map((t) => (
+                        <span
+                          key={t.id}
+                          className={cn(
+                            "truncate rounded px-1 py-0.5 text-xs font-medium",
+                            priorityChipClass(t.priority_id),
+                          )}
+                          title={t.title ?? ""}
+                        >
+                          {t.title}
+                        </span>
+                      ))}
+                  </div>
                 </div>
               ))}
             </div>
@@ -222,36 +261,51 @@ export default function WeekCalendar() {
                   gridTemplateRows: "1.75rem repeat(288, minmax(0, 1fr)) auto",
                 }}
               >
-                {events.map(({ id, title, time, duration }) => (
-                  <li
-                    key={id}
-                    className={cn(
-                      "relative mt-px flex",
-                      columnPosition[differenceInDays(time, startOfWeek(time))],
-                    )}
-                    style={{
-                      gridRow: cn(
-                        (differenceInMinutes(time, today) * 12) / 60 + 2,
-                        "/ span",
-                        (duration * 12) / 60,
-                      ),
-                    }}
-                  >
-                    <a
-                      href="#"
-                      className="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg bg-blue-50 p-2 text-xs leading-5 hover:bg-blue-100"
+                {timedTasks.map((task) => {
+                  const startTime = parseISO(task.scheduled_start!)
+                  const weekStart = startOfWeek(firstDayCurrentWeek)
+                  const weekEnd = endOfWeek(firstDayCurrentWeek)
+                  // Skip tasks not in the current week
+                  if (startTime < weekStart || startTime > weekEnd) return null
+                  const dayIndex = differenceInDays(startTime, weekStart)
+                  const minutesFromMidnight = differenceInMinutes(
+                    startTime,
+                    startOfDay(startTime),
+                  )
+                  const spanRows = Math.max(
+                    1,
+                    Math.round(((task.duration ?? 30) * 12) / 60),
+                  )
+                  const startRow = Math.round((minutesFromMidnight * 12) / 60) + 2
+                  return (
+                    <li
+                      key={task.id}
+                      className={cn(
+                        "relative mt-px flex",
+                        columnPosition[dayIndex],
+                      )}
+                      style={{
+                        gridRow: `${startRow} / span ${spanRows}`,
+                      }}
                     >
-                      <p className="order-1 font-semibold text-blue-700">
-                        {title}
-                      </p>
-                      <p className="text-blue-500 group-hover:text-blue-700">
-                        <time dateTime={format(time, "yyyy-MM-dd HH:mm")}>
-                          {format(time, "h:mma")}
-                        </time>
-                      </p>
-                    </a>
-                  </li>
-                ))}
+                      <div
+                        className={cn(
+                          "group absolute inset-1 flex flex-col overflow-y-auto rounded-lg border-l-4 bg-card p-2 text-xs leading-5 shadow-sm hover:shadow-md",
+                          priorityBorderClass(task.priority_id),
+                        )}
+                      >
+                        <p className="order-1 font-semibold text-foreground truncate">
+                          {task.title}
+                        </p>
+                        <p className="text-muted-foreground">
+                          <time dateTime={format(startTime, "yyyy-MM-dd HH:mm")}>
+                            {format(startTime, "h:mma")}
+                          </time>
+                        </p>
+                      </div>
+                    </li>
+                  )
+                })}
               </ol>
             </div>
           </div>

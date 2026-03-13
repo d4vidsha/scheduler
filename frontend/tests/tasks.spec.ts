@@ -224,6 +224,117 @@ test.describe("Tasks", () => {
     ).toBeVisible()
   })
 
+  // --- Duration badge tests ---
+
+  test("should show 1h duration badge for '1h' input", async ({ page }) => {
+    await page.goto("/tasks")
+
+    const baseTitle = `Report Task ${randomString(5)}`
+    await page.getByPlaceholder(/Task title/).fill(`${baseTitle} 1h`)
+    await page.getByRole("button", { name: "Add" }).click()
+
+    const taskItem = getTaskItem(page, baseTitle)
+    await expect(taskItem).toBeVisible()
+    await expect(
+      taskItem.locator('[data-testid="task-meta"]').getByText("1h", { exact: true }),
+    ).toBeVisible()
+  })
+
+  test("should show '2h 30m' duration badge for '2h30m' input", async ({ page }) => {
+    await page.goto("/tasks")
+
+    const baseTitle = `Deep Work Task ${randomString(5)}`
+    await page.getByPlaceholder(/Task title/).fill(`${baseTitle} 2h30m`)
+    await page.getByRole("button", { name: "Add" }).click()
+
+    const taskItem = getTaskItem(page, baseTitle)
+    await expect(taskItem).toBeVisible()
+    await expect(
+      taskItem.locator('[data-testid="task-meta"]').getByText("2h 30m", { exact: true }),
+    ).toBeVisible()
+  })
+
+  test("should show '30m' duration badge for '30m' input", async ({ page }) => {
+    await page.goto("/tasks")
+
+    const baseTitle = `Quick Call Task ${randomString(5)}`
+    await page.getByPlaceholder(/Task title/).fill(`${baseTitle} 30m`)
+    await page.getByRole("button", { name: "Add" }).click()
+
+    const taskItem = getTaskItem(page, baseTitle)
+    await expect(taskItem).toBeVisible()
+    await expect(
+      taskItem.locator('[data-testid="task-meta"]').getByText("30m", { exact: true }),
+    ).toBeVisible()
+  })
+
+  test("should strip duration token from displayed title", async ({ page }) => {
+    await page.goto("/tasks")
+
+    const baseTitle = `Stripped Duration Task ${randomString(5)}`
+    await page.getByPlaceholder(/Task title/).fill(`${baseTitle} 1h`)
+    await page.getByRole("button", { name: "Add" }).click()
+
+    const taskItem = getTaskItem(page, baseTitle)
+    await expect(taskItem).toBeVisible()
+    // The raw token should not appear in the title paragraph
+    await expect(page.locator("p", { hasText: `${baseTitle} 1h` })).not.toBeVisible()
+  })
+
+  // --- Calendar all-day chip tests ---
+
+  test("should show task with due date today as an all-day chip in the calendar", async ({ page }) => {
+    await page.goto("/")
+
+    const baseTitle = `Calendar Today Task ${randomString(5)}`
+    // Create via API so we can set due precisely to today without relying on the parser route
+    const token = await page.evaluate(() => localStorage.getItem("access_token"))
+    const today = new Date()
+    today.setHours(12, 0, 0, 0)
+    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { title: baseTitle, due: today.toISOString() },
+    })
+    expect(response.ok()).toBeTruthy()
+
+    await page.reload()
+    await page.waitForLoadState("networkidle")
+
+    // The calendar renders all-day chips in the desktop header as <span> elements with the task title
+    // They live inside the right ResizablePanel that contains the WeekCalendar component
+    const calendarPanel = page.locator('[data-panel-id]').last()
+    await expect(calendarPanel.getByText(baseTitle, { exact: true })).toBeVisible({ timeout: 8000 })
+  })
+
+  test("should show task with due date tomorrow as an all-day chip in the calendar", async ({ page }) => {
+    await page.goto("/")
+
+    const baseTitle = `Calendar Tomorrow Task ${randomString(5)}`
+    const token = await page.evaluate(() => localStorage.getItem("access_token"))
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setHours(12, 0, 0, 0)
+    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { title: baseTitle, due: tomorrow.toISOString() },
+    })
+    expect(response.ok()).toBeTruthy()
+
+    await page.reload()
+    await page.waitForLoadState("networkidle")
+
+    // If tomorrow starts a new week (e.g. today is Saturday), navigate forward one week
+    const todayDay = new Date().getDay() // 0=Sun, 6=Sat
+    if (todayDay === 6) {
+      // Saturday: tomorrow is Sunday, start of next week
+      await page.getByRole("button", { name: "Next week" }).click()
+      await page.waitForLoadState("networkidle")
+    }
+
+    const calendarPanel = page.locator('[data-panel-id]').last()
+    await expect(calendarPanel.getByText(baseTitle, { exact: true })).toBeVisible({ timeout: 8000 })
+  })
+
   test("should show combined metadata for task with tag, priority, and due date", async ({ page }) => {
     await page.goto("/tasks")
 

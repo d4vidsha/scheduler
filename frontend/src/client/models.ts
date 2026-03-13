@@ -48,6 +48,7 @@ export type Task = {
   priority_id?: number | null
   duration?: number | null
   due?: string | null
+  scheduled_start?: string | null
   completed?: boolean
   position?: number | null
   tags?: Array<string> | null
@@ -61,6 +62,7 @@ export type TaskCreate = {
   priority_id?: number | null
   duration?: number | null
   due?: string | null
+  scheduled_start?: string | null
   completed?: boolean
   position?: number | null
   tags?: Array<string> | null
@@ -72,6 +74,7 @@ export type TaskPublic = {
   priority_id?: number | null
   duration?: number | null
   due?: string | null
+  scheduled_start?: string | null
   completed?: boolean
   position?: number | null
   tags?: Array<string> | null

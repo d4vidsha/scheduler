@@ -38,6 +38,21 @@ function parseNextDate(dayStr: string): string {
   return d.toISOString()
 }
 
+const DURATION_PATTERN = /\b(\d+)h(?:(\d+)m)?\b|\b(\d+)m\b/
+
+function parseDuration(text: string): number | null {
+  const match = text.match(DURATION_PATTERN)
+  if (!match) return null
+  if (match[3] !== undefined) {
+    // matched Xm only
+    return Number.parseInt(match[3])
+  }
+  // matched Xh or XhYm
+  const hours = Number.parseInt(match[1])
+  const minutes = match[2] !== undefined ? Number.parseInt(match[2]) : 0
+  return hours * 60 + minutes
+}
+
 function parseNaturalLanguage(
   value: string,
   plainText: string,
@@ -46,6 +61,7 @@ function parseNaturalLanguage(
   tags: string[] | null
   priorityId: number | null
   due: string | null
+  duration: number | null
 } {
   // Extract tags from react-mentions markup: @[display](id)
   const tags = [...value.matchAll(/@\[([^\]]+)\]\([^)]+\)/g)].map((m) => m[1])
@@ -58,15 +74,19 @@ function parseNaturalLanguage(
   const dateMatch = plainText.match(DATE_PATTERN)
   const due = dateMatch ? parseNextDate(dateMatch[1].toLowerCase()) : null
 
-  // Build clean title: remove @mentions, priority token, date token
+  // Extract duration from plain text
+  const duration = parseDuration(plainText)
+
+  // Build clean title: remove @mentions, priority token, date token, duration token
   const title = plainText
     .replace(/@\S+/g, "")
     .replace(/\bp[1-4]\b/gi, "")
     .replace(DATE_PATTERN, "")
+    .replace(DURATION_PATTERN, "")
     .replace(/\s+/g, " ")
     .trim()
 
-  return { title, tags: tags.length > 0 ? tags : null, priorityId, due }
+  return { title, tags: tags.length > 0 ? tags : null, priorityId, due, duration }
 }
 
 const mentionsInputStyle = {
@@ -122,11 +142,13 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
       tags,
       priorityId,
       due,
+      duration,
     }: {
       title: string
       tags: string[] | null
       priorityId: number | null
       due: string | null
+      duration: number | null
     }) => {
       if (!user) throw new Error("Not authenticated")
       return TasksService.createTask({
@@ -135,6 +157,7 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
           tags,
           priority_id: priorityId,
           due,
+          duration,
         },
       })
     },
@@ -155,12 +178,12 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
     <form
       onSubmit={(e) => {
         e.preventDefault()
-        const { title, tags, priorityId, due } = parseNaturalLanguage(
+        const { title, tags, priorityId, due, duration } = parseNaturalLanguage(
           value,
           plainText,
         )
         if (!title) return
-        mutation.mutate({ title, tags, priorityId, due })
+        mutation.mutate({ title, tags, priorityId, due, duration })
       }}
       className="flex gap-2"
     >
@@ -171,18 +194,18 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
             setValue(newValue)
             setPlainText(newPlainText)
           }}
-          placeholder="Task title @tag p1 monday — press Enter to add"
+          placeholder="Task title @tag p1 monday 1h30m — press Enter to add"
           singleLine
           style={mentionsInputStyle}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault()
-              const { title, tags, priorityId, due } = parseNaturalLanguage(
+              const { title, tags, priorityId, due, duration } = parseNaturalLanguage(
                 value,
                 plainText,
               )
               if (!title) return
-              mutation.mutate({ title, tags, priorityId, due })
+              mutation.mutate({ title, tags, priorityId, due, duration })
             }
           }}
         >

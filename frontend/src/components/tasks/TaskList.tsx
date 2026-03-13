@@ -43,17 +43,28 @@ function formatDueDate(due: string): { label: string; overdue: boolean } {
   return { label, overdue }
 }
 
+function formatDuration(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h === 0) return `${m}m`
+  if (m === 0) return `${h}h`
+  return `${h}h ${m}m`
+}
+
 function TaskMeta({
   tags,
   due,
+  duration,
 }: {
   tags: string[] | null | undefined
   due: string | null | undefined
+  duration: number | null | undefined
 }) {
   const hasTags = tags && tags.length > 0
   const hasDue = !!due
+  const hasDuration = duration != null && duration > 0
 
-  if (!hasTags && !hasDue) return null
+  if (!hasTags && !hasDue && !hasDuration) return null
 
   const dueInfo = due ? formatDueDate(due) : null
 
@@ -77,6 +88,11 @@ function TaskMeta({
         >
           <CalendarDays className="h-3 w-3" />
           {dueInfo.label}
+        </span>
+      )}
+      {hasDuration && (
+        <span className="text-xs text-muted-foreground">
+          {formatDuration(duration)}
         </span>
       )}
     </div>
@@ -342,7 +358,7 @@ function TaskItem({ task }: { task: TaskPublic }) {
             {task.title}
           </p>
         </div>
-        <TaskMeta tags={task.tags} due={task.due} />
+        <TaskMeta tags={task.tags} due={task.due} duration={task.duration} />
       </div>
       <button
         type="button"

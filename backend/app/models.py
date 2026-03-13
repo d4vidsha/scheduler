@@ -131,6 +131,7 @@ class TaskBase(SQLModel):
     )
     duration: int | None = Field(default=None)
     due: datetime | None = Field(default=None)
+    scheduled_start: datetime | None = Field(default=None)
     completed: bool = Field(default=False)
     position: int | None = Field(default=None, index=True)
     tags: list[str] | None = Field(default=None, sa_column=Column(JSON))
