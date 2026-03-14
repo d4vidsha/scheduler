@@ -111,6 +111,8 @@ export type UserPublic = {
   is_superuser?: boolean
   full_name?: string | null
   id: string
+  work_start?: number
+  work_end?: number
 }
 
 export type UserRegister = {
@@ -125,11 +127,15 @@ export type UserUpdate = {
   is_superuser?: boolean
   full_name?: string | null
   password?: string | null
+  work_start?: number | null
+  work_end?: number | null
 }
 
 export type UserUpdateMe = {
   full_name?: string | null
   email?: string | null
+  work_start?: number | null
+  work_end?: number | null
 }
 
 export type UsersPublic = {

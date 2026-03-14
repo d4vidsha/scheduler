@@ -162,7 +162,9 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] })
+      TasksService.scheduleTasks().finally(() => {
+        queryClient.invalidateQueries({ queryKey: ["tasks"] })
+      })
       setValue("")
       setPlainText("")
       showToast("Success", "Task created successfully", "success")

@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
@@ -470,3 +472,224 @@ def test_normal_user_cannot_delete_other_users_task(
         f"{settings.API_V1_STR}/tasks/{task_a['id']}", headers=headers_b
     )
     assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Schedule endpoint tests
+# ---------------------------------------------------------------------------
+
+
+def _tomorrow_noon() -> str:
+    """Return tomorrow at noon as an ISO string (no timezone)."""
+    tomorrow = datetime.utcnow() + timedelta(days=1)
+    return tomorrow.replace(hour=12, minute=0, second=0, microsecond=0).isoformat()
+
+
+def test_schedule_assigns_scheduled_start(
+    client: TestClient, db: Session
+) -> None:
+    """Two tasks with a due date should both get a scheduled_start after scheduling."""
+    headers = _fresh_user_headers(client, db)
+    due = _tomorrow_noon()
+    task_ids = []
+    for _ in range(2):
+        resp = client.post(
+            f"{settings.API_V1_STR}/tasks/",
+            headers=headers,
+            json={"title": random_lower_string(), "due": due, "duration": 60},
+        )
+        assert resp.status_code == 200
+        task_ids.append(resp.json()["id"])
+
+    resp = client.post(
+        f"{settings.API_V1_STR}/tasks/schedule",
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+
+    # Find the two tasks by id
+    scheduled = {t["id"]: t for t in data if t["id"] in task_ids}
+    assert len(scheduled) == 2
+
+    starts = []
+    for tid in task_ids:
+        t = scheduled[tid]
+        assert t["scheduled_start"] is not None, f"Task {tid} has no scheduled_start"
+        starts.append(datetime.fromisoformat(t["scheduled_start"]))
+
+    # Verify they don't overlap (each has duration 60 min)
+    starts.sort()
+    assert starts[1] >= starts[0] + timedelta(minutes=60), "Tasks overlap"
+
+
+def test_schedule_respects_priority_order(
+    client: TestClient, db: Session
+) -> None:
+    """A higher-priority (lower id) task should receive an earlier or equal slot."""
+    headers = _fresh_user_headers(client, db)
+
+    # Ensure priority rows 1 and 3 exist
+    for pid, pname in [(1, "urgent"), (3, "low")]:
+        existing = db.get(Priority, pid)
+        if not existing:
+            p = Priority(id=pid, name=pname, value=pid)
+            db.add(p)
+            db.commit()
+
+    due = _tomorrow_noon()
+
+    resp_p1 = client.post(
+        f"{settings.API_V1_STR}/tasks/",
+        headers=headers,
+        json={
+            "title": random_lower_string(),
+            "due": due,
+            "duration": 60,
+            "priority_id": 1,
+        },
+    )
+    assert resp_p1.status_code == 200
+    p1_id = resp_p1.json()["id"]
+
+    resp_p3 = client.post(
+        f"{settings.API_V1_STR}/tasks/",
+        headers=headers,
+        json={
+            "title": random_lower_string(),
+            "due": due,
+            "duration": 60,
+            "priority_id": 3,
+        },
+    )
+    assert resp_p3.status_code == 200
+    p3_id = resp_p3.json()["id"]
+
+    resp = client.post(
+        f"{settings.API_V1_STR}/tasks/schedule",
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    data = {t["id"]: t for t in resp.json()["data"]}
+
+    p1_start = data[p1_id]["scheduled_start"]
+    p3_start = data[p3_id]["scheduled_start"]
+    assert p1_start is not None
+    assert p3_start is not None
+
+    assert datetime.fromisoformat(p1_start) <= datetime.fromisoformat(p3_start), (
+        "p1 task should be scheduled at or before p3 task"
+    )
+
+
+def test_schedule_respects_working_hours(
+    client: TestClient, db: Session
+) -> None:
+    """All scheduled tasks must fall within default working hours (9-18)."""
+    headers = _fresh_user_headers(client, db)
+    due = _tomorrow_noon()
+    client.post(
+        f"{settings.API_V1_STR}/tasks/",
+        headers=headers,
+        json={"title": random_lower_string(), "due": due, "duration": 30},
+    )
+
+    resp = client.post(
+        f"{settings.API_V1_STR}/tasks/schedule",
+        headers=headers,
+    )
+    assert resp.status_code == 200
+
+    for task in resp.json()["data"]:
+        if task["scheduled_start"] is not None:
+            hour = datetime.fromisoformat(task["scheduled_start"]).hour
+            assert hour >= 9, f"Task starts before work_start: hour={hour}"
+            assert hour < 18, f"Task starts at or after work_end: hour={hour}"
+
+
+def test_schedule_skips_completed_tasks(
+    client: TestClient, db: Session
+) -> None:
+    """A completed task must not receive a scheduled_start from the scheduler."""
+    headers = _fresh_user_headers(client, db)
+    due = _tomorrow_noon()
+
+    # Create a task then mark it complete
+    resp = client.post(
+        f"{settings.API_V1_STR}/tasks/",
+        headers=headers,
+        json={"title": random_lower_string(), "due": due, "duration": 30},
+    )
+    assert resp.status_code == 200
+    task_id = resp.json()["id"]
+
+    resp = client.put(
+        f"{settings.API_V1_STR}/tasks/{task_id}/toggle-completed",
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["completed"] is True
+
+    resp = client.post(
+        f"{settings.API_V1_STR}/tasks/schedule",
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    data = {t["id"]: t for t in resp.json()["data"]}
+
+    assert data[task_id]["scheduled_start"] is None, (
+        "Completed task should not have scheduled_start set"
+    )
+
+
+def test_schedule_only_affects_own_tasks(
+    client: TestClient, db: Session
+) -> None:
+    """Scheduling for user A must not modify user B's tasks."""
+    headers_a = _fresh_user_headers(client, db)
+    headers_b = _fresh_user_headers(client, db)
+    due = _tomorrow_noon()
+
+    # User B creates a task
+    task_b = _create_task(client, headers_b, due=due, duration=30)
+
+    # User A triggers schedule
+    client.post(f"{settings.API_V1_STR}/tasks/schedule", headers=headers_a)
+
+    # User B's task should still have no scheduled_start
+    resp = client.get(
+        f"{settings.API_V1_STR}/tasks/{task_b['id']}", headers=headers_b
+    )
+    assert resp.status_code == 200
+    assert resp.json()["scheduled_start"] is None
+
+
+def test_schedule_reschedules_all_incomplete_tasks(
+    client: TestClient, db: Session
+) -> None:
+    """Running schedule twice should reschedule all incomplete tasks (not just unscheduled ones)."""
+    headers = _fresh_user_headers(client, db)
+    due = _tomorrow_noon()
+
+    _create_task(client, headers, due=due, duration=30)
+    _create_task(client, headers, due=due, duration=30)
+
+    # First schedule
+    resp = client.post(f"{settings.API_V1_STR}/tasks/schedule", headers=headers)
+    assert resp.status_code == 200
+    first_starts = {
+        t["id"]: t["scheduled_start"]
+        for t in resp.json()["data"]
+        if t["scheduled_start"] is not None
+    }
+    assert len(first_starts) == 2
+
+    # Second schedule — should still set scheduled_start on all incomplete tasks
+    resp = client.post(f"{settings.API_V1_STR}/tasks/schedule", headers=headers)
+    assert resp.status_code == 200
+    second_starts = {
+        t["id"]: t["scheduled_start"]
+        for t in resp.json()["data"]
+        if t["scheduled_start"] is not None
+    }
+    assert len(second_starts) == 2

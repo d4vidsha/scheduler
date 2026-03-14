@@ -1,6 +1,66 @@
 import { type Page, expect, test } from "@playwright/test"
 import { randomString } from "./utils/random"
 
+// --- Phase 2: scheduling and working hours tests ---
+
+test.describe("Phase 2 features", () => {
+  test("schedule runs after task create", async ({ page }) => {
+    await page.goto("/")
+    await page.waitForLoadState("networkidle")
+
+    const taskTitle = `Meeting ${randomString(5)}`
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setHours(12, 0, 0, 0)
+
+    // Create task via API with a due date and duration so the scheduler can place it
+    const token = await page.evaluate(() => localStorage.getItem("access_token"))
+    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { title: taskTitle, due: tomorrow.toISOString(), duration: 60 },
+    })
+    expect(response.ok()).toBeTruthy()
+    const created = await response.json()
+
+    // Trigger scheduling
+    const scheduleResponse = await page.request.post("http://localhost:8000/api/v1/tasks/schedule", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    expect(scheduleResponse.ok()).toBeTruthy()
+
+    // Fetch the task and verify scheduled_start is set
+    const tasksResponse = await page.request.get("http://localhost:8000/api/v1/tasks/", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    expect(tasksResponse.ok()).toBeTruthy()
+    const tasks = await tasksResponse.json()
+    const scheduledTask = tasks.data.find((t: { id: string }) => t.id === created.id)
+    expect(scheduledTask).toBeDefined()
+    expect(scheduledTask.scheduled_start).not.toBeNull()
+  })
+
+  test("working hours displayed in settings", async ({ page }) => {
+    await page.goto("/settings")
+    await page.waitForLoadState("networkidle")
+
+    // Navigate to Working Hours tab
+    await page.getByRole("tab", { name: "Working Hours" }).click()
+
+    // The section heading should be visible
+    await expect(page.getByText("Working Hours", { exact: true }).first()).toBeVisible()
+
+    // The work-start select should exist with default value 9
+    const workStart = page.locator("#work-start")
+    await expect(workStart).toBeVisible()
+    await expect(workStart).toHaveValue("9")
+
+    // The work-end select should exist with default value 18
+    const workEnd = page.locator("#work-end")
+    await expect(workEnd).toBeVisible()
+    await expect(workEnd).toHaveValue("18")
+  })
+})
+
 // Find the task item root by title text.
 // Uses data-testid="task-item" for reliable targeting regardless of DOM depth.
 const getTaskItem = (page: Page, title: string) =>

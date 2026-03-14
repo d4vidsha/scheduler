@@ -667,6 +667,19 @@ export class TasksService {
   }
 
   /**
+   * Schedule Tasks
+   * Auto-schedule incomplete tasks with a due date into working-hour slots.
+   * @returns TasksPublic Successful Response
+   * @throws ApiError
+   */
+  public static scheduleTasks(): CancelablePromise<TasksPublic> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/tasks/schedule",
+    })
+  }
+
+  /**
    * Reorder Tasks
    * Reorder tasks based on the provided list of task IDs.
    * @returns Message Successful Response

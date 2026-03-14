@@ -61,6 +61,20 @@
       "domain": "testing",
       "model": "sonnet",
       "modelRoutedBy": "explicit"
+    },
+    "phase2-orchestrator": {
+      "agentId": "phase2-orchestrator",
+      "agentType": "orchestrator",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-14T01:22:24.972Z",
+      "domain": "phase-2",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
     }
   },
   "version": "3.0.0"

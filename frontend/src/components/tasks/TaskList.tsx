@@ -276,7 +276,9 @@ function TaskItem({ task }: { task: TaskPublic }) {
       return TasksService.deleteTask({ id: task.id })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] })
+      TasksService.scheduleTasks().finally(() => {
+        queryClient.invalidateQueries({ queryKey: ["tasks"] })
+      })
       toast({
         title: "Success",
         description: "Task deleted successfully",
@@ -297,7 +299,9 @@ function TaskItem({ task }: { task: TaskPublic }) {
       return TasksService.toggleTaskCompleted({ id: task.id })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] })
+      TasksService.scheduleTasks().finally(() => {
+        queryClient.invalidateQueries({ queryKey: ["tasks"] })
+      })
     },
     onError: (error) => {
       // revert the local state if the API call fails

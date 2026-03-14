@@ -627,6 +627,14 @@ export const $UserPublic = {
       isRequired: true,
       format: "uuid",
     },
+    work_start: {
+      type: "number",
+      default: 9,
+    },
+    work_end: {
+      type: "number",
+      default: 18,
+    },
   },
 } as const
 
@@ -707,6 +715,28 @@ export const $UserUpdate = {
         },
       ],
     },
+    work_start: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    work_end: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
   },
 } as const
 
@@ -731,6 +761,28 @@ export const $UserUpdateMe = {
           type: "string",
           format: "email",
           maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    work_start: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    work_end: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
         },
         {
           type: "null",
