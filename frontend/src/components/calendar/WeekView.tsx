@@ -300,6 +300,7 @@ export default function WeekView({ tasks, currentDate }: CalendarViewProps) {
                       return (
                         <div
                           key={task.id}
+                          data-testid="calendar-task-block"
                           className={cn(
                             "absolute left-1 right-1 rounded-md border-l-4 p-2 cursor-pointer select-none z-20 overflow-hidden",
                             priorityBorderClass(task.priority_id),
@@ -330,7 +331,7 @@ export default function WeekView({ tasks, currentDate }: CalendarViewProps) {
                             </p>
                           )}
                           {hasConflict && (
-                            <p className="text-[8px] text-red-500 font-semibold mt-0.5">
+                            <p data-testid="conflict-label" className="text-[8px] text-red-500 font-semibold mt-0.5">
                               Conflict
                             </p>
                           )}

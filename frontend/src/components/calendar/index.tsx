@@ -180,32 +180,40 @@ export default function Calendar({ tasks = [] }: CalendarProps) {
 
       {/* View content */}
       {view === "day" && (
-        <DayView
-          tasks={tasks}
-          currentDate={currentDate}
-          onNavigate={handleNavigate}
-        />
+        <div data-testid="calendar-day-view">
+          <DayView
+            tasks={tasks}
+            currentDate={currentDate}
+            onNavigate={handleNavigate}
+          />
+        </div>
       )}
       {view === "week" && (
-        <WeekView
-          tasks={tasks}
-          currentDate={currentDate}
-          onNavigate={handleNavigate}
-        />
+        <div data-testid="calendar-week-view">
+          <WeekView
+            tasks={tasks}
+            currentDate={currentDate}
+            onNavigate={handleNavigate}
+          />
+        </div>
       )}
       {view === "month" && (
-        <MonthView
-          tasks={tasks}
-          currentDate={currentDate}
-          onNavigate={handleNavigate}
-        />
+        <div data-testid="calendar-month-view">
+          <MonthView
+            tasks={tasks}
+            currentDate={currentDate}
+            onNavigate={handleNavigate}
+          />
+        </div>
       )}
       {view === "year" && (
-        <YearView
-          tasks={tasks}
-          currentDate={currentDate}
-          onNavigate={handleNavigate}
-        />
+        <div data-testid="calendar-year-view">
+          <YearView
+            tasks={tasks}
+            currentDate={currentDate}
+            onNavigate={handleNavigate}
+          />
+        </div>
       )}
     </div>
   )
