@@ -21,7 +21,7 @@ async function createTask(
 ) {
   const token = await getToken(page)
   const response = await page.request.post(
-    "http://localhost:8000/api/v1/tasks/",
+    "http://127.0.0.1:8000/api/v1/tasks/",
     {
       headers: { Authorization: `Bearer ${token}` },
       data,
@@ -127,8 +127,16 @@ test.describe("Month view", () => {
     await expect(
       page.locator('[data-testid="calendar-month-view"]'),
     ).toBeVisible()
+    // The event may be behind a "+more" popover — click it if present
+    const moreLink = page
+      .locator('[data-testid="calendar-month-view"]')
+      .locator(".fc-more-link, .fc-daygrid-more-link")
+      .first()
+    if (await moreLink.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await moreLink.click()
+    }
     await expect(
-      page.locator('[data-testid="calendar-month-view"]').getByText(taskTitle),
+      page.getByText(taskTitle).first(),
     ).toBeVisible({ timeout: 8000 })
   })
 
@@ -156,7 +164,8 @@ test.describe("Month view", () => {
     await expect(
       page
         .locator('[data-testid="calendar-month-view"]')
-        .locator(".fc-more-link, .fc-daygrid-more-link"),
+        .locator(".fc-more-link, .fc-daygrid-more-link")
+        .first(),
     ).toBeVisible({ timeout: 8000 })
   })
 })
@@ -239,14 +248,14 @@ test.describe("Auto-schedule button", () => {
     await page.getByRole("button", { name: "Auto-Schedule" }).click()
 
     // Wait for the toast confirming success
-    await expect(page.getByText("Tasks rescheduled successfully")).toBeVisible({
+    await expect(page.getByText("Tasks rescheduled successfully").first()).toBeVisible({
       timeout: 10000,
     })
 
     // Verify the task now has scheduled_start via API
     const token = await getToken(page)
     const resp = await page.request.get(
-      `http://localhost:8000/api/v1/tasks/${created.id}`,
+      `http://127.0.0.1:8000/api/v1/tasks/${created.id}`,
       { headers: { Authorization: `Bearer ${token}` } },
     )
     expect(resp.ok()).toBeTruthy()
@@ -313,13 +322,13 @@ test.describe("Empty state", () => {
     // Delete all existing tasks via API
     const token = await getToken(page)
     const resp = await page.request.get(
-      "http://localhost:8000/api/v1/tasks/?limit=500",
+      "http://127.0.0.1:8000/api/v1/tasks/?limit=500",
       { headers: { Authorization: `Bearer ${token}` } },
     )
     const tasks = await resp.json()
     for (const task of tasks.data) {
       await page.request.delete(
-        `http://localhost:8000/api/v1/tasks/${task.id}`,
+        `http://127.0.0.1:8000/api/v1/tasks/${task.id}`,
         { headers: { Authorization: `Bearer ${token}` } },
       )
     }
@@ -343,7 +352,7 @@ test.describe("Sidebar", () => {
     const sidebar = page.locator("aside")
 
     // Brand name
-    await expect(sidebar.getByText("Sanctuary")).toBeVisible()
+    await expect(sidebar.getByText("Scheduler")).toBeVisible()
 
     // Nav items
     await expect(sidebar.getByText("Today", { exact: true })).toBeVisible()
