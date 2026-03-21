@@ -313,23 +313,22 @@ function TaskItem({ task }: { task: TaskPublic }) {
       <motion.button
         whileTap={{ scale: 1.2 }}
         onClick={handleToggleCompleted}
-        className="flex-none mt-1"
+        className="flex-none mt-0.5"
         disabled={toggleCompletedMutation.status === "pending"}
       >
-        {isCompleted ? (
-          <div className="w-4 h-4 rounded bg-primary text-white flex items-center justify-center">
+        <div
+          className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
+            isCompleted
+              ? "bg-primary text-white"
+              : "border-[1.5px] border-outline-variant/40 hover:border-primary/50"
+          }`}
+        >
+          {isCompleted && (
             <span className="material-symbols-outlined text-[12px] font-bold">
               check
             </span>
-          </div>
-        ) : (
-          <input
-            type="checkbox"
-            checked={false}
-            readOnly
-            className="w-4 h-4 rounded border-outline-variant/40 text-primary focus:ring-primary/20 bg-transparent transition-all cursor-pointer"
-          />
-        )}
+          )}
+        </div>
       </motion.button>
 
       {/* Content */}
