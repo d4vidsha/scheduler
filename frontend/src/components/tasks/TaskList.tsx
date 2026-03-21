@@ -3,8 +3,8 @@ import { TasksService } from "@/client/services"
 import { useToast } from "@/hooks/use-toast"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { format, isPast, isToday, isTomorrow } from "date-fns"
-import { Reorder, motion, useDragControls } from "framer-motion"
-import { useEffect, useRef, useState } from "react"
+import { AnimatePresence, Reorder, motion, useDragControls } from "framer-motion"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 const TAG_COLORS: Record<string, string> = {
   finance: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
@@ -97,17 +97,48 @@ function TaskMeta({
   )
 }
 
+/** Move all selected items to be adjacent after the dragged item's position. */
+function consolidateSelection(
+  order: TaskPublic[],
+  draggedId: string,
+  selectedIds: Set<string>,
+): TaskPublic[] {
+  const otherSelected = order.filter(
+    (t) => selectedIds.has(t.id) && t.id !== draggedId,
+  )
+  const withoutOtherSelected = order.filter(
+    (t) => !selectedIds.has(t.id) || t.id === draggedId,
+  )
+  const insertIdx = withoutOtherSelected.findIndex((t) => t.id === draggedId)
+  const result = [...withoutOtherSelected]
+  result.splice(insertIdx + 1, 0, ...otherSelected)
+  return result
+}
+
 export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [orderedTasks, setOrderedTasks] = useState<TaskPublic[]>(tasks)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const lastClickedId = useRef<string | null>(null)
   const isDragging = useRef(false)
+  const orderedRef = useRef(orderedTasks)
+  orderedRef.current = orderedTasks
 
   useEffect(() => {
     if (!isDragging.current) {
       setOrderedTasks(tasks)
     }
   }, [tasks])
+
+  // Escape clears selection
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedIds(new Set())
+    }
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [])
 
   const reorderMutation = useMutation({
     mutationFn: (taskIds: string[]) => {
@@ -131,11 +162,47 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
     setOrderedTasks(newOrder)
   }
 
-  const handleDragEnd = () => {
-    isDragging.current = false
-    const taskIds = orderedTasks.map((task) => task.id)
-    reorderMutation.mutate(taskIds)
-  }
+  const handleDragEnd = useCallback(
+    (draggedTaskId: string) => {
+      isDragging.current = false
+
+      let finalOrder = orderedRef.current
+      if (selectedIds.size > 1 && selectedIds.has(draggedTaskId)) {
+        finalOrder = consolidateSelection(finalOrder, draggedTaskId, selectedIds)
+        setOrderedTasks(finalOrder)
+      }
+
+      reorderMutation.mutate(finalOrder.map((t) => t.id))
+    },
+    [selectedIds, reorderMutation],
+  )
+
+  const handleTaskClick = useCallback(
+    (taskId: string, e: React.MouseEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        setSelectedIds((prev) => {
+          const next = new Set(prev)
+          if (next.has(taskId)) next.delete(taskId)
+          else next.add(taskId)
+          return next
+        })
+      } else if (e.shiftKey && lastClickedId.current) {
+        const ids = orderedRef.current.map((t) => t.id)
+        const start = ids.indexOf(lastClickedId.current)
+        const end = ids.indexOf(taskId)
+        if (start !== -1 && end !== -1) {
+          const [lo, hi] = start < end ? [start, end] : [end, start]
+          setSelectedIds(new Set(ids.slice(lo, hi + 1)))
+        }
+      } else {
+        setSelectedIds((prev) =>
+          prev.size === 1 && prev.has(taskId) ? new Set() : new Set([taskId]),
+        )
+      }
+      lastClickedId.current = taskId
+    },
+    [],
+  )
 
   if (orderedTasks.length === 0) {
     return (
@@ -146,24 +213,70 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   }
 
   return (
-    <Reorder.Group
-      axis="y"
-      values={orderedTasks}
-      onReorder={handleReorder}
-      className="space-y-0.5"
-      data-task-list-draggable
-    >
-      {orderedTasks.map((task) => (
-        <TaskItem key={task.id} task={task} onDragEnd={handleDragEnd} />
-      ))}
-    </Reorder.Group>
+    <div>
+      {/* Selection bar */}
+      <AnimatePresence>
+        {selectedIds.size > 1 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 500, damping: 35 }}
+            className="overflow-hidden"
+          >
+            <motion.div
+              initial={{ y: -4 }}
+              animate={{ y: 0 }}
+              className="flex items-center justify-between px-2.5 py-1.5 mb-1 rounded-lg"
+              style={{ backgroundColor: "color-mix(in srgb, var(--ds-primary) 8%, transparent)" }}
+            >
+              <span className="text-xs font-medium text-primary">
+                {selectedIds.size} tasks selected
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedIds(new Set())}
+                className="text-xs text-on-surface-variant hover:text-on-surface transition-colors"
+              >
+                Clear
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <Reorder.Group
+        axis="y"
+        values={orderedTasks}
+        onReorder={handleReorder}
+        className="space-y-0.5"
+        data-task-list-draggable
+      >
+        {orderedTasks.map((task) => (
+          <TaskItem
+            key={task.id}
+            task={task}
+            isSelected={selectedIds.has(task.id)}
+            onDragEnd={handleDragEnd}
+            onClick={handleTaskClick}
+          />
+        ))}
+      </Reorder.Group>
+    </div>
   )
 }
 
 function TaskItem({
   task,
+  isSelected,
   onDragEnd,
-}: { task: TaskPublic; onDragEnd: () => void }) {
+  onClick,
+}: {
+  task: TaskPublic
+  isSelected: boolean
+  onDragEnd: (taskId: string) => void
+  onClick: (taskId: string, e: React.MouseEvent) => void
+}) {
   const [isCompleted, setIsCompleted] = useState(task.completed ?? false)
   const queryClient = useQueryClient()
   const { toast } = useToast()
@@ -217,21 +330,52 @@ function TaskItem({
       value={task}
       dragListener={false}
       dragControls={dragControls}
-      onDragEnd={onDragEnd}
+      onDragEnd={() => onDragEnd(task.id)}
+      onClick={(e) => onClick(task.id, e)}
       data-testid="task-item"
       data-task-id={task.id}
+      initial={false}
+      animate={{
+        backgroundColor: isSelected
+          ? "color-mix(in srgb, var(--ds-primary) 10%, transparent)"
+          : "rgba(0,0,0,0)",
+        borderColor: isSelected
+          ? "color-mix(in srgb, var(--ds-primary) 25%, transparent)"
+          : "rgba(0,0,0,0)",
+      }}
+      whileHover={
+        !isSelected && !isCompleted
+          ? { backgroundColor: "color-mix(in srgb, var(--ds-on-surface) 5%, transparent)" }
+          : undefined
+      }
       whileDrag={{
         scale: 1.02,
         boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
         zIndex: 50,
+        cursor: "grabbing",
       }}
       layout
-      transition={{ layout: { type: "spring", stiffness: 350, damping: 30 } }}
-      className={`group flex space-x-2.5 py-2.5 px-2.5 rounded-lg cursor-default items-start ${
-        isCompleted ? "" : "hover:bg-surface-container-highest/50"
-      }`}
+      transition={{
+        layout: { type: "spring", stiffness: 350, damping: 30 },
+        backgroundColor: { duration: 0.15 },
+        borderColor: { duration: 0.15 },
+      }}
+      className="group flex space-x-2.5 py-2.5 px-2.5 rounded-lg cursor-default items-start border border-transparent"
       style={{ position: "relative" }}
     >
+      {/* Selection indicator bar */}
+      <motion.div
+        className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full"
+        initial={false}
+        animate={{
+          scaleY: isSelected ? 1 : 0,
+          backgroundColor: "var(--ds-primary)",
+          opacity: isSelected ? 1 : 0,
+        }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        style={{ originY: 0.5 }}
+      />
+
       {/* Checkbox */}
       <motion.button
         whileTap={{ scale: 1.2 }}
@@ -288,12 +432,15 @@ function TaskItem({
       )}
 
       {/* Drag handle */}
-      <span
+      <motion.span
         className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing touch-none select-none"
         onPointerDown={(e) => dragControls.start(e)}
+        onClick={(e) => e.stopPropagation()}
+        whileHover={{ scale: 1.1, color: "var(--ds-on-surface-variant)" }}
+        whileTap={{ scale: 0.95 }}
       >
         drag_indicator
-      </span>
+      </motion.span>
     </Reorder.Item>
   )
 }
