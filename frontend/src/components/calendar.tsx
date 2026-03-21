@@ -1,6 +1,8 @@
 import { type TaskPublic } from "@/client/models"
+import { TasksService } from "@/client/services"
 import { cn } from "@/lib/utils"
 import {
+  addDays,
   addWeeks,
   differenceInDays,
   differenceInMinutes,
@@ -13,13 +15,24 @@ import {
   isToday,
   parse,
   parseISO,
+  setHours,
+  setMinutes,
   startOfDay,
   startOfToday,
   startOfWeek,
 } from "date-fns"
 import { ChevronDown, ChevronLeft, ChevronRight, Ellipsis } from "lucide-react"
 import React, { type ReactNode, useEffect, useRef, useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { Button } from "./ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog"
+import { Input } from "./ui/input"
+import { Label } from "./ui/label"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +57,13 @@ const PRIORITY_CHIP: Record<number, string> = {
   4: "bg-gray-100 text-gray-600",
 }
 
+const PRIORITY_DOT: Record<number, string> = {
+  1: "bg-red-500",
+  2: "bg-orange-500",
+  3: "bg-blue-500",
+  4: "bg-gray-400",
+}
+
 function priorityBorderClass(priorityId?: number | null): string {
   return priorityId != null ? (PRIORITY_BORDER[priorityId] ?? "border-l-slate-400") : "border-l-slate-400"
 }
@@ -52,14 +72,21 @@ function priorityChipClass(priorityId?: number | null): string {
   return priorityId != null ? (PRIORITY_CHIP[priorityId] ?? "bg-slate-100 text-slate-600") : "bg-slate-100 text-slate-600"
 }
 
+function priorityDotClass(priorityId?: number | null): string {
+  return priorityId != null ? (PRIORITY_DOT[priorityId] ?? "bg-slate-400") : "bg-slate-400"
+}
+
 interface WeekCalendarProps {
   tasks?: TaskPublic[]
 }
 
 export default function WeekCalendar({ tasks = [] }: WeekCalendarProps) {
+  const queryClient = useQueryClient()
   const container = useRef<HTMLDivElement>(null)
   const containerNav = useRef<HTMLDivElement>(null)
   const containerOffset = useRef<HTMLDivElement>(null)
+  const gridRef = useRef<HTMLOListElement>(null)
+
   const columnPosition: Array<string> = [
     "sm:col-start-1",
     "sm:col-start-2",
@@ -82,6 +109,7 @@ export default function WeekCalendar({ tasks = [] }: WeekCalendarProps) {
         1440
     }
   }, [])
+
   const [view, setView] = useState("week")
   const today = startOfToday()
   const hours = eachHourOfInterval({
@@ -95,6 +123,25 @@ export default function WeekCalendar({ tasks = [] }: WeekCalendarProps) {
     end: endOfWeek(firstDayCurrentWeek),
   })
 
+  // --- Drag state ---
+  const [dragOverSlot, setDragOverSlot] = useState<{ dayIndex: number; slotIndex: number } | null>(null)
+
+  // --- Resize state ---
+  const resizeRef = useRef<{
+    taskId: string
+    startY: number
+    originalDuration: number
+  } | null>(null)
+  const [resizingTaskId, setResizingTaskId] = useState<string | null>(null)
+  const [resizeDuration, setResizeDuration] = useState<number | null>(null)
+
+  // --- Edit dialog state ---
+  const [editingTask, setEditingTask] = useState<TaskPublic | null>(null)
+  const [editTitle, setEditTitle] = useState("")
+  const [editDuration, setEditDuration] = useState(30)
+  // Track mouse down position to distinguish click from drag
+  const mouseDownPos = useRef<{ x: number; y: number } | null>(null)
+
   const activeTasks = tasks.filter((t) => !t.completed)
 
   // Tasks with scheduled_start → timed blocks
@@ -103,6 +150,11 @@ export default function WeekCalendar({ tasks = [] }: WeekCalendarProps) {
   // Tasks with only due date (no scheduled_start) → all-day chips
   const dueTasks = activeTasks.filter(
     (t) => t.scheduled_start == null && t.due != null,
+  )
+
+  // Tasks with no scheduled_start and no due date → unscheduled panel
+  const unscheduledTasks = activeTasks.filter(
+    (t) => t.scheduled_start == null && t.due == null,
   )
 
   function previousWeek() {
@@ -117,6 +169,122 @@ export default function WeekCalendar({ tasks = [] }: WeekCalendarProps) {
 
   function thisWeek() {
     setCurrentWeek(format(today, "yyyy-MM-dd"))
+  }
+
+  // --- Helpers for save/reschedule ---
+  async function saveTaskAndReschedule(taskId: string, updates: Partial<TaskPublic>) {
+    const task = tasks.find((t) => t.id === taskId)
+    if (!task) return
+    await TasksService.updateTask({
+      id: taskId,
+      requestBody: { ...task, ...updates, owner_id: task.owner_id },
+    })
+    await TasksService.scheduleTasks()
+    queryClient.invalidateQueries({ queryKey: ["tasks"] })
+  }
+
+  // --- Drag handlers ---
+  function handleTaskDragStart(e: React.DragEvent, task: TaskPublic) {
+    e.dataTransfer.setData("taskId", task.id)
+    e.dataTransfer.effectAllowed = "move"
+  }
+
+  function handleSlotDragOver(e: React.DragEvent, dayIndex: number, slotIndex: number) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = "move"
+    setDragOverSlot({ dayIndex, slotIndex })
+  }
+
+  function handleSlotDrop(e: React.DragEvent, dayIndex: number, slotIndex: number) {
+    e.preventDefault()
+    const taskId = e.dataTransfer.getData("taskId")
+    if (!taskId) return
+    setDragOverSlot(null)
+
+    const weekStart = startOfWeek(firstDayCurrentWeek)
+    const dropDay = addDays(weekStart, dayIndex)
+    const dropHour = Math.floor(slotIndex / 2)
+    const dropMinute = (slotIndex % 2) * 30
+    const newStart = setMinutes(setHours(dropDay, dropHour), dropMinute)
+
+    saveTaskAndReschedule(taskId, { scheduled_start: newStart.toISOString() })
+  }
+
+  function handleSlotDragLeave() {
+    setDragOverSlot(null)
+  }
+
+  // --- Resize handlers ---
+  function handleResizeStart(e: React.MouseEvent, task: TaskPublic) {
+    e.preventDefault()
+    e.stopPropagation()
+    resizeRef.current = {
+      taskId: task.id,
+      startY: e.clientY,
+      originalDuration: task.duration ?? 30,
+    }
+    setResizingTaskId(task.id)
+    setResizeDuration(task.duration ?? 30)
+
+    function onMouseMove(ev: MouseEvent) {
+      if (!resizeRef.current) return
+      const deltaY = ev.clientY - resizeRef.current.startY
+      // Each grid row ~ 1.75rem / 288 rows total. Use a fixed estimate.
+      // The grid area height varies; use 4px per 5-minute row as a reasonable default.
+      const rowHeightPx = 4
+      const deltaRows = Math.round(deltaY / rowHeightPx)
+      const newDuration = Math.max(30, resizeRef.current.originalDuration + deltaRows * 5)
+      setResizeDuration(newDuration)
+    }
+
+    async function onMouseUp(ev: MouseEvent) {
+      if (!resizeRef.current) return
+      const deltaY = ev.clientY - resizeRef.current.startY
+      const rowHeightPx = 4
+      const deltaRows = Math.round(deltaY / rowHeightPx)
+      const newDuration = Math.max(30, resizeRef.current.originalDuration + deltaRows * 5)
+      const taskId = resizeRef.current.taskId
+
+      resizeRef.current = null
+      setResizingTaskId(null)
+      setResizeDuration(null)
+
+      if (deltaRows !== 0) {
+        await saveTaskAndReschedule(taskId, { duration: newDuration })
+      }
+
+      document.removeEventListener("mousemove", onMouseMove)
+      document.removeEventListener("mouseup", onMouseUp)
+    }
+
+    document.addEventListener("mousemove", onMouseMove)
+    document.addEventListener("mouseup", onMouseUp)
+  }
+
+  // --- Edit dialog handlers ---
+  function handleTaskMouseDown(e: React.MouseEvent) {
+    mouseDownPos.current = { x: e.clientX, y: e.clientY }
+  }
+
+  function handleTaskClick(e: React.MouseEvent, task: TaskPublic) {
+    if (!mouseDownPos.current) return
+    const dx = Math.abs(e.clientX - mouseDownPos.current.x)
+    const dy = Math.abs(e.clientY - mouseDownPos.current.y)
+    mouseDownPos.current = null
+    // Only treat as click if mouse moved less than 5px (not a drag)
+    if (dx > 5 || dy > 5) return
+    setEditingTask(task)
+    setEditTitle(task.title ?? "")
+    setEditDuration(task.duration ?? 30)
+  }
+
+  async function handleEditSave() {
+    if (!editingTask) return
+    await saveTaskAndReschedule(editingTask.id, {
+      title: editTitle,
+      duration: editDuration,
+    })
+    setEditingTask(null)
   }
 
   return (
@@ -141,6 +309,31 @@ export default function WeekCalendar({ tasks = [] }: WeekCalendarProps) {
           </div>
         </div>
       </CalendarHeader>
+
+      {/* Unscheduled tasks panel */}
+      {unscheduledTasks.length > 0 && (
+        <div
+          data-testid="unscheduled-panel"
+          className="flex items-center gap-2 border-b px-4 py-2 bg-muted/30"
+        >
+          <span className="text-xs font-medium text-muted-foreground flex-none">Unscheduled</span>
+          <div className="flex gap-1.5 overflow-x-auto">
+            {unscheduledTasks.map((task) => (
+              <span
+                key={task.id}
+                className={cn(
+                  "inline-flex items-center gap-1 truncate rounded-full px-2 py-0.5 text-xs font-medium max-w-[160px] shrink-0",
+                  priorityChipClass(task.priority_id),
+                )}
+                title={task.title ?? ""}
+              >
+                <span className={cn("h-1.5 w-1.5 rounded-full flex-none", priorityDotClass(task.priority_id))} />
+                {task.title}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div
         ref={container}
@@ -254,8 +447,40 @@ export default function WeekCalendar({ tasks = [] }: WeekCalendarProps) {
                 <div className="col-start-8 row-span-full w-8" />
               </div>
 
+              {/* Drop target slots overlay */}
+              <div
+                className="col-start-1 col-end-2 row-start-1 hidden sm:grid sm:grid-cols-7 sm:pr-8"
+                style={{ gridTemplateRows: "1.75rem repeat(288, minmax(0, 1fr)) auto" }}
+                aria-hidden="true"
+              >
+                {daysOfWeek.map((_, dayIndex) => (
+                  // 48 half-hour slots per day (0:00–23:30)
+                  Array.from({ length: 48 }, (__, slotIndex) => {
+                    const startRow = slotIndex * 6 + 2 // 6 rows per 30 min
+                    const isHighlighted =
+                      dragOverSlot?.dayIndex === dayIndex &&
+                      dragOverSlot?.slotIndex === slotIndex
+                    return (
+                      <div
+                        key={`${dayIndex}-${slotIndex}`}
+                        className={cn(
+                          columnPosition[dayIndex],
+                          "transition-colors",
+                          isHighlighted ? "bg-indigo-100/60 dark:bg-indigo-900/30" : "",
+                        )}
+                        style={{ gridRow: `${startRow} / span 6` }}
+                        onDragOver={(e) => handleSlotDragOver(e, dayIndex, slotIndex)}
+                        onDrop={(e) => handleSlotDrop(e, dayIndex, slotIndex)}
+                        onDragLeave={handleSlotDragLeave}
+                      />
+                    )
+                  })
+                ))}
+              </div>
+
               {/* Events */}
               <ol
+                ref={gridRef}
                 className="col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
                 style={{
                   gridTemplateRows: "1.75rem repeat(288, minmax(0, 1fr)) auto",
@@ -272,9 +497,13 @@ export default function WeekCalendar({ tasks = [] }: WeekCalendarProps) {
                     startTime,
                     startOfDay(startTime),
                   )
+                  const effectiveDuration =
+                    resizingTaskId === task.id && resizeDuration != null
+                      ? resizeDuration
+                      : (task.duration ?? 30)
                   const spanRows = Math.max(
                     1,
-                    Math.round(((task.duration ?? 30) * 12) / 60),
+                    Math.round((effectiveDuration * 12) / 60),
                   )
                   const startRow = Math.round((minutesFromMidnight * 12) / 60) + 2
                   return (
@@ -287,12 +516,17 @@ export default function WeekCalendar({ tasks = [] }: WeekCalendarProps) {
                       style={{
                         gridRow: `${startRow} / span ${spanRows}`,
                       }}
+                      draggable
+                      onDragStart={(e) => handleTaskDragStart(e, task)}
                     >
                       <div
+                        data-testid="calendar-task-block"
                         className={cn(
-                          "group absolute inset-1 flex flex-col overflow-y-auto rounded-lg border-l-4 bg-card p-2 text-xs leading-5 shadow-sm hover:shadow-md",
+                          "group absolute inset-1 flex flex-col overflow-y-auto rounded-lg border-l-4 bg-card p-2 text-xs leading-5 shadow-sm hover:shadow-md cursor-pointer select-none",
                           priorityBorderClass(task.priority_id),
                         )}
+                        onMouseDown={handleTaskMouseDown}
+                        onMouseUp={(e) => handleTaskClick(e, task)}
                       >
                         <p className="order-1 font-semibold text-foreground truncate">
                           {task.title}
@@ -302,6 +536,11 @@ export default function WeekCalendar({ tasks = [] }: WeekCalendarProps) {
                             {format(startTime, "h:mma")}
                           </time>
                         </p>
+                        {/* Resize handle */}
+                        <div
+                          className="absolute bottom-0 left-0 right-0 h-2 cursor-s-resize bg-transparent hover:bg-white/20 rounded-b"
+                          onMouseDown={(e) => handleResizeStart(e, task)}
+                        />
                       </div>
                     </li>
                   )
@@ -311,6 +550,43 @@ export default function WeekCalendar({ tasks = [] }: WeekCalendarProps) {
           </div>
         </div>
       </div>
+
+      {/* Edit task dialog */}
+      <Dialog
+        open={editingTask != null}
+        onOpenChange={(open) => { if (!open) setEditingTask(null) }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-title">Title</Label>
+              <Input
+                id="edit-title"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleEditSave() }}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-duration">Duration (minutes)</Label>
+              <Input
+                id="edit-duration"
+                type="number"
+                min={15}
+                step={15}
+                value={editDuration}
+                onChange={(e) => setEditDuration(Number(e.target.value))}
+              />
+            </div>
+            <Button onClick={handleEditSave} className="w-full">
+              Save
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

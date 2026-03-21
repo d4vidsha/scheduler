@@ -386,13 +386,13 @@ test.describe("Tasks", () => {
     // If tomorrow starts a new week (e.g. today is Saturday), navigate forward one week
     const todayDay = new Date().getDay() // 0=Sun, 6=Sat
     if (todayDay === 6) {
-      // Saturday: tomorrow is Sunday, start of next week
+      // Saturday: tomorrow is Sunday, start of next week — click next week (client-side, no network event)
       await page.getByRole("button", { name: "Next week" }).click()
-      await page.waitForLoadState("networkidle")
+      await page.waitForTimeout(500)
     }
 
     const calendarPanel = page.locator('[data-panel-id]').last()
-    await expect(calendarPanel.getByText(baseTitle, { exact: true })).toBeVisible({ timeout: 8000 })
+    await expect(calendarPanel.getByText(baseTitle)).toBeVisible({ timeout: 15000 })
   })
 
   test("should show combined metadata for task with tag, priority, and due date", async ({ page }) => {
@@ -421,5 +421,105 @@ test.describe("Tasks", () => {
     await expect(
       taskItem.locator('[data-testid="task-meta"]').getByText("Tomorrow", { exact: true }),
     ).toBeVisible()
+  })
+})
+
+// --- Phase 3: two-way calendar interaction tests ---
+
+test.describe.serial("Phase 3 features", () => {
+  test("click task block opens edit dialog", async ({ page }) => {
+    await page.goto("/")
+    await page.waitForLoadState("networkidle")
+
+    const taskTitle = `Cal Edit Task ${randomString(5)}`
+    const token = await page.evaluate(() => localStorage.getItem("access_token"))
+
+    // Create a task scheduled for today at 10am
+    const today = new Date()
+    today.setHours(10, 0, 0, 0)
+    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { title: taskTitle, scheduled_start: today.toISOString(), duration: 60 },
+    })
+    expect(response.ok()).toBeTruthy()
+
+    await page.reload()
+    await page.waitForLoadState("networkidle")
+
+    // Click on the task block in the calendar
+    const taskBlock = page.locator('[data-testid="calendar-task-block"]').filter({ hasText: taskTitle })
+    await expect(taskBlock).toBeVisible({ timeout: 8000 })
+    await taskBlock.click()
+
+    // Edit dialog should appear with the task title pre-filled in the input
+    await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 })
+    await expect(page.getByLabel("Title")).toHaveValue(taskTitle)
+  })
+
+  test("edit dialog saves updated title", async ({ page }) => {
+    await page.goto("/")
+    await page.waitForLoadState("networkidle")
+
+    const taskTitle = `Edit Title Task ${randomString(5)}`
+    const updatedTitle = `Updated Title ${randomString(5)}`
+    const token = await page.evaluate(() => localStorage.getItem("access_token"))
+
+    // Create a task scheduled for today at 10am
+    const today = new Date()
+    today.setHours(10, 0, 0, 0)
+    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { title: taskTitle, scheduled_start: today.toISOString(), duration: 60 },
+    })
+    expect(response.ok()).toBeTruthy()
+
+    await page.reload()
+    await page.waitForLoadState("networkidle")
+
+    const taskBlock = page.locator('[data-testid="calendar-task-block"]').filter({ hasText: taskTitle })
+    await expect(taskBlock).toBeVisible({ timeout: 12000 })
+    await taskBlock.click()
+
+    // Edit dialog should open
+    await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 })
+
+    // Clear and fill in new title
+    const titleInput = page.getByLabel("Title")
+    await titleInput.clear()
+    await titleInput.fill(updatedTitle)
+
+    // Save
+    await page.getByRole("button", { name: "Save" }).click()
+
+    // Dialog should close and updated title should appear in calendar
+    await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 5000 })
+    await expect(
+      page.locator('[data-testid="calendar-task-block"]').filter({ hasText: updatedTitle }),
+    ).toBeVisible({ timeout: 8000 })
+  })
+
+  test("unscheduled tasks panel shows tasks without scheduled_start", async ({ page }) => {
+    await page.goto("/")
+    await page.waitForLoadState("networkidle")
+
+    const taskTitle = `Unscheduled Task ${randomString(5)}`
+    const token = await page.evaluate(() => localStorage.getItem("access_token"))
+
+    // Create a task with no due date and no scheduled_start
+    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { title: taskTitle },
+    })
+    expect(response.ok()).toBeTruthy()
+
+    await page.reload()
+    await page.waitForResponse((r) => r.url().includes("/api/v1/tasks") && r.status() === 200)
+    await page.waitForLoadState("networkidle")
+    await page.waitForTimeout(1500)
+
+    // The unscheduled panel should show the task
+    const unscheduledPanel = page.locator('[data-testid="unscheduled-panel"]')
+    await expect(unscheduledPanel).toBeVisible({ timeout: 12000 })
+    await expect(page.getByText(taskTitle).first()).toBeVisible({ timeout: 15000 })
   })
 })

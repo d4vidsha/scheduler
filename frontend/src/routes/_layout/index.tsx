@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_layout/")({
 function Dashboard() {
   const { data } = useQuery({
     queryKey: ["tasks"],
-    queryFn: () => TasksService.readTasks(),
+    queryFn: () => TasksService.readTasks({ limit: 500 }),
   })
 
   const tasks = data?.data ?? []
