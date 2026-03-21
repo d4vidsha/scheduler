@@ -1,33 +1,24 @@
 import type { TaskPublic } from "@/client/models"
 import { TasksService } from "@/client/services"
-import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { format, isPast, isToday, isTomorrow } from "date-fns"
 import { motion } from "framer-motion"
-import { CalendarDays, Check, Circle, GripVertical, Trash2 } from "lucide-react"
 import { useRef, useState } from "react"
 
-const PRIORITY_COLORS: Record<number, string> = {
-  1: "text-red-500",
-  2: "text-orange-400",
-  3: "text-blue-400",
-  4: "text-gray-300",
+const TAG_COLORS: Record<string, string> = {
+  finance: "bg-blue-100 text-blue-700",
+  design: "bg-purple-100 text-purple-700",
+  sales: "bg-amber-100 text-amber-700",
+  ops: "bg-slate-100 text-slate-700",
+  dev: "bg-emerald-100 text-emerald-700",
+  marketing: "bg-pink-100 text-pink-700",
 }
 
-function PriorityDot({ priorityId }: { priorityId: number | null | undefined }) {
-  if (!priorityId) return null
-  const color = PRIORITY_COLORS[priorityId] ?? "text-gray-300"
+function getTagColor(tag: string): string {
   return (
-    <span data-testid="priority-dot" className={`flex-none mt-0.5 ${color}`}>
-      <svg
-        viewBox="0 0 8 8"
-        className="h-2 w-2 fill-current"
-        aria-hidden="true"
-      >
-        <circle cx="4" cy="4" r="4" />
-      </svg>
-    </span>
+    TAG_COLORS[tag.toLowerCase()] ??
+    "bg-surface-container text-on-surface-variant"
   )
 }
 
@@ -69,29 +60,35 @@ function TaskMeta({
   const dueInfo = due ? formatDueDate(due) : null
 
   return (
-    <div data-testid="task-meta" className="flex items-center gap-1.5 flex-wrap mt-0.5 pl-0">
+    <div data-testid="task-meta" className="flex items-center gap-2 mt-1">
       {hasTags &&
         tags.map((tag) => (
-          <Badge
+          <span
             key={tag}
-            variant="secondary"
-            className="text-xs px-1.5 py-0 rounded-full font-normal h-4"
+            className={`text-[10px] px-1.5 py-0.5 rounded-sm font-semibold uppercase tracking-wider ${getTagColor(
+              tag,
+            )}`}
           >
             {tag}
-          </Badge>
+          </span>
         ))}
       {dueInfo && (
         <span
-          className={`flex items-center gap-0.5 text-xs ${
-            dueInfo.overdue ? "text-red-500" : "text-muted-foreground"
+          className={`text-[10px] flex items-center ${
+            dueInfo.overdue ? "text-error" : "text-on-surface-variant/60"
           }`}
         >
-          <CalendarDays className="h-3 w-3" />
+          <span className="material-symbols-outlined text-[12px] mr-1">
+            event
+          </span>
           {dueInfo.label}
         </span>
       )}
       {hasDuration && (
-        <span className="text-xs text-muted-foreground">
+        <span className="text-[10px] text-on-surface-variant/60 flex items-center">
+          <span className="material-symbols-outlined text-[12px] mr-1">
+            schedule
+          </span>
           {formatDuration(duration)}
         </span>
       )}
@@ -117,7 +114,6 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   )
   const taskRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
-  // update local state when tasks prop changes
   if (
     JSON.stringify(tasks.map((t) => t.id)) !==
     JSON.stringify(orderedTasks.map((t) => t.id))
@@ -131,10 +127,6 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] })
-      toast({
-        title: "Success",
-        description: "Tasks reordered successfully",
-      })
     },
     onError: () => {
       toast({
@@ -142,7 +134,6 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
         description: "Failed to reorder tasks",
         variant: "destructive",
       })
-      // Revert to original order on error
       setOrderedTasks(tasks)
     },
   })
@@ -155,15 +146,11 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
     e.preventDefault()
     if (draggedTaskId === taskId) return
 
-    // get the task element being dragged over
     const taskElement = taskRefs.current.get(taskId)
     if (!taskElement) return
 
-    // calculate position within the element
     const rect = taskElement.getBoundingClientRect()
     const midpoint = rect.top + rect.height / 2
-
-    // if cursor is above midpoint, drop before; otherwise, drop after
     const newDropPosition = e.clientY < midpoint ? "before" : "after"
 
     setDragOverTaskId(taskId)
@@ -190,21 +177,16 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
 
     if (draggedIndex === -1 || dropIndex === -1) return
 
-    // adjust drop index based on drop position and drag direction
     if (dropPosition === "after") {
       dropIndex += 1
     }
-
-    // if we're moving an item down, we need to account for the item being removed first
     if (draggedIndex < dropIndex) {
       dropIndex -= 1
     }
 
-    // reorder tasks locally
     const newOrderedTasks = reorder(orderedTasks, draggedIndex, dropIndex)
     setOrderedTasks(newOrderedTasks)
 
-    // send new order to backend
     const taskIds = newOrderedTasks.map((task) => task.id)
     reorderMutation.mutate(taskIds)
 
@@ -222,22 +204,25 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   }
 
   if (orderedTasks.length === 0) {
-    return <div>No tasks yet.</div>
+    return (
+      <div className="text-sm text-on-surface-variant/50 text-center py-8">
+        No tasks yet.
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       {orderedTasks.map((task) => {
-        const isDraggedOver = dragOverTaskId === task.id
         const isDragged = draggedTaskId === task.id
+        const isDraggedOver = dragOverTaskId === task.id
 
-        // determine border class based on drop position
-        let borderClass = ""
+        let highlightClass = ""
         if (isDraggedOver && dropPosition) {
-          borderClass =
+          highlightClass =
             dropPosition === "before"
-              ? "border-t-2 border-primary"
-              : "border-b-2 border-primary"
+              ? "ring-t-2 ring-primary"
+              : "ring-b-2 ring-primary"
         }
 
         return (
@@ -253,9 +238,9 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
             onDrop={handleDrop}
             onDragEnd={handleDragEnd}
             className={`
-              relative mb-1 transition-all duration-200
+              transition-all duration-200
               ${isDragged ? "opacity-50 scale-105 z-10" : ""}
-              ${borderClass}
+              ${highlightClass}
             `}
           >
             <TaskItem task={task} />
@@ -279,18 +264,13 @@ function TaskItem({ task }: { task: TaskPublic }) {
       TasksService.scheduleTasks().finally(() => {
         queryClient.invalidateQueries({ queryKey: ["tasks"] })
       })
-      toast({
-        title: "Success",
-        description: "Task deleted successfully",
-      })
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to delete task",
         variant: "destructive",
       })
-      console.error("Error deleting task:", error)
     },
   })
 
@@ -303,76 +283,78 @@ function TaskItem({ task }: { task: TaskPublic }) {
         queryClient.invalidateQueries({ queryKey: ["tasks"] })
       })
     },
-    onError: (error) => {
-      // revert the local state if the API call fails
+    onError: () => {
       setIsCompleted(task.completed ?? false)
       toast({
         title: "Error",
         description: "Failed to update task status",
         variant: "destructive",
       })
-      console.error("Error updating task status:", error)
     },
   })
 
   const handleToggleCompleted = (e: React.MouseEvent) => {
     e.stopPropagation()
-    // optimistically update the UI
     setIsCompleted(!isCompleted)
-    // then make the API call
     toggleCompletedMutation.mutate()
-  }
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (confirm("Are you sure you want to delete this task?")) {
-      deleteMutation.mutate()
-    }
   }
 
   return (
     <div
       data-testid="task-item"
-      className="flex gap-2 items-start border-b py-3 group bg-background"
+      className="group flex space-x-2.5 py-2 px-2 hover:bg-surface-container-highest/50 rounded-lg cursor-default transition-colors items-start"
     >
-      <div className="flex-none cursor-grab active:cursor-grabbing pt-0.5">
-        <GripVertical className="h-5 w-5 text-gray-400" />
-      </div>
+      {/* Checkbox */}
       <motion.button
         whileTap={{ scale: 1.2 }}
         onClick={handleToggleCompleted}
-        className="flex-none pt-0.5"
+        className="flex-none mt-1"
         disabled={toggleCompletedMutation.status === "pending"}
       >
-        <div className="grid grid-cols-1 grid-rows-1">
-          <Circle className="h-5 w-5 row-start-1 row-end-1 col-start-1 col-end-1" />
-          <div className="flex justify-center items-center row-start-1 row-end-1 col-start-1 col-end-1">
-            {isCompleted && <Check strokeWidth={4.5} className="h-3 w-3" />}
-          </div>
-        </div>
+        <input
+          type="checkbox"
+          checked={isCompleted}
+          readOnly
+          className="w-4 h-4 rounded border-outline-variant/40 text-primary focus:ring-primary/20 bg-transparent transition-all cursor-pointer"
+        />
       </motion.button>
-      <div className="flex-grow min-w-0">
-        <div className="flex items-start gap-1.5">
-          <PriorityDot priorityId={task.priority_id} />
-          <p
-            className={`text-sm flex-grow ${
-              isCompleted ? "line-through text-gray-500" : ""
-            }`}
-          >
-            {task.title}
-          </p>
-        </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <p
+          className={`text-sm font-medium truncate ${
+            isCompleted
+              ? "line-through text-on-surface-variant/50"
+              : "text-on-surface"
+          }`}
+        >
+          {task.title}
+        </p>
         <TaskMeta tags={task.tags} due={task.due} duration={task.duration} />
       </div>
+
+      {/* Delete button */}
       <button
         type="button"
-        className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:opacity-100 focus:opacity-100 flex items-center justify-center flex-none"
-        onClick={handleDelete}
+        className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-error/10 rounded"
+        onClick={(e) => {
+          e.stopPropagation()
+          if (confirm("Are you sure you want to delete this task?")) {
+            deleteMutation.mutate()
+          }
+        }}
         disabled={deleteMutation.status === "pending"}
         aria-label="Delete task"
       >
-        <Trash2 className="h-4 w-4 text-red-500" />
+        <span className="material-symbols-outlined text-error/60 text-base">
+          close
+        </span>
       </button>
+
+      {/* Drag handle */}
+      <span className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+        drag_indicator
+      </span>
     </div>
   )
 }

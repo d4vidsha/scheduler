@@ -95,38 +95,39 @@ const mentionsInputStyle = {
     lineHeight: 1.5,
   },
   input: {
-    padding: "8px 12px",
-    border: "1px solid hsl(var(--input))",
-    borderRadius: "6px",
+    padding: "10px 14px",
+    border: "none",
+    borderRadius: "12px",
     outline: "none",
-    backgroundColor: "hsl(var(--background))",
-    color: "hsl(var(--foreground))",
+    backgroundColor: "#f0f4fc",
+    color: "#171c22",
     width: "100%",
+    transition: "background-color 0.2s, box-shadow 0.2s",
   },
   highlighter: {
-    padding: "8px 12px",
+    padding: "10px 14px",
     border: "1px solid transparent",
   },
   suggestions: {
     list: {
-      backgroundColor: "hsl(var(--popover))",
-      border: "1px solid hsl(var(--border))",
-      borderRadius: "6px",
+      backgroundColor: "#ffffff",
+      border: "none",
+      borderRadius: "12px",
       fontSize: 14,
       overflow: "hidden",
-      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+      boxShadow: "0 12px 32px rgba(23, 28, 34, 0.06)",
     },
     item: {
-      padding: "6px 12px",
+      padding: "8px 14px",
       cursor: "pointer",
     },
   },
 }
 
 const mentionStyle = {
-  backgroundColor: "hsl(var(--accent))",
-  borderRadius: "3px",
-  padding: "1px 2px",
+  backgroundColor: "#eaeef6",
+  borderRadius: "4px",
+  padding: "1px 3px",
 }
 
 export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
@@ -222,6 +223,7 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
       <Button
         type="submit"
         disabled={mutation.status === "pending" || !plainText.trim()}
+        className="bg-gradient-to-r from-primary to-primary-container text-white rounded-xl hover:opacity-90 transition-all"
       >
         {mutation.status === "pending" ? "Adding..." : "Add"}
       </Button>
