@@ -61,7 +61,7 @@ function TaskMeta({
   const dueInfo = due ? formatDueDate(due) : null
 
   return (
-    <div data-testid="task-meta" className="flex items-center gap-2 mt-1">
+    <div data-testid="task-meta" className="flex items-center gap-2 shrink-0">
       {hasTags &&
         tags.map((tag) => (
           <span
@@ -226,16 +226,15 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
             className="overflow-hidden"
           >
             <div
-              className="flex items-center justify-between px-2.5 py-1.5 mb-1 rounded-lg"
-              style={{ backgroundColor: "color-mix(in srgb, var(--ds-primary) 8%, transparent)" }}
+              className="flex items-center justify-between px-2 py-2 mb-1 bg-primary/5 rounded-lg border border-primary/10"
             >
-              <span className="text-xs font-medium text-primary">
+              <span className="text-xs font-semibold text-primary">
                 {selectedIds.size} tasks selected
               </span>
               <button
                 type="button"
                 onClick={() => setSelectedIds(new Set())}
-                className="text-xs text-on-surface-variant hover:text-on-surface transition-colors"
+                className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60 hover:text-primary transition-colors"
               >
                 Clear
               </button>
@@ -248,18 +247,25 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
         axis="y"
         values={orderedTasks}
         onReorder={handleReorder}
-        className="space-y-0.5"
+        className="flex flex-col"
         data-task-list-draggable
       >
-        {orderedTasks.map((task) => (
-          <TaskItem
-            key={task.id}
-            task={task}
-            isSelected={selectedIds.has(task.id)}
-            onDragEnd={handleDragEnd}
-            onClick={handleTaskClick}
-          />
-        ))}
+        {orderedTasks.map((task, i) => {
+          const sel = selectedIds.has(task.id)
+          const prevSel = i > 0 && selectedIds.has(orderedTasks[i - 1].id)
+          const nextSel = i < orderedTasks.length - 1 && selectedIds.has(orderedTasks[i + 1].id)
+          return (
+            <TaskItem
+              key={task.id}
+              task={task}
+              isSelected={sel}
+              isFirstSelected={sel && !prevSel}
+              isLastSelected={sel && !nextSel}
+              onDragEnd={handleDragEnd}
+              onClick={handleTaskClick}
+            />
+          )
+        })}
       </Reorder.Group>
     </div>
   )
@@ -268,11 +274,15 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
 function TaskItem({
   task,
   isSelected,
+  isFirstSelected,
+  isLastSelected,
   onDragEnd,
   onClick,
 }: {
   task: TaskPublic
   isSelected: boolean
+  isFirstSelected: boolean
+  isLastSelected: boolean
   onDragEnd: (taskId: string) => void
   onClick: (taskId: string, e: React.MouseEvent) => void
 }) {
@@ -342,42 +352,36 @@ function TaskItem({
       transition={{
         layout: { type: "spring", stiffness: 350, damping: 30 },
       }}
-      className={`group rounded-lg border transition-colors duration-150 ${
-        isSelected
-          ? "bg-[--selection-bg] border-[--selection-border]"
-          : "border-transparent"
-      }`}
-      style={{
-        position: "relative",
-        "--selection-bg": "color-mix(in srgb, var(--ds-primary) 10%, transparent)",
-        "--selection-border": "color-mix(in srgb, var(--ds-primary) 25%, transparent)",
-      } as React.CSSProperties}
+      className="group"
     >
-      {/* Selection indicator bar */}
       <div
-        className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-primary transition-all duration-200"
-        style={{
-          transform: `scaleY(${isSelected ? 1 : 0})`,
-          opacity: isSelected ? 1 : 0,
-        }}
-      />
-
-      <div
-        className={`flex items-start py-2.5 px-2.5 cursor-default ${
-          !isSelected && !isCompleted ? "hover:bg-surface-container-highest/50 rounded-lg" : ""
+        className={`flex items-center cursor-default transition-colors duration-150 ${
+          isSelected
+            ? `bg-blue-50/80 dark:bg-blue-900/20 py-0.25 px-4 ${
+                isFirstSelected && isLastSelected
+                  ? "rounded-[28px]"
+                  : isFirstSelected
+                    ? "rounded-t-[28px] rounded-b-none"
+                    : isLastSelected
+                      ? "rounded-b-[28px] rounded-t-none"
+                      : "rounded-none"
+              }`
+            : `py-0.25 px-4 rounded-[28px] ${
+                !isCompleted ? "hover:bg-surface-container/50" : ""
+              }`
         }`}
         onClick={(e) => onClick(task.id, e)}
       >
         {/* Inner content — FC Draggable targets this for calendar drops */}
         <div
           data-task-id={task.id}
-          className="flex space-x-2.5 items-start flex-1 min-w-0"
+          className="flex space-x-2.5 items-center flex-1 min-w-0"
         >
           {/* Checkbox */}
           <motion.button
             whileTap={{ scale: 1.2 }}
             onClick={handleToggleCompleted}
-            className="flex-none mt-0.5"
+            className="flex-none"
             disabled={toggleCompletedMutation.status === "pending"}
           >
             <div
@@ -395,38 +399,40 @@ function TaskItem({
             </div>
           </motion.button>
 
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <p
-              className={`text-sm font-medium truncate ${
-                isCompleted
-                  ? "line-through decoration-primary/30 decoration-2 text-on-surface-variant/50"
-                  : "text-on-surface"
-              }`}
-            >
-              {task.title}
-            </p>
-            <TaskMeta tags={task.tags} due={task.due} duration={task.duration} />
-          </div>
+          {/* Title */}
+          <p
+            className={`flex-1 min-w-0 text-sm font-medium truncate ${
+              isCompleted
+                ? "line-through decoration-primary/30 decoration-2 text-on-surface-variant/50"
+                : "text-on-surface"
+            }`}
+          >
+            {task.title}
+          </p>
 
-          {!isCompleted && (
-            <button
-              type="button"
-              className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-error/10 rounded"
-              onClick={(e) => {
-                e.stopPropagation()
-                if (confirm("Are you sure you want to delete this task?")) {
-                  deleteMutation.mutate()
-                }
-              }}
-              disabled={deleteMutation.status === "pending"}
-              aria-label="Delete task"
-            >
-              <span className="material-symbols-outlined text-error/60 text-base">
-                close
-              </span>
-            </button>
-          )}
+          {/* Meta (tags, due, duration) — right-aligned */}
+          <TaskMeta tags={task.tags} due={task.due} duration={task.duration} />
+
+          <button
+            type="button"
+            className={`transition-opacity p-0.5 hover:bg-error/10 rounded ${
+              isCompleted
+                ? "invisible"
+                : "opacity-0 group-hover:opacity-100"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation()
+              if (confirm("Are you sure you want to delete this task?")) {
+                deleteMutation.mutate()
+              }
+            }}
+            disabled={isCompleted || deleteMutation.status === "pending"}
+            aria-label="Delete task"
+          >
+            <span className="material-symbols-outlined text-error/60 text-base">
+              close
+            </span>
+          </button>
         </div>
 
         {/* Drag handle — reorder within list only (outside data-task-id so FC Draggable ignores it) */}
