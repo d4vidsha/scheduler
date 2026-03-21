@@ -211,3 +211,148 @@ test.describe("Year view", () => {
 		).toBeVisible({ timeout: 5000 })
 	})
 })
+
+// --- Auto-Schedule Button ---
+
+test.describe("Auto-schedule button", () => {
+	test("schedules unscheduled tasks with due dates", async ({ page }) => {
+		await page.goto("/")
+		await page.waitForLoadState("networkidle")
+
+		const taskTitle = `Auto-Sched ${randomString(5)}`
+		const tomorrow = new Date()
+		tomorrow.setDate(tomorrow.getDate() + 1)
+		tomorrow.setHours(17, 0, 0, 0)
+
+		const created = await createTask(page, {
+			title: taskTitle,
+			due: tomorrow.toISOString(),
+			duration: 60,
+		})
+
+		// Click Auto-Schedule in the top bar
+		await page.getByRole("button", { name: "Auto-Schedule" }).click()
+
+		// Wait for the toast confirming success
+		await expect(page.getByText("Tasks rescheduled successfully")).toBeVisible(
+			{
+				timeout: 10000,
+			},
+		)
+
+		// Verify the task now has scheduled_start via API
+		const token = await getToken(page)
+		const resp = await page.request.get(
+			`http://localhost:8000/api/v1/tasks/${created.id}`,
+			{ headers: { Authorization: `Bearer ${token}` } },
+		)
+		expect(resp.ok()).toBeTruthy()
+		const task = await resp.json()
+		expect(task.scheduled_start).not.toBeNull()
+	})
+})
+
+// --- Conflict Detection ---
+
+test.describe("Conflict detection", () => {
+	test("shows conflict label for overlapping tasks", async ({ page }) => {
+		await page.goto("/")
+		await page.waitForLoadState("networkidle")
+
+		const today = new Date()
+		today.setHours(11, 0, 0, 0)
+
+		// Create two tasks at the same time
+		await createTask(page, {
+			title: `Conflict A ${randomString(4)}`,
+			scheduled_start: today.toISOString(),
+			duration: 60,
+		})
+		await createTask(page, {
+			title: `Conflict B ${randomString(4)}`,
+			scheduled_start: today.toISOString(),
+			duration: 60,
+		})
+
+		await page.reload()
+		await page.waitForLoadState("networkidle")
+
+		// Both should show in week view with conflict labels
+		const conflictLabels = page.locator('[data-testid="conflict-label"]')
+		await expect(conflictLabels.first()).toBeVisible({ timeout: 8000 })
+		expect(await conflictLabels.count()).toBeGreaterThanOrEqual(2)
+	})
+})
+
+// --- Keyboard Shortcut ---
+
+test.describe("Keyboard shortcut", () => {
+	test("pressing N focuses the task input", async ({ page }) => {
+		await page.goto("/")
+		await page.waitForLoadState("networkidle")
+
+		// Press N key (not in any input)
+		await page.keyboard.press("n")
+
+		// The AddTaskForm input should be focused
+		const input = page.getByPlaceholder(/Task title/)
+		await expect(input).toBeFocused({ timeout: 3000 })
+	})
+})
+
+// --- Empty State ---
+
+test.describe("Empty state", () => {
+	test("shows empty state when no tasks exist", async ({ page }) => {
+		await page.goto("/")
+		await page.waitForLoadState("networkidle")
+
+		// Delete all existing tasks via API
+		const token = await getToken(page)
+		const resp = await page.request.get(
+			"http://localhost:8000/api/v1/tasks/?limit=500",
+			{ headers: { Authorization: `Bearer ${token}` } },
+		)
+		const tasks = await resp.json()
+		for (const task of tasks.data) {
+			await page.request.delete(
+				`http://localhost:8000/api/v1/tasks/${task.id}`,
+				{ headers: { Authorization: `Bearer ${token}` } },
+			)
+		}
+
+		await page.reload()
+		await page.waitForLoadState("networkidle")
+
+		await expect(page.getByText("No tasks yet")).toBeVisible({
+			timeout: 5000,
+		})
+	})
+})
+
+// --- Sidebar Navigation ---
+
+test.describe("Sidebar", () => {
+	test("sidebar is visible with brand and nav items", async ({ page }) => {
+		await page.goto("/")
+		await page.waitForLoadState("networkidle")
+
+		// Brand name
+		await expect(page.getByText("Sanctuary")).toBeVisible()
+
+		// Nav items
+		await expect(page.getByText("Today", { exact: true })).toBeVisible()
+		await expect(page.getByText("Upcoming", { exact: true })).toBeVisible()
+		await expect(page.getByText("Projects", { exact: true })).toBeVisible()
+		await expect(page.getByText("Logbook", { exact: true })).toBeVisible()
+	})
+
+	test("Add New Task button opens dialog", async ({ page }) => {
+		await page.goto("/")
+		await page.waitForLoadState("networkidle")
+
+		await page.getByRole("button", { name: "Add New Task" }).click()
+		await expect(page.getByRole("dialog")).toBeVisible({ timeout: 3000 })
+		await expect(page.getByText("New Task")).toBeVisible()
+	})
+})

@@ -1,9 +1,13 @@
+import { TasksService } from "@/client/services"
+import { useQueryClient } from "@tanstack/react-query"
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router"
+import { useState } from "react"
 
 import { Spinner } from "@/components/Common/Spinner"
 import Sidebar from "@/components/sidebar"
 import { Toaster } from "@/components/ui/toaster"
 import UserMenu from "@/components/user-menu"
+import { useToast } from "@/hooks/use-toast"
 import useAuth, { isLoggedIn } from "../hooks/useAuth"
 
 export const Route = createFileRoute("/_layout")({
@@ -19,6 +23,26 @@ export const Route = createFileRoute("/_layout")({
 
 function Layout() {
   const { isLoading } = useAuth()
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+  const [isScheduling, setIsScheduling] = useState(false)
+
+  async function handleAutoSchedule() {
+    setIsScheduling(true)
+    try {
+      await TasksService.scheduleTasks()
+      queryClient.invalidateQueries({ queryKey: ["tasks"] })
+      toast({ title: "Done", description: "Tasks rescheduled successfully" })
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to reschedule tasks",
+        variant: "destructive",
+      })
+    } finally {
+      setIsScheduling(false)
+    }
+  }
 
   return (
     <>
@@ -30,24 +54,29 @@ function Layout() {
             <span className="text-xl font-bold text-on-surface tracking-tight">
               Planner
             </span>
-            <nav className="flex space-x-6 text-sm">
-              <span className="text-on-surface-variant font-medium hover:text-on-surface transition-colors cursor-pointer">
-                Day
-              </span>
-              <span className="text-primary-container font-semibold border-b-2 border-primary-container pb-1 transition-colors cursor-pointer">
-                Week
-              </span>
-              <span className="text-on-surface-variant font-medium hover:text-on-surface transition-colors cursor-pointer">
-                Month
-              </span>
-            </nav>
           </div>
           <div className="flex items-center space-x-4">
             <button
               type="button"
-              className="bg-surface-container hover:bg-surface-container-high text-primary-container px-4 py-1.5 rounded-full text-xs font-bold tracking-tight transition-all active:opacity-80"
+              onClick={handleAutoSchedule}
+              disabled={isScheduling}
+              className="bg-surface-container hover:bg-surface-container-high text-primary-container px-4 py-1.5 rounded-full text-xs font-bold tracking-tight transition-all active:opacity-80 disabled:opacity-50"
             >
-              Auto-Schedule
+              {isScheduling ? (
+                <span className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm animate-spin">
+                    progress_activity
+                  </span>
+                  Scheduling...
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm">
+                    auto_awesome
+                  </span>
+                  Auto-Schedule
+                </span>
+              )}
             </button>
             <div className="flex items-center space-x-2 text-on-surface-variant">
               <button

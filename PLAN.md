@@ -24,7 +24,7 @@
 
 ---
 
-## Phase 1 — Connect Tasks to Calendar *(unblocks everything)*
+## Phase 1 — Connect Tasks to Calendar *(unblocks everything)* ✅
 
 **Goal:** Make the calendar show real data. Even without auto-scheduling, tasks with a due date/time should appear as blocks.
 
@@ -47,7 +47,7 @@
 
 ---
 
-## Phase 2 — Auto-Scheduling Engine *(the core vision)*
+## Phase 2 — Auto-Scheduling Engine *(the core vision)* ✅
 
 **Goal:** Given tasks with due dates and durations, automatically fill them into free calendar slots.
 
@@ -78,7 +78,7 @@ for each unscheduled task (no scheduled_start), sorted by priority then due date
 
 ---
 
-## Phase 3 — Two-Way Calendar Interaction
+## Phase 3 — Two-Way Calendar Interaction ✅
 
 **Goal:** The calendar becomes an editing surface, not just a read-only view.
 
@@ -90,7 +90,7 @@ for each unscheduled task (no scheduled_start), sorted by priority then due date
 
 ---
 
-## Phase 4 — Calendar View Completeness
+## Phase 4 — Calendar View Completeness ✅
 
 **Goal:** Wire up view buttons that already exist in the UI.
 
@@ -102,7 +102,7 @@ for each unscheduled task (no scheduled_start), sorted by priority then due date
 
 ---
 
-## Phase 5 — Polish & Intelligence
+## Phase 5 — Polish & Intelligence ✅ (partial — extended NL not yet done)
 
 ### Tasks
 1. **Conflict detection** — overlapping `scheduled_start + duration` blocks render with a red border/background
