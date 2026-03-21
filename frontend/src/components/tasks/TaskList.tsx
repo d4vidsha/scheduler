@@ -218,15 +218,14 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
       <AnimatePresence>
         {selectedIds.size > 1 && (
           <motion.div
+            key="selection-bar"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 500, damping: 35 }}
             className="overflow-hidden"
           >
-            <motion.div
-              initial={{ y: -4 }}
-              animate={{ y: 0 }}
+            <div
               className="flex items-center justify-between px-2.5 py-1.5 mb-1 rounded-lg"
               style={{ backgroundColor: "color-mix(in srgb, var(--ds-primary) 8%, transparent)" }}
             >
@@ -240,7 +239,7 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
               >
                 Clear
               </button>
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -331,23 +330,8 @@ function TaskItem({
       dragListener={false}
       dragControls={dragControls}
       onDragEnd={() => onDragEnd(task.id)}
-      onClick={(e) => onClick(task.id, e)}
       data-testid="task-item"
-      data-task-id={task.id}
       initial={false}
-      animate={{
-        backgroundColor: isSelected
-          ? "color-mix(in srgb, var(--ds-primary) 10%, transparent)"
-          : "rgba(0,0,0,0)",
-        borderColor: isSelected
-          ? "color-mix(in srgb, var(--ds-primary) 25%, transparent)"
-          : "rgba(0,0,0,0)",
-      }}
-      whileHover={
-        !isSelected && !isCompleted
-          ? { backgroundColor: "color-mix(in srgb, var(--ds-on-surface) 5%, transparent)" }
-          : undefined
-      }
       whileDrag={{
         scale: 1.02,
         boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
@@ -357,90 +341,104 @@ function TaskItem({
       layout
       transition={{
         layout: { type: "spring", stiffness: 350, damping: 30 },
-        backgroundColor: { duration: 0.15 },
-        borderColor: { duration: 0.15 },
       }}
-      className="group flex space-x-2.5 py-2.5 px-2.5 rounded-lg cursor-default items-start border border-transparent"
-      style={{ position: "relative" }}
+      className={`group rounded-lg border transition-colors duration-150 ${
+        isSelected
+          ? "bg-[--selection-bg] border-[--selection-border]"
+          : "border-transparent"
+      }`}
+      style={{
+        position: "relative",
+        "--selection-bg": "color-mix(in srgb, var(--ds-primary) 10%, transparent)",
+        "--selection-border": "color-mix(in srgb, var(--ds-primary) 25%, transparent)",
+      } as React.CSSProperties}
     >
       {/* Selection indicator bar */}
-      <motion.div
-        className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full"
-        initial={false}
-        animate={{
-          scaleY: isSelected ? 1 : 0,
-          backgroundColor: "var(--ds-primary)",
+      <div
+        className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-primary transition-all duration-200"
+        style={{
+          transform: `scaleY(${isSelected ? 1 : 0})`,
           opacity: isSelected ? 1 : 0,
         }}
-        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        style={{ originY: 0.5 }}
       />
 
-      {/* Checkbox */}
-      <motion.button
-        whileTap={{ scale: 1.2 }}
-        onClick={handleToggleCompleted}
-        className="flex-none mt-0.5"
-        disabled={toggleCompletedMutation.status === "pending"}
+      {/* Inner content — FC Draggable targets this for calendar drops */}
+      <div
+        data-task-id={task.id}
+        onClick={(e) => onClick(task.id, e)}
+        className={`flex space-x-2.5 py-2.5 px-2.5 items-start cursor-default ${
+          !isSelected && !isCompleted ? "hover:bg-surface-container-highest/50 rounded-lg" : ""
+        }`}
       >
-        <div
-          className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
-            isCompleted
-              ? "bg-primary text-white"
-              : "border-[1.5px] border-outline-variant/40 hover:border-primary/50"
-          }`}
+        {/* Checkbox */}
+        <motion.button
+          whileTap={{ scale: 1.2 }}
+          onClick={handleToggleCompleted}
+          className="flex-none mt-0.5"
+          disabled={toggleCompletedMutation.status === "pending"}
         >
-          {isCompleted && (
-            <span className="material-symbols-outlined text-[12px] font-bold">
-              check
-            </span>
-          )}
+          <div
+            className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
+              isCompleted
+                ? "bg-primary text-white"
+                : "border-[1.5px] border-outline-variant/40 hover:border-primary/50"
+            }`}
+          >
+            {isCompleted && (
+              <span className="material-symbols-outlined text-[12px] font-bold">
+                check
+              </span>
+            )}
+          </div>
+        </motion.button>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <p
+            className={`text-sm font-medium truncate ${
+              isCompleted
+                ? "line-through decoration-primary/30 decoration-2 text-on-surface-variant/50"
+                : "text-on-surface"
+            }`}
+          >
+            {task.title}
+          </p>
+          <TaskMeta tags={task.tags} due={task.due} duration={task.duration} />
         </div>
-      </motion.button>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <p
-          className={`text-sm font-medium truncate ${
-            isCompleted
-              ? "line-through decoration-primary/30 decoration-2 text-on-surface-variant/50"
-              : "text-on-surface"
-          }`}
-        >
-          {task.title}
-        </p>
-        <TaskMeta tags={task.tags} due={task.due} duration={task.duration} />
-      </div>
+        {!isCompleted && (
+          <button
+            type="button"
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-error/10 rounded"
+            onClick={(e) => {
+              e.stopPropagation()
+              if (confirm("Are you sure you want to delete this task?")) {
+                deleteMutation.mutate()
+              }
+            }}
+            disabled={deleteMutation.status === "pending"}
+            aria-label="Delete task"
+          >
+            <span className="material-symbols-outlined text-error/60 text-base">
+              close
+            </span>
+          </button>
+        )}
 
-      {!isCompleted && (
-        <button
-          type="button"
-          className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-error/10 rounded"
-          onClick={(e) => {
+        {/* Drag handle — reorder within list (FM) */}
+        <motion.span
+          className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing touch-none select-none"
+          onPointerDown={(e) => {
             e.stopPropagation()
-            if (confirm("Are you sure you want to delete this task?")) {
-              deleteMutation.mutate()
-            }
+            dragControls.start(e)
           }}
-          disabled={deleteMutation.status === "pending"}
-          aria-label="Delete task"
+          onClick={(e) => e.stopPropagation()}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <span className="material-symbols-outlined text-error/60 text-base">
-            close
-          </span>
-        </button>
-      )}
-
-      {/* Drag handle */}
-      <motion.span
-        className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing touch-none select-none"
-        onPointerDown={(e) => dragControls.start(e)}
-        onClick={(e) => e.stopPropagation()}
-        whileHover={{ scale: 1.1, color: "var(--ds-on-surface-variant)" }}
-        whileTap={{ scale: 0.95 }}
-      >
-        drag_indicator
-      </motion.span>
+          drag_indicator
+        </motion.span>
+      </div>
     </Reorder.Item>
   )
 }

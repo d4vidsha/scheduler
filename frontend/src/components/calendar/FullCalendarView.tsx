@@ -82,7 +82,7 @@ export default function FullCalendarView({
     if (!el) return
 
     draggableRef.current = new Draggable(el as HTMLElement, {
-      itemSelector: "[draggable=true][data-task-id]",
+      itemSelector: "[data-task-id]",
       eventData: (eventEl) => {
         const taskId = eventEl.getAttribute("data-task-id")
         const task = tasks.find((t) => t.id === taskId)
