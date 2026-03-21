@@ -128,7 +128,9 @@ def delete_task(session: SessionDep, current_user: CurrentUser, id: str) -> Mess
 
 @router.post("/schedule", response_model=TasksPublic)
 def schedule_tasks(
-    session: SessionDep, current_user: CurrentUser
+    session: SessionDep,
+    current_user: CurrentUser,
+    client_now: datetime | None = Body(default=None, description="Client's current local time"),
 ) -> TasksPublic:
     """
     Auto-schedule incomplete tasks with a due date into working-hour slots.
@@ -151,7 +153,7 @@ def schedule_tasks(
     )
     tasks = list(session.exec(statement).all())
 
-    now = datetime.utcnow()
+    now = client_now if client_now is not None else datetime.utcnow()
     # Round now up to the next 30-minute boundary
     minutes = now.minute
     remainder = minutes % 30

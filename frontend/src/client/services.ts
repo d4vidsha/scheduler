@@ -550,6 +550,9 @@ export type TDataUpdateTask = {
 export type TDataDeleteTask = {
   id: string
 }
+export type TDataScheduleTasks = {
+  requestBody?: string | null
+}
 export type TDataReorderTasks = {
   requestBody: Array<string>
 }
@@ -672,10 +675,18 @@ export class TasksService {
    * @returns TasksPublic Successful Response
    * @throws ApiError
    */
-  public static scheduleTasks(): CancelablePromise<TasksPublic> {
+  public static scheduleTasks(
+    data: TDataScheduleTasks = {},
+  ): CancelablePromise<TasksPublic> {
+    const { requestBody } = data
     return __request(OpenAPI, {
       method: "POST",
       url: "/api/v1/tasks/schedule",
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: `Validation Error`,
+      },
     })
   }
 

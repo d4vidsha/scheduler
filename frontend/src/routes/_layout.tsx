@@ -1,6 +1,7 @@
 import { TasksService } from "@/client/services"
 import { useQueryClient } from "@tanstack/react-query"
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router"
+import { format } from "date-fns"
 import { useState } from "react"
 
 import { Spinner } from "@/components/Common/Spinner"
@@ -30,7 +31,9 @@ function Layout() {
   async function handleAutoSchedule() {
     setIsScheduling(true)
     try {
-      await TasksService.scheduleTasks()
+      await TasksService.scheduleTasks({
+        requestBody: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
+      })
       queryClient.invalidateQueries({ queryKey: ["tasks"] })
       toast({ title: "Done", description: "Tasks rescheduled successfully" })
     } catch {

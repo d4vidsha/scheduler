@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { format } from "date-fns"
 import { useState } from "react"
 import { Mention, MentionsInput } from "react-mentions"
 
@@ -21,13 +22,17 @@ const DATE_PATTERN = new RegExp(
   "i",
 )
 
+function formatNaiveLocal(d: Date): string {
+  return format(d, "yyyy-MM-dd'T'HH:mm:ss")
+}
+
 function parseNextDate(dayStr: string): string {
   const now = new Date()
-  if (dayStr === "today") return now.toISOString()
+  if (dayStr === "today") return formatNaiveLocal(now)
   if (dayStr === "tomorrow") {
     const d = new Date(now)
     d.setDate(d.getDate() + 1)
-    return d.toISOString()
+    return formatNaiveLocal(d)
   }
   const targetDay = DAY_NAMES.indexOf(dayStr)
   const currentDay = now.getDay()
@@ -35,7 +40,7 @@ function parseNextDate(dayStr: string): string {
   if (daysUntil <= 0) daysUntil += 7
   const d = new Date(now)
   d.setDate(d.getDate() + daysUntil)
-  return d.toISOString()
+  return formatNaiveLocal(d)
 }
 
 const DURATION_PATTERN = /\b(\d+)h(?:(\d+)m)?\b|\b(\d+)m\b/
