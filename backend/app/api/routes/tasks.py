@@ -1,13 +1,12 @@
 import uuid
 from datetime import datetime, timedelta
-from math import ceil
 from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Message, Task, TaskCreate, TaskPublic, TaskUpdate, TasksPublic
+from app.models import Message, Task, TaskCreate, TaskPublic, TasksPublic, TaskUpdate
 
 router = APIRouter()
 
@@ -130,7 +129,9 @@ def delete_task(session: SessionDep, current_user: CurrentUser, id: str) -> Mess
 def schedule_tasks(
     session: SessionDep,
     current_user: CurrentUser,
-    client_now: datetime | None = Body(default=None, description="Client's current local time"),
+    client_now: datetime | None = Body(
+        default=None, description="Client's current local time"
+    ),
 ) -> TasksPublic:
     """
     Auto-schedule incomplete tasks with a due date into working-hour slots.
@@ -165,12 +166,13 @@ def schedule_tasks(
         )
         # If remainder is 0 but there are seconds/microseconds, round up by 30
         if remainder == 0:
-            slot_start_base = now.replace(second=0, microsecond=0) + timedelta(minutes=30)
+            slot_start_base = now.replace(second=0, microsecond=0) + timedelta(
+                minutes=30
+            )
 
     # Track assigned slots as list of (start, end) tuples
     assigned_slots: list[tuple[datetime, datetime]] = []
 
-    SLOT_INCREMENT = timedelta(minutes=30)
     MAX_DAYS_AHEAD = 365
 
     for task in tasks:
@@ -234,7 +236,9 @@ def schedule_tasks(
                             minutes=(30 - slot_e.minute % 30) % 30
                         )
                         if slot_e.minute % 30 == 0:
-                            candidate = slot_e.replace(second=0, microsecond=0) + timedelta(minutes=30)
+                            candidate = slot_e.replace(
+                                second=0, microsecond=0
+                            ) + timedelta(minutes=30)
                     break
             if overlaps:
                 continue
@@ -252,9 +256,7 @@ def schedule_tasks(
 
     # Return full updated task list for this user
     count_statement = (
-        select(func.count())
-        .select_from(Task)
-        .where(Task.owner_id == current_user.id)
+        select(func.count()).select_from(Task).where(Task.owner_id == current_user.id)
     )
     count = session.exec(count_statement).one()
     all_tasks_statement = (

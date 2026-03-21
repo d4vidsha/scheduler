@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Any
 
 from fastapi.testclient import TestClient
 from sqlmodel import Session
@@ -32,14 +33,13 @@ def _fresh_user_headers(client: TestClient, db: Session) -> dict[str, str]:
 
 def _create_task(
     client: TestClient, headers: dict[str, str], **fields: object
-) -> dict:
+) -> dict[str, Any]:
     """Create a task via API and assert success."""
     data: dict[str, object] = {"title": random_lower_string(), **fields}
-    resp = client.post(
-        f"{settings.API_V1_STR}/tasks/", headers=headers, json=data
-    )
+    resp = client.post(f"{settings.API_V1_STR}/tasks/", headers=headers, json=data)
     assert resp.status_code == 200
-    return resp.json()
+    result: dict[str, Any] = resp.json()
+    return result
 
 
 def test_create_task(
@@ -358,18 +358,14 @@ def test_read_tasks(
     assert len(content["data"]) >= 1
 
 
-def test_read_tasks_normal_user_sees_only_own(
-    client: TestClient, db: Session
-) -> None:
+def test_read_tasks_normal_user_sees_only_own(client: TestClient, db: Session) -> None:
     headers_a = _fresh_user_headers(client, db)
     headers_b = _fresh_user_headers(client, db)
 
     task_a = _create_task(client, headers_a, title="Task A")
     _create_task(client, headers_b, title="Task B")
 
-    resp = client.get(
-        f"{settings.API_V1_STR}/tasks/?limit=500", headers=headers_a
-    )
+    resp = client.get(f"{settings.API_V1_STR}/tasks/?limit=500", headers=headers_a)
     assert resp.status_code == 200
     ids = [t["id"] for t in resp.json()["data"]]
     assert task_a["id"] in ids
@@ -382,9 +378,7 @@ def test_read_tasks_normal_user_sees_only_own(
 # ---------------------------------------------------------------------------
 
 
-def test_reorder_tasks(
-    client: TestClient, db: Session
-) -> None:
+def test_reorder_tasks(client: TestClient, db: Session) -> None:
     headers = _fresh_user_headers(client, db)
     t1 = _create_task(client, headers)
     t2 = _create_task(client, headers)
@@ -454,9 +448,7 @@ def test_normal_user_cannot_read_other_users_task(
     headers_b = _fresh_user_headers(client, db)
 
     task_a = _create_task(client, headers_a)
-    resp = client.get(
-        f"{settings.API_V1_STR}/tasks/{task_a['id']}", headers=headers_b
-    )
+    resp = client.get(f"{settings.API_V1_STR}/tasks/{task_a['id']}", headers=headers_b)
     assert resp.status_code == 400
 
 
@@ -484,9 +476,7 @@ def _tomorrow_noon() -> str:
     return tomorrow.replace(hour=12, minute=0, second=0, microsecond=0).isoformat()
 
 
-def test_schedule_assigns_scheduled_start(
-    client: TestClient, db: Session
-) -> None:
+def test_schedule_assigns_scheduled_start(client: TestClient, db: Session) -> None:
     """Two tasks with a due date should both get a scheduled_start after scheduling."""
     headers = _fresh_user_headers(client, db)
     due = _tomorrow_noon()
@@ -522,9 +512,7 @@ def test_schedule_assigns_scheduled_start(
     assert starts[1] >= starts[0] + timedelta(minutes=60), "Tasks overlap"
 
 
-def test_schedule_respects_priority_order(
-    client: TestClient, db: Session
-) -> None:
+def test_schedule_respects_priority_order(client: TestClient, db: Session) -> None:
     """A higher-priority (lower id) task should receive an earlier or equal slot."""
     headers = _fresh_user_headers(client, db)
 
@@ -576,14 +564,12 @@ def test_schedule_respects_priority_order(
     assert p1_start is not None
     assert p3_start is not None
 
-    assert datetime.fromisoformat(p1_start) <= datetime.fromisoformat(p3_start), (
-        "p1 task should be scheduled at or before p3 task"
-    )
+    assert datetime.fromisoformat(p1_start) <= datetime.fromisoformat(
+        p3_start
+    ), "p1 task should be scheduled at or before p3 task"
 
 
-def test_schedule_respects_working_hours(
-    client: TestClient, db: Session
-) -> None:
+def test_schedule_respects_working_hours(client: TestClient, db: Session) -> None:
     """All scheduled tasks must fall within default working hours (9-18)."""
     headers = _fresh_user_headers(client, db)
     due = _tomorrow_noon()
@@ -606,9 +592,7 @@ def test_schedule_respects_working_hours(
             assert hour < 18, f"Task starts at or after work_end: hour={hour}"
 
 
-def test_schedule_skips_completed_tasks(
-    client: TestClient, db: Session
-) -> None:
+def test_schedule_skips_completed_tasks(client: TestClient, db: Session) -> None:
     """A completed task must not receive a scheduled_start from the scheduler."""
     headers = _fresh_user_headers(client, db)
     due = _tomorrow_noon()
@@ -636,14 +620,12 @@ def test_schedule_skips_completed_tasks(
     assert resp.status_code == 200
     data = {t["id"]: t for t in resp.json()["data"]}
 
-    assert data[task_id]["scheduled_start"] is None, (
-        "Completed task should not have scheduled_start set"
-    )
+    assert (
+        data[task_id]["scheduled_start"] is None
+    ), "Completed task should not have scheduled_start set"
 
 
-def test_schedule_only_affects_own_tasks(
-    client: TestClient, db: Session
-) -> None:
+def test_schedule_only_affects_own_tasks(client: TestClient, db: Session) -> None:
     """Scheduling for user A must not modify user B's tasks."""
     headers_a = _fresh_user_headers(client, db)
     headers_b = _fresh_user_headers(client, db)
@@ -656,9 +638,7 @@ def test_schedule_only_affects_own_tasks(
     client.post(f"{settings.API_V1_STR}/tasks/schedule", headers=headers_a)
 
     # User B's task should still have no scheduled_start
-    resp = client.get(
-        f"{settings.API_V1_STR}/tasks/{task_b['id']}", headers=headers_b
-    )
+    resp = client.get(f"{settings.API_V1_STR}/tasks/{task_b['id']}", headers=headers_b)
     assert resp.status_code == 200
     assert resp.json()["scheduled_start"] is None
 
