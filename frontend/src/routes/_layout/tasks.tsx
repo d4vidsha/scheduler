@@ -15,19 +15,28 @@ function Tasks() {
   })
 
   return (
-    <div className="mx-20 my-10">
-      <div className="flex justify-center">
-        <div className="flex-col shrink w-[800px] min-w-56">
-          <header className="mb-4">
-            <h1 className="text-3xl font-bold">Inbox</h1>
-          </header>
+    <div className="flex-1 bg-surface p-8">
+      <div className="max-w-2xl mx-auto">
+        <header className="mb-6">
+          <h1 className="text-3xl font-black tracking-tight text-on-surface">
+            Inbox
+          </h1>
+          <p className="text-on-surface-variant text-sm font-medium mt-1">
+            All your tasks in one place
+          </p>
+        </header>
+        <div className="mb-6">
           <AddTaskForm />
-          <main className="flex flex-col mt-6">
-            {isLoading && <div>Loading...</div>}
-            {error && <div className="text-red-500">Error loading tasks</div>}
-            {data?.data && <TaskList tasks={data.data} />}
-          </main>
         </div>
+        <main>
+          {isLoading && (
+            <div className="text-sm text-on-surface-variant">Loading...</div>
+          )}
+          {error && (
+            <div className="text-sm text-error">Error loading tasks</div>
+          )}
+          {data?.data && <TaskList tasks={data.data} />}
+        </main>
       </div>
     </div>
   )
