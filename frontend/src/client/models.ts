@@ -42,20 +42,6 @@ export type NewPassword = {
   new_password: string
 }
 
-export type Task = {
-  title?: string | null
-  description?: string | null
-  priority_id?: number | null
-  duration?: number | null
-  due?: string | null
-  scheduled_start?: string | null
-  completed?: boolean
-  position?: number | null
-  tags?: Array<string> | null
-  id?: string
-  owner_id: string
-}
-
 export type TaskCreate = {
   title: string
   description?: string | null
@@ -80,6 +66,17 @@ export type TaskPublic = {
   tags?: Array<string> | null
   id: string
   owner_id: string
+}
+
+export type TaskUpdate = {
+  title?: string | null
+  description?: string | null
+  priority_id?: number | null
+  duration?: number | null
+  due?: string | null
+  scheduled_start?: string | null
+  completed?: boolean | null
+  tags?: Array<string> | null
 }
 
 export type TasksPublic = {

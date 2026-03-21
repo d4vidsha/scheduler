@@ -13,7 +13,7 @@ import {
   setMinutes,
   startOfWeek,
 } from "date-fns"
-import React, { useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import EditDialog from "./EditDialog"
 import {
   type CalendarViewProps,
@@ -23,7 +23,7 @@ import {
   priorityBgClass,
   priorityBorderClass,
   priorityTextClass,
-  saveTaskAndReschedule,
+  saveTask,
 } from "./shared"
 
 export default function WeekView({ tasks, currentDate }: CalendarViewProps) {
@@ -53,6 +53,21 @@ export default function WeekView({ tasks, currentDate }: CalendarViewProps) {
   // Click vs drag tracking
   const mouseDownPos = useRef<{ x: number; y: number } | null>(null)
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
+
+  // Store resize listeners for cleanup on unmount
+  const resizeListenersRef = useRef<{
+    move: (ev: MouseEvent) => void
+    up: (ev: MouseEvent) => void
+  } | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (resizeListenersRef.current) {
+        document.removeEventListener("mousemove", resizeListenersRef.current.move)
+        document.removeEventListener("mouseup", resizeListenersRef.current.up)
+      }
+    }
+  }, [])
 
   const activeTasks = tasks.filter((t) => !t.completed)
   const timedTasks = activeTasks.filter((t) => t.scheduled_start != null)
@@ -96,8 +111,8 @@ export default function WeekView({ tasks, currentDate }: CalendarViewProps) {
     const dropMinute = (slotIndex % 2) * 30
     const newStart = setMinutes(setHours(dropDay, dropHour), dropMinute)
 
-    saveTaskAndReschedule(queryClient, tasks, taskId, {
-      scheduled_start: newStart.toISOString(),
+    saveTask(queryClient, tasks, taskId, {
+      scheduled_start: format(newStart, "yyyy-MM-dd'T'HH:mm:ss"),
     })
   }
 
@@ -145,15 +160,17 @@ export default function WeekView({ tasks, currentDate }: CalendarViewProps) {
       setResizeDuration(null)
 
       if (deltaRows !== 0) {
-        await saveTaskAndReschedule(queryClient, tasks, id, {
+        await saveTask(queryClient, tasks, id, {
           duration: newDuration,
         })
       }
 
+      resizeListenersRef.current = null
       document.removeEventListener("mousemove", onMouseMove)
       document.removeEventListener("mouseup", onMouseUp)
     }
 
+    resizeListenersRef.current = { move: onMouseMove, up: onMouseUp }
     document.addEventListener("mousemove", onMouseMove)
     document.addEventListener("mouseup", onMouseUp)
   }

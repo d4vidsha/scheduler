@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useQueryClient } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
-import { saveTaskAndReschedule } from "./shared"
+import { saveTask } from "./shared"
 
 interface EditDialogProps {
   task: TaskPublic | null
@@ -32,7 +32,7 @@ export default function EditDialog({ task, tasks, onClose }: EditDialogProps) {
 
   async function handleSave() {
     if (!task) return
-    await saveTaskAndReschedule(queryClient, tasks, task.id, {
+    await saveTask(queryClient, tasks, task.id, {
       title,
       duration,
     })

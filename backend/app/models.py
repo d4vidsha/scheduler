@@ -149,6 +149,17 @@ class TaskCreate(TaskBase):
     title: str = Field(min_length=1, max_length=255)
 
 
+class TaskUpdate(SQLModel):
+    title: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+    priority_id: int | None = Field(default=None)
+    duration: int | None = Field(default=None)
+    due: datetime | None = Field(default=None)
+    scheduled_start: datetime | None = Field(default=None)
+    completed: bool | None = Field(default=None)
+    tags: list[str] | None = Field(default=None)
+
+
 class Task(TaskBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     owner_id: uuid.UUID = Field(

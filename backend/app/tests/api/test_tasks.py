@@ -13,11 +13,10 @@ from app.tests.utils.user import (
 from app.tests.utils.utils import random_lower_string
 
 
-def _create_priority(db: Session, name: str = "medium", value: int = 2) -> Priority:
-    priority = Priority(name=name, value=value)
-    db.add(priority)
-    db.commit()
-    db.refresh(priority)
+def _get_priority(db: Session, pid: int = 3) -> Priority:
+    """Get a seeded priority row (1=urgent, 2=high, 3=medium, 4=low)."""
+    priority = db.get(Priority, pid)
+    assert priority is not None, f"Priority {pid} not seeded — run init_db first"
     return priority
 
 
@@ -181,7 +180,7 @@ def test_create_task_with_tags(
 def test_create_task_with_priority(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    priority = _create_priority(db)
+    priority = _get_priority(db)
     title = random_lower_string()
     data = {"title": title, "priority_id": priority.id}
     response = client.post(

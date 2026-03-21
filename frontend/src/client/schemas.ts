@@ -186,119 +186,6 @@ export const $NewPassword = {
   },
 } as const
 
-export const $Task = {
-  properties: {
-    title: {
-      type: "any-of",
-      contains: [
-        {
-          type: "string",
-          maxLength: 255,
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    description: {
-      type: "any-of",
-      contains: [
-        {
-          type: "string",
-          maxLength: 255,
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    priority_id: {
-      type: "any-of",
-      contains: [
-        {
-          type: "number",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    duration: {
-      type: "any-of",
-      contains: [
-        {
-          type: "number",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    due: {
-      type: "any-of",
-      contains: [
-        {
-          type: "string",
-          format: "date-time",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    scheduled_start: {
-      type: "any-of",
-      contains: [
-        {
-          type: "string",
-          format: "date-time",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    completed: {
-      type: "boolean",
-      default: false,
-    },
-    position: {
-      type: "any-of",
-      contains: [
-        {
-          type: "number",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    tags: {
-      type: "any-of",
-      contains: [
-        {
-          type: "array",
-          contains: {
-            type: "string",
-          },
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    id: {
-      type: "string",
-      format: "uuid",
-    },
-    owner_id: {
-      type: "string",
-      isRequired: true,
-      format: "uuid",
-    },
-  },
-} as const
-
 export const $TaskCreate = {
   properties: {
     title: {
@@ -507,6 +394,107 @@ export const $TaskPublic = {
       type: "string",
       isRequired: true,
       format: "uuid",
+    },
+  },
+} as const
+
+export const $TaskUpdate = {
+  properties: {
+    title: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+          minLength: 1,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    description: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    priority_id: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    duration: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    due: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          format: "date-time",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    scheduled_start: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          format: "date-time",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    completed: {
+      type: "any-of",
+      contains: [
+        {
+          type: "boolean",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    tags: {
+      type: "any-of",
+      contains: [
+        {
+          type: "array",
+          contains: {
+            type: "string",
+          },
+        },
+        {
+          type: "null",
+        },
+      ],
     },
   },
 } as const

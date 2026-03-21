@@ -2,7 +2,7 @@ from sqlmodel import Session, create_engine, select
 
 from app import crud
 from app.core.config import settings
-from app.models import User, UserCreate
+from app.models import Priority, User, UserCreate
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -32,3 +32,16 @@ def init_db(session: Session) -> None:
             is_superuser=True,
         )
         user = crud.create_user(session=session, user_create=user_in)
+
+    # Seed priority rows if missing
+    default_priorities = [
+        (1, "urgent", 1),
+        (2, "high", 2),
+        (3, "medium", 3),
+        (4, "low", 4),
+    ]
+    for pid, name, value in default_priorities:
+        existing = session.get(Priority, pid)
+        if not existing:
+            session.add(Priority(id=pid, name=name, value=value))
+    session.commit()

@@ -18,10 +18,10 @@ import type {
   ItemPublic,
   ItemsPublic,
   ItemUpdate,
-  Task,
   TaskCreate,
   TaskPublic,
   TasksPublic,
+  TaskUpdate,
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -545,7 +545,7 @@ export type TDataReadTask = {
 }
 export type TDataUpdateTask = {
   id: string
-  requestBody: Task
+  requestBody: TaskUpdate
 }
 export type TDataDeleteTask = {
   id: string

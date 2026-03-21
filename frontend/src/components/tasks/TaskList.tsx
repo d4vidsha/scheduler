@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { format, isPast, isToday, isTomorrow } from "date-fns"
 import { motion } from "framer-motion"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 const TAG_COLORS: Record<string, string> = {
   finance: "bg-blue-100 text-blue-700",
@@ -114,12 +114,9 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   )
   const taskRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
-  if (
-    JSON.stringify(tasks.map((t) => t.id)) !==
-    JSON.stringify(orderedTasks.map((t) => t.id))
-  ) {
+  useEffect(() => {
     setOrderedTasks(tasks)
-  }
+  }, [tasks])
 
   const reorderMutation = useMutation({
     mutationFn: (taskIds: string[]) => {
@@ -138,7 +135,9 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
     },
   })
 
-  const handleDragStart = (taskId: string) => {
+  const handleDragStart = (e: React.DragEvent, taskId: string) => {
+    e.dataTransfer.setData("taskId", taskId)
+    e.dataTransfer.effectAllowed = "move"
     setDraggedTaskId(taskId)
   }
 
@@ -233,7 +232,7 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
               else taskRefs.current.delete(task.id)
             }}
             draggable
-            onDragStart={() => handleDragStart(task.id)}
+            onDragStart={(e) => handleDragStart(e, task.id)}
             onDragOver={(e) => handleDragOver(e, task.id)}
             onDrop={handleDrop}
             onDragEnd={handleDragEnd}

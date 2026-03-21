@@ -1,4 +1,4 @@
-import type { TaskPublic } from "@/client/models"
+import type { TaskPublic, TaskUpdate } from "@/client/models"
 import { TasksService } from "@/client/services"
 import type { QueryClient } from "@tanstack/react-query"
 
@@ -68,24 +68,21 @@ export interface CalendarViewProps {
 
 // --- Shared helpers ---
 
-export async function saveTaskAndReschedule(
+export async function saveTask(
   queryClient: QueryClient,
-  tasks: TaskPublic[],
+  _tasks: TaskPublic[],
   taskId: string,
-  updates: Partial<TaskPublic>,
+  updates: TaskUpdate,
 ) {
-  const task = tasks.find((t) => t.id === taskId)
-  if (!task) return
   await TasksService.updateTask({
     id: taskId,
-    requestBody: { ...task, ...updates, owner_id: task.owner_id },
+    requestBody: updates,
   })
-  await TasksService.scheduleTasks()
   queryClient.invalidateQueries({ queryKey: ["tasks"] })
 }
 
 export const START_HOUR = 9
-export const END_HOUR = 17
+export const END_HOUR = 18
 
 export const HOUR_LABELS = [
   "9 AM",
@@ -97,4 +94,5 @@ export const HOUR_LABELS = [
   "3 PM",
   "4 PM",
   "5 PM",
+  "6 PM",
 ]
