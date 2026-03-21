@@ -346,31 +346,28 @@ function TaskItem({ task }: { task: TaskPublic }) {
       </div>
 
       {!isCompleted && (
-        <>
-          {/* Delete button */}
-          <button
-            type="button"
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-error/10 rounded"
-            onClick={(e) => {
-              e.stopPropagation()
-              if (confirm("Are you sure you want to delete this task?")) {
-                deleteMutation.mutate()
-              }
-            }}
-            disabled={deleteMutation.status === "pending"}
-            aria-label="Delete task"
-          >
-            <span className="material-symbols-outlined text-error/60 text-base">
-              close
-            </span>
-          </button>
-
-          {/* Drag handle */}
-          <span className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-            drag_indicator
+        <button
+          type="button"
+          className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-error/10 rounded"
+          onClick={(e) => {
+            e.stopPropagation()
+            if (confirm("Are you sure you want to delete this task?")) {
+              deleteMutation.mutate()
+            }
+          }}
+          disabled={deleteMutation.status === "pending"}
+          aria-label="Delete task"
+        >
+          <span className="material-symbols-outlined text-error/60 text-base">
+            close
           </span>
-        </>
+        </button>
       )}
+
+      {/* Drag handle */}
+      <span className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+        drag_indicator
+      </span>
     </div>
   )
 }
