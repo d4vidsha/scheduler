@@ -211,6 +211,58 @@
   color: var(--ds-primary) !important;
 }
 
+/* === Completed event styling — applied by drawTrails, not by React === */
+/* fc-event-done is the data marker; fc-event-completed is the visual class */
+.fc-event-completed {
+  opacity: 0.6 !important;
+  background: var(--ds-surface-container-lowest) !important;
+  transition: opacity 0.35s ease, background 0.35s ease;
+}
+
+.fc-event-completed .fc-event-title {
+  color: var(--ds-on-surface-variant) !important;
+  transition: color 0.35s ease;
+}
+
+.dark .fc-event-completed {
+  background: color-mix(in srgb, var(--ds-surface-container-low) 80%, transparent) !important;
+}
+
+/* === Achievement trail animations === */
+@keyframes trail-reveal {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0% 0);
+  }
+}
+
+@keyframes dot-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.4);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.achievement-trail-line {
+  clip-path: inset(0 0 100% 0);
+  animation: trail-reveal forwards;
+}
+
+.achievement-trail-dot {
+  opacity: 0;
+  animation: dot-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
 /* === Priority colors — light mode === */
 .fc-event-priority-1 {
   background: #fef2f2 !important;

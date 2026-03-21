@@ -303,7 +303,11 @@ function TaskItem({ task }: { task: TaskPublic }) {
   return (
     <div
       data-testid="task-item"
-      className="group flex space-x-2.5 py-2 px-2 hover:bg-surface-container-highest/50 rounded-lg cursor-default transition-colors items-start"
+      className={`group flex space-x-2.5 py-2.5 px-2.5 rounded-lg cursor-default transition-all items-start ${
+        isCompleted
+          ? ""
+          : "hover:bg-surface-container-highest/50"
+      }`}
     >
       {/* Checkbox */}
       <motion.button
@@ -312,12 +316,20 @@ function TaskItem({ task }: { task: TaskPublic }) {
         className="flex-none mt-1"
         disabled={toggleCompletedMutation.status === "pending"}
       >
-        <input
-          type="checkbox"
-          checked={isCompleted}
-          readOnly
-          className="w-4 h-4 rounded border-outline-variant/40 text-primary focus:ring-primary/20 bg-transparent transition-all cursor-pointer"
-        />
+        {isCompleted ? (
+          <div className="w-4 h-4 rounded bg-primary text-white flex items-center justify-center">
+            <span className="material-symbols-outlined text-[12px] font-bold">
+              check
+            </span>
+          </div>
+        ) : (
+          <input
+            type="checkbox"
+            checked={false}
+            readOnly
+            className="w-4 h-4 rounded border-outline-variant/40 text-primary focus:ring-primary/20 bg-transparent transition-all cursor-pointer"
+          />
+        )}
       </motion.button>
 
       {/* Content */}
@@ -325,7 +337,7 @@ function TaskItem({ task }: { task: TaskPublic }) {
         <p
           className={`text-sm font-medium truncate ${
             isCompleted
-              ? "line-through text-on-surface-variant/50"
+              ? "line-through decoration-primary/30 decoration-2 text-on-surface-variant/50"
               : "text-on-surface"
           }`}
         >
@@ -334,28 +346,32 @@ function TaskItem({ task }: { task: TaskPublic }) {
         <TaskMeta tags={task.tags} due={task.due} duration={task.duration} />
       </div>
 
-      {/* Delete button */}
-      <button
-        type="button"
-        className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-error/10 rounded"
-        onClick={(e) => {
-          e.stopPropagation()
-          if (confirm("Are you sure you want to delete this task?")) {
-            deleteMutation.mutate()
-          }
-        }}
-        disabled={deleteMutation.status === "pending"}
-        aria-label="Delete task"
-      >
-        <span className="material-symbols-outlined text-error/60 text-base">
-          close
-        </span>
-      </button>
+      {!isCompleted && (
+        <>
+          {/* Delete button */}
+          <button
+            type="button"
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-error/10 rounded"
+            onClick={(e) => {
+              e.stopPropagation()
+              if (confirm("Are you sure you want to delete this task?")) {
+                deleteMutation.mutate()
+              }
+            }}
+            disabled={deleteMutation.status === "pending"}
+            aria-label="Delete task"
+          >
+            <span className="material-symbols-outlined text-error/60 text-base">
+              close
+            </span>
+          </button>
 
-      {/* Drag handle */}
-      <span className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-        drag_indicator
-      </span>
+          {/* Drag handle */}
+          <span className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+            drag_indicator
+          </span>
+        </>
+      )}
     </div>
   )
 }
