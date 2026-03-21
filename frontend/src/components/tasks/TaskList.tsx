@@ -3,7 +3,7 @@ import { TasksService } from "@/client/services"
 import { useToast } from "@/hooks/use-toast"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { format, isPast, isToday, isTomorrow } from "date-fns"
-import { motion } from "framer-motion"
+import { Reorder, motion, useDragControls } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 
 const TAG_COLORS: Record<string, string> = {
@@ -97,26 +97,16 @@ function TaskMeta({
   )
 }
 
-const reorder = <T,>(list: T[], startIndex: number, endIndex: number): T[] => {
-  const result = Array.from(list)
-  const [removed] = result.splice(startIndex, 1)
-  result.splice(endIndex, 0, removed)
-  return result
-}
-
 export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [orderedTasks, setOrderedTasks] = useState<TaskPublic[]>(tasks)
-  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
-  const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null)
-  const [dropPosition, setDropPosition] = useState<"before" | "after" | null>(
-    null,
-  )
-  const taskRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  const isDragging = useRef(false)
 
   useEffect(() => {
-    setOrderedTasks(tasks)
+    if (!isDragging.current) {
+      setOrderedTasks(tasks)
+    }
   }, [tasks])
 
   const reorderMutation = useMutation({
@@ -136,71 +126,15 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
     },
   })
 
-  const handleDragStart = (e: React.DragEvent, taskId: string) => {
-    e.dataTransfer.setData("taskId", taskId)
-    e.dataTransfer.effectAllowed = "move"
-    setDraggedTaskId(taskId)
-  }
-
-  const handleDragOver = (e: React.DragEvent, taskId: string) => {
-    e.preventDefault()
-    if (draggedTaskId === taskId) return
-
-    const taskElement = taskRefs.current.get(taskId)
-    if (!taskElement) return
-
-    const rect = taskElement.getBoundingClientRect()
-    const midpoint = rect.top + rect.height / 2
-    const newDropPosition = e.clientY < midpoint ? "before" : "after"
-
-    setDragOverTaskId(taskId)
-    setDropPosition(newDropPosition)
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-
-    if (
-      !draggedTaskId ||
-      !dragOverTaskId ||
-      draggedTaskId === dragOverTaskId ||
-      !dropPosition
-    ) {
-      resetDragState()
-      return
-    }
-
-    const draggedIndex = orderedTasks.findIndex(
-      (task) => task.id === draggedTaskId,
-    )
-    let dropIndex = orderedTasks.findIndex((task) => task.id === dragOverTaskId)
-
-    if (draggedIndex === -1 || dropIndex === -1) return
-
-    if (dropPosition === "after") {
-      dropIndex += 1
-    }
-    if (draggedIndex < dropIndex) {
-      dropIndex -= 1
-    }
-
-    const newOrderedTasks = reorder(orderedTasks, draggedIndex, dropIndex)
-    setOrderedTasks(newOrderedTasks)
-
-    const taskIds = newOrderedTasks.map((task) => task.id)
-    reorderMutation.mutate(taskIds)
-
-    resetDragState()
-  }
-
-  const resetDragState = () => {
-    setDraggedTaskId(null)
-    setDragOverTaskId(null)
-    setDropPosition(null)
+  const handleReorder = (newOrder: TaskPublic[]) => {
+    isDragging.current = true
+    setOrderedTasks(newOrder)
   }
 
   const handleDragEnd = () => {
-    resetDragState()
+    isDragging.current = false
+    const taskIds = orderedTasks.map((task) => task.id)
+    reorderMutation.mutate(taskIds)
   }
 
   if (orderedTasks.length === 0) {
@@ -212,50 +146,28 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   }
 
   return (
-    <div className="space-y-0.5" data-task-list-draggable>
-      {orderedTasks.map((task) => {
-        const isDragged = draggedTaskId === task.id
-        const isDraggedOver = dragOverTaskId === task.id
-
-        let highlightClass = ""
-        if (isDraggedOver && dropPosition) {
-          highlightClass =
-            dropPosition === "before"
-              ? "ring-t-2 ring-primary"
-              : "ring-b-2 ring-primary"
-        }
-
-        return (
-          <div
-            key={task.id}
-            ref={(el) => {
-              if (el) taskRefs.current.set(task.id, el)
-              else taskRefs.current.delete(task.id)
-            }}
-            draggable
-            data-task-id={task.id}
-            onDragStart={(e) => handleDragStart(e, task.id)}
-            onDragOver={(e) => handleDragOver(e, task.id)}
-            onDrop={handleDrop}
-            onDragEnd={handleDragEnd}
-            className={`
-              transition-all duration-200
-              ${isDragged ? "opacity-50 scale-105 z-10" : ""}
-              ${highlightClass}
-            `}
-          >
-            <TaskItem task={task} />
-          </div>
-        )
-      })}
-    </div>
+    <Reorder.Group
+      axis="y"
+      values={orderedTasks}
+      onReorder={handleReorder}
+      className="space-y-0.5"
+      data-task-list-draggable
+    >
+      {orderedTasks.map((task) => (
+        <TaskItem key={task.id} task={task} onDragEnd={handleDragEnd} />
+      ))}
+    </Reorder.Group>
   )
 }
 
-function TaskItem({ task }: { task: TaskPublic }) {
+function TaskItem({
+  task,
+  onDragEnd,
+}: { task: TaskPublic; onDragEnd: () => void }) {
   const [isCompleted, setIsCompleted] = useState(task.completed ?? false)
   const queryClient = useQueryClient()
   const { toast } = useToast()
+  const dragControls = useDragControls()
 
   const deleteMutation = useMutation({
     mutationFn: () => {
@@ -301,13 +213,24 @@ function TaskItem({ task }: { task: TaskPublic }) {
   }
 
   return (
-    <div
+    <Reorder.Item
+      value={task}
+      dragListener={false}
+      dragControls={dragControls}
+      onDragEnd={onDragEnd}
       data-testid="task-item"
-      className={`group flex space-x-2.5 py-2.5 px-2.5 rounded-lg cursor-default transition-all items-start ${
-        isCompleted
-          ? ""
-          : "hover:bg-surface-container-highest/50"
+      data-task-id={task.id}
+      whileDrag={{
+        scale: 1.02,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+        zIndex: 50,
+      }}
+      layout
+      transition={{ layout: { type: "spring", stiffness: 350, damping: 30 } }}
+      className={`group flex space-x-2.5 py-2.5 px-2.5 rounded-lg cursor-default items-start ${
+        isCompleted ? "" : "hover:bg-surface-container-highest/50"
       }`}
+      style={{ position: "relative" }}
     >
       {/* Checkbox */}
       <motion.button
@@ -365,9 +288,12 @@ function TaskItem({ task }: { task: TaskPublic }) {
       )}
 
       {/* Drag handle */}
-      <span className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+      <span
+        className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing touch-none select-none"
+        onPointerDown={(e) => dragControls.start(e)}
+      >
         drag_indicator
       </span>
-    </div>
+    </Reorder.Item>
   )
 }
