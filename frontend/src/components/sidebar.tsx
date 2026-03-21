@@ -68,7 +68,7 @@ export default function Sidebar() {
                   transition-all duration-200 hover:translate-x-1 cursor-pointer active:scale-95
                   ${
                     isActive
-                      ? "bg-surface-container-lowest text-primary-container font-semibold shadow-sm"
+                      ? "bg-surface-container-lowest text-primary font-semibold shadow-sm"
                       : "text-on-surface-variant hover:bg-surface-container"
                   }
                 `}
@@ -92,7 +92,7 @@ export default function Sidebar() {
         <button
           type="button"
           onClick={() => setAddTaskOpen(true)}
-          className="w-full bg-gradient-to-r from-primary to-primary-container text-white rounded-xl py-3 px-4 flex items-center justify-center space-x-2 font-semibold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+          className="w-full bg-gradient-to-r from-primary to-primary-container dark:to-primary/70 text-white rounded-xl py-3 px-4 flex items-center justify-center space-x-2 font-semibold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
         >
           <span className="material-symbols-outlined">add</span>
           <span className="text-sm">Add New Task</span>

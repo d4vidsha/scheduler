@@ -246,7 +246,7 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
       <Button
         type="submit"
         disabled={mutation.status === "pending" || !plainText.trim()}
-        className="bg-gradient-to-r from-primary to-primary-container text-white rounded-xl hover:opacity-90 transition-all"
+        className="bg-gradient-to-r from-primary to-primary-container dark:to-primary/70 text-white rounded-xl hover:opacity-90 transition-all"
       >
         {mutation.status === "pending" ? "Adding..." : "Add"}
       </Button>

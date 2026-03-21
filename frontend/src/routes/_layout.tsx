@@ -67,7 +67,7 @@ function ViewTabs() {
           onClick={() => setView(tab.key)}
           className={`font-medium transition-colors pb-1 ${
             view === tab.key
-              ? "text-primary-container font-semibold border-b-2 border-primary-container"
+              ? "text-primary font-semibold border-b-2 border-primary"
               : "text-on-surface-variant hover:text-on-surface"
           }`}
         >
@@ -120,7 +120,7 @@ function LayoutInner() {
               type="button"
               onClick={handleAutoSchedule}
               disabled={isScheduling}
-              className="bg-surface-container hover:bg-surface-container-high text-primary-container px-4 py-1.5 rounded-full text-xs font-bold tracking-tight transition-all active:opacity-80 disabled:opacity-50"
+              className="bg-surface-container hover:bg-surface-container-high text-primary px-4 py-1.5 rounded-full text-xs font-bold tracking-tight transition-all active:opacity-80 disabled:opacity-50"
             >
               {isScheduling ? (
                 <span className="flex items-center gap-1.5">
