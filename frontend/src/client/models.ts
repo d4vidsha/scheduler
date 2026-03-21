@@ -42,26 +42,16 @@ export type NewPassword = {
   new_password: string
 }
 
-export type Task = {
-  title?: string | null
-  description?: string | null
-  priority_id?: number | null
-  duration?: number | null
-  due?: string | null
-  completed?: boolean
-  position?: number | null
-  id?: string
-  owner_id: string
-}
-
 export type TaskCreate = {
   title: string
   description?: string | null
   priority_id?: number | null
   duration?: number | null
   due?: string | null
+  scheduled_start?: string | null
   completed?: boolean
   position?: number | null
+  tags?: Array<string> | null
 }
 
 export type TaskPublic = {
@@ -70,10 +60,23 @@ export type TaskPublic = {
   priority_id?: number | null
   duration?: number | null
   due?: string | null
+  scheduled_start?: string | null
   completed?: boolean
   position?: number | null
+  tags?: Array<string> | null
   id: string
   owner_id: string
+}
+
+export type TaskUpdate = {
+  title?: string | null
+  description?: string | null
+  priority_id?: number | null
+  duration?: number | null
+  due?: string | null
+  scheduled_start?: string | null
+  completed?: boolean | null
+  tags?: Array<string> | null
 }
 
 export type TasksPublic = {
@@ -105,6 +108,8 @@ export type UserPublic = {
   is_superuser?: boolean
   full_name?: string | null
   id: string
+  work_start?: number
+  work_end?: number
 }
 
 export type UserRegister = {
@@ -119,11 +124,15 @@ export type UserUpdate = {
   is_superuser?: boolean
   full_name?: string | null
   password?: string | null
+  work_start?: number | null
+  work_end?: number | null
 }
 
 export type UserUpdateMe = {
   full_name?: string | null
   email?: string | null
+  work_start?: number | null
+  work_end?: number | null
 }
 
 export type UsersPublic = {

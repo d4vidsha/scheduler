@@ -186,93 +186,6 @@ export const $NewPassword = {
   },
 } as const
 
-export const $Task = {
-  properties: {
-    title: {
-      type: "any-of",
-      contains: [
-        {
-          type: "string",
-          maxLength: 255,
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    description: {
-      type: "any-of",
-      contains: [
-        {
-          type: "string",
-          maxLength: 255,
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    priority_id: {
-      type: "any-of",
-      contains: [
-        {
-          type: "number",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    duration: {
-      type: "any-of",
-      contains: [
-        {
-          type: "number",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    due: {
-      type: "any-of",
-      contains: [
-        {
-          type: "string",
-          format: "date-time",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    completed: {
-      type: "boolean",
-      default: false,
-    },
-    position: {
-      type: "any-of",
-      contains: [
-        {
-          type: "number",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
-    id: {
-      type: "string",
-      format: "uuid",
-    },
-    owner_id: {
-      type: "string",
-      isRequired: true,
-      format: "uuid",
-    },
-  },
-} as const
-
 export const $TaskCreate = {
   properties: {
     title: {
@@ -327,6 +240,18 @@ export const $TaskCreate = {
         },
       ],
     },
+    scheduled_start: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          format: "date-time",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
     completed: {
       type: "boolean",
       default: false,
@@ -336,6 +261,20 @@ export const $TaskCreate = {
       contains: [
         {
           type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    tags: {
+      type: "any-of",
+      contains: [
+        {
+          type: "array",
+          contains: {
+            type: "string",
+          },
         },
         {
           type: "null",
@@ -405,6 +344,18 @@ export const $TaskPublic = {
         },
       ],
     },
+    scheduled_start: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          format: "date-time",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
     completed: {
       type: "boolean",
       default: false,
@@ -420,6 +371,20 @@ export const $TaskPublic = {
         },
       ],
     },
+    tags: {
+      type: "any-of",
+      contains: [
+        {
+          type: "array",
+          contains: {
+            type: "string",
+          },
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
     id: {
       type: "string",
       isRequired: true,
@@ -429,6 +394,107 @@ export const $TaskPublic = {
       type: "string",
       isRequired: true,
       format: "uuid",
+    },
+  },
+} as const
+
+export const $TaskUpdate = {
+  properties: {
+    title: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+          minLength: 1,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    description: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    priority_id: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    duration: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    due: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          format: "date-time",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    scheduled_start: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          format: "date-time",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    completed: {
+      type: "any-of",
+      contains: [
+        {
+          type: "boolean",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    tags: {
+      type: "any-of",
+      contains: [
+        {
+          type: "array",
+          contains: {
+            type: "string",
+          },
+        },
+        {
+          type: "null",
+        },
+      ],
     },
   },
 } as const
@@ -549,6 +615,14 @@ export const $UserPublic = {
       isRequired: true,
       format: "uuid",
     },
+    work_start: {
+      type: "number",
+      default: 9,
+    },
+    work_end: {
+      type: "number",
+      default: 18,
+    },
   },
 } as const
 
@@ -629,6 +703,28 @@ export const $UserUpdate = {
         },
       ],
     },
+    work_start: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    work_end: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
   },
 } as const
 
@@ -653,6 +749,28 @@ export const $UserUpdateMe = {
           type: "string",
           format: "email",
           maxLength: 255,
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    work_start: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    work_end: {
+      type: "any-of",
+      contains: [
+        {
+          type: "number",
         },
         {
           type: "null",

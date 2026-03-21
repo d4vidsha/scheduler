@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 
 from pydantic import EmailStr
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -28,11 +29,15 @@ class UserRegister(SQLModel):
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=40)
+    work_start: int | None = Field(default=None)
+    work_end: int | None = Field(default=None)
 
 
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
+    work_start: int | None = Field(default=None)
+    work_end: int | None = Field(default=None)
 
 
 class UpdatePassword(SQLModel):
@@ -44,6 +49,8 @@ class UpdatePassword(SQLModel):
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
+    work_start: int = Field(default=9)
+    work_end: int = Field(default=18)
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
     tasks: list["Task"] = Relationship(back_populates="owner", cascade_delete=True)
 
@@ -51,6 +58,8 @@ class User(UserBase, table=True):
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
+    work_start: int = Field(default=9)
+    work_end: int = Field(default=18)
 
 
 class UsersPublic(SQLModel):
@@ -130,12 +139,25 @@ class TaskBase(SQLModel):
     )
     duration: int | None = Field(default=None)
     due: datetime | None = Field(default=None)
+    scheduled_start: datetime | None = Field(default=None)
     completed: bool = Field(default=False)
     position: int | None = Field(default=None, index=True)
+    tags: list[str] | None = Field(default=None, sa_column=Column(JSON))
 
 
 class TaskCreate(TaskBase):
     title: str = Field(min_length=1, max_length=255)
+
+
+class TaskUpdate(SQLModel):
+    title: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+    priority_id: int | None = Field(default=None)
+    duration: int | None = Field(default=None)
+    due: datetime | None = Field(default=None)
+    scheduled_start: datetime | None = Field(default=None)
+    completed: bool | None = Field(default=None)
+    tags: list[str] | None = Field(default=None)
 
 
 class Task(TaskBase, table=True):

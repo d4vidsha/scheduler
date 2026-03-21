@@ -1,11 +1,12 @@
 import uuid
+from datetime import datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Message, Task, TaskCreate, TaskPublic, TasksPublic
+from app.models import Message, Task, TaskCreate, TaskPublic, TasksPublic, TaskUpdate
 
 router = APIRouter()
 
@@ -83,7 +84,7 @@ def create_task(
 
 @router.put("/{id}", response_model=TaskPublic)
 def update_task(
-    *, session: SessionDep, current_user: CurrentUser, id: str, task_in: Task
+    *, session: SessionDep, current_user: CurrentUser, id: str, task_in: TaskUpdate
 ) -> Task:
     """
     Update a task.
@@ -122,6 +123,149 @@ def delete_task(session: SessionDep, current_user: CurrentUser, id: str) -> Mess
         return Message(message="Task deleted successfully")
     except ValueError:
         raise HTTPException(status_code=422, detail="Invalid task ID format")
+
+
+@router.post("/schedule", response_model=TasksPublic)
+def schedule_tasks(
+    session: SessionDep,
+    current_user: CurrentUser,
+    client_now: datetime | None = Body(
+        default=None, description="Client's current local time"
+    ),
+) -> TasksPublic:
+    """
+    Auto-schedule incomplete tasks with a due date into working-hour slots.
+    """
+    work_start = current_user.work_start
+    work_end = current_user.work_end
+
+    # Fetch incomplete tasks with a due date, ordered by priority ASC NULLS LAST, then due ASC
+    statement = (
+        select(Task)
+        .where(
+            Task.owner_id == current_user.id,
+            Task.completed == False,  # noqa: E712
+            Task.due.is_not(None),  # type: ignore[union-attr]
+        )
+        .order_by(
+            col(Task.priority_id).asc().nulls_last(),
+            col(Task.due).asc(),
+        )
+    )
+    tasks = list(session.exec(statement).all())
+
+    now = client_now if client_now is not None else datetime.utcnow()
+    # Round now up to the next 30-minute boundary
+    minutes = now.minute
+    remainder = minutes % 30
+    if remainder == 0 and now.second == 0 and now.microsecond == 0:
+        slot_start_base = now.replace(second=0, microsecond=0)
+    else:
+        slot_start_base = now.replace(second=0, microsecond=0) + timedelta(
+            minutes=(30 - remainder) % 30 if remainder != 0 else 0
+        )
+        # If remainder is 0 but there are seconds/microseconds, round up by 30
+        if remainder == 0:
+            slot_start_base = now.replace(second=0, microsecond=0) + timedelta(
+                minutes=30
+            )
+
+    # Track assigned slots as list of (start, end) tuples
+    assigned_slots: list[tuple[datetime, datetime]] = []
+
+    MAX_DAYS_AHEAD = 365
+
+    for task in tasks:
+        duration_minutes = task.duration if task.duration is not None else 30
+        duration = timedelta(minutes=duration_minutes)
+        due = task.due
+
+        candidate = slot_start_base
+        found_slot: datetime | None = None
+
+        # Iterate forward in 30-minute increments, up to MAX_DAYS_AHEAD days
+        limit = slot_start_base + timedelta(days=MAX_DAYS_AHEAD)
+        while candidate < limit:
+            candidate_end = candidate + duration
+
+            # Must end by the due date
+            if due is not None and candidate_end > due:
+                break
+
+            # Must be within working hours on this day
+            if candidate.hour < work_start or candidate.hour >= work_end:
+                # Jump to next working hour
+                if candidate.hour >= work_end:
+                    # Move to next day at work_start
+                    next_day = (candidate + timedelta(days=1)).replace(
+                        hour=work_start, minute=0, second=0, microsecond=0
+                    )
+                    candidate = next_day
+                else:
+                    # Before work_start today
+                    today_start = candidate.replace(
+                        hour=work_start, minute=0, second=0, microsecond=0
+                    )
+                    candidate = today_start
+                continue
+
+            # Also check that the slot end doesn't spill past work_end
+            work_end_dt = candidate.replace(
+                hour=work_end, minute=0, second=0, microsecond=0
+            )
+            if candidate_end > work_end_dt:
+                # Jump to next day at work_start
+                next_day = (candidate + timedelta(days=1)).replace(
+                    hour=work_start, minute=0, second=0, microsecond=0
+                )
+                candidate = next_day
+                continue
+
+            # Check overlap with already-assigned slots
+            overlaps = False
+            for slot_s, slot_e in assigned_slots:
+                if candidate < slot_e and candidate_end > slot_s:
+                    overlaps = True
+                    # Jump to end of the overlapping slot
+                    # Round up to next 30-min boundary after slot_e
+                    slot_e_minutes = slot_e.minute % 30
+                    if slot_e_minutes == 0 and slot_e.second == 0:
+                        candidate = slot_e
+                    else:
+                        candidate = slot_e.replace(second=0, microsecond=0) + timedelta(
+                            minutes=(30 - slot_e.minute % 30) % 30
+                        )
+                        if slot_e.minute % 30 == 0:
+                            candidate = slot_e.replace(
+                                second=0, microsecond=0
+                            ) + timedelta(minutes=30)
+                    break
+            if overlaps:
+                continue
+
+            # Valid slot found
+            found_slot = candidate
+            break
+
+        if found_slot is not None:
+            task.scheduled_start = found_slot
+            assigned_slots.append((found_slot, found_slot + duration))
+            session.add(task)
+
+    session.commit()
+
+    # Return full updated task list for this user
+    count_statement = (
+        select(func.count()).select_from(Task).where(Task.owner_id == current_user.id)
+    )
+    count = session.exec(count_statement).one()
+    all_tasks_statement = (
+        select(Task)
+        .where(Task.owner_id == current_user.id)
+        .order_by(col(Task.position))
+    )
+    all_tasks = session.exec(all_tasks_statement).all()
+    return TasksPublic(data=list(all_tasks), count=count)
 
 
 @router.post("/reorder", response_model=Message)

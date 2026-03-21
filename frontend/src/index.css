@@ -4,65 +4,105 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* shadcn variables */
+    --background: 220 50% 98%;
+    --foreground: 216 29% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 216 29% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 216 29% 11%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 211 100% 33%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 216 6% 37%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 218 30% 95%;
+    --muted-foreground: 219 12% 30%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 220 40% 95%;
+    --accent-foreground: 216 29% 11%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 41%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 16% 84%;
+    --input: 220 16% 84%;
+    --ring: 211 100% 33%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Design-system surface palette — light mode */
+    --ds-surface: #f7f9ff;
+    --ds-surface-container-lowest: #ffffff;
+    --ds-surface-container-low: #f0f4fc;
+    --ds-surface-container: #eaeef6;
+    --ds-surface-container-high: #e4e8f0;
+    --ds-surface-container-highest: #dee3eb;
+    --ds-on-surface: #171c22;
+    --ds-on-surface-variant: #424753;
+    --ds-primary: #004fa8;
+    --ds-primary-container: #0366d6;
+    --ds-on-primary-container: #e5ebff;
+    --ds-outline-variant: #c2c6d6;
+    --ds-error: #ba1a1a;
+
+    /* Scrollbar */
+    --scrollbar-thumb: #dee3eb;
+    --scrollbar-thumb-hover: #c2c6d6;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* shadcn variables */
+    --background: 222 47% 6%;
+    --foreground: 210 40% 96%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 96%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 96%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 213 94% 68%;
+    --primary-foreground: 222 47% 6%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 96%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 96%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 213 94% 68%;
+
+    /* Design-system surface palette — dark mode (from stitch-dark) */
+    --ds-surface: #0f172a;
+    --ds-surface-container-lowest: #020617;
+    --ds-surface-container-low: #1e293b;
+    --ds-surface-container: #334155;
+    --ds-surface-container-high: #475569;
+    --ds-surface-container-highest: #64748b;
+    --ds-on-surface: #f1f5f9;
+    --ds-on-surface-variant: #94a3b8;
+    --ds-primary: #60a5fa;
+    --ds-primary-container: #1e3a8a;
+    --ds-on-primary-container: #dbeafe;
+    --ds-outline-variant: #334155;
+    --ds-error: #f87171;
+
+    /* Scrollbar */
+    --scrollbar-thumb: #334155;
+    --scrollbar-thumb-hover: #475569;
   }
 }
 
@@ -71,6 +111,35 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--ds-surface);
+    color: var(--ds-on-surface);
+    @apply font-body antialiased;
+  }
+}
+
+/* Material Symbols configuration */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Custom scrollbar - premium feel */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Ghost border utility for accessibility-only borders */
+@layer utilities {
+  .ghost-border {
+    outline: 1px solid rgba(194, 198, 214, 0.2);
   }
 }

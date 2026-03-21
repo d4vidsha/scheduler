@@ -18,10 +18,10 @@ import type {
   ItemPublic,
   ItemsPublic,
   ItemUpdate,
-  Task,
   TaskCreate,
   TaskPublic,
   TasksPublic,
+  TaskUpdate,
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -545,10 +545,13 @@ export type TDataReadTask = {
 }
 export type TDataUpdateTask = {
   id: string
-  requestBody: Task
+  requestBody: TaskUpdate
 }
 export type TDataDeleteTask = {
   id: string
+}
+export type TDataScheduleTasks = {
+  requestBody?: string | null
 }
 export type TDataReorderTasks = {
   requestBody: Array<string>
@@ -660,6 +663,27 @@ export class TasksService {
       path: {
         id,
       },
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * Schedule Tasks
+   * Auto-schedule incomplete tasks with a due date into working-hour slots.
+   * @returns TasksPublic Successful Response
+   * @throws ApiError
+   */
+  public static scheduleTasks(
+    data: TDataScheduleTasks = {},
+  ): CancelablePromise<TasksPublic> {
+    const { requestBody } = data
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/tasks/schedule",
+      body: requestBody,
+      mediaType: "application/json",
       errors: {
         422: `Validation Error`,
       },
