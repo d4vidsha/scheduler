@@ -15,19 +15,23 @@ import {
   subYears,
 } from "date-fns"
 import { useState } from "react"
-import DayView from "./DayView"
-import MonthView from "./MonthView"
-import WeekView from "./WeekView"
+import { useCalendarView } from "./CalendarViewContext"
+import FullCalendarView from "./FullCalendarView"
 import YearView from "./YearView"
-import type { CalendarView } from "./shared"
 
 interface CalendarProps {
   tasks?: TaskPublic[]
 }
 
+const VIEW_TO_FC = {
+  day: "timeGridDay",
+  week: "timeGridWeek",
+  month: "dayGridMonth",
+} as const
+
 export default function Calendar({ tasks = [] }: CalendarProps) {
   const today = startOfToday()
-  const [view, setView] = useState<CalendarView>("week")
+  const { view, setView } = useCalendarView()
   const [currentDate, setCurrentDate] = useState(today)
 
   function goToToday() {
@@ -68,10 +72,9 @@ export default function Calendar({ tasks = [] }: CalendarProps) {
     }
   }
 
-  // Navigate to a specific date (used by month/year views to drill down)
+  // Navigate to a specific date (used by year view to drill down)
   function handleNavigate(date: Date) {
     setCurrentDate(date)
-    // Drill down: year→month, month→day
     if (view === "year") setView("month")
     else if (view === "month") setView("day")
   }
@@ -82,9 +85,9 @@ export default function Calendar({ tasks = [] }: CalendarProps) {
       case "day":
         return format(currentDate, "EEEE, MMMM d")
       case "week": {
-        const weekStart = startOfWeek(currentDate)
-        const weekEnd = endOfWeek(currentDate)
-        return `${format(weekStart, "MMMM d")} – ${format(weekEnd, "d")}`
+        const ws = startOfWeek(currentDate)
+        const we = endOfWeek(currentDate)
+        return `${format(ws, "MMMM d")} – ${format(we, "d")}`
       }
       case "month":
         return format(currentDate, "MMMM yyyy")
@@ -106,16 +109,9 @@ export default function Calendar({ tasks = [] }: CalendarProps) {
     }
   }
 
-  const viewButtons: { key: CalendarView; label: string }[] = [
-    { key: "day", label: "Day" },
-    { key: "week", label: "Week" },
-    { key: "month", label: "Month" },
-    { key: "year", label: "Year" },
-  ]
-
   return (
     <div className="flex h-full flex-col p-8">
-      {/* Calendar header */}
+      {/* Calendar header — date title + nav arrows only */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl font-black tracking-tight text-on-surface">
@@ -128,90 +124,53 @@ export default function Calendar({ tasks = [] }: CalendarProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* View switcher */}
-          <div className="flex bg-surface-container rounded-lg p-0.5">
-            {viewButtons.map((btn) => (
-              <button
-                key={btn.key}
-                type="button"
-                onClick={() => setView(btn.key)}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
-                  view === btn.key
-                    ? "bg-surface-container-lowest text-primary shadow-sm"
-                    : "text-on-surface-variant hover:text-on-surface"
-                }`}
-              >
-                {btn.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Navigation */}
-          <div className="flex bg-surface-container rounded-lg p-1">
-            <button
-              type="button"
-              onClick={goPrevious}
-              className="p-1.5 hover:bg-surface-container-high rounded-md transition-colors"
-            >
-              <span className="material-symbols-outlined text-lg">
-                chevron_left
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={goToToday}
-              className="px-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant"
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              onClick={goNext}
-              className="p-1.5 hover:bg-surface-container-high rounded-md transition-colors"
-            >
-              <span className="material-symbols-outlined text-lg">
-                chevron_right
-              </span>
-            </button>
-          </div>
+        <div className="flex bg-surface-container rounded-lg p-1">
+          <button
+            type="button"
+            onClick={goPrevious}
+            className="p-1.5 hover:bg-surface-container-high rounded-md transition-colors"
+          >
+            <span className="material-symbols-outlined text-lg">
+              chevron_left
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={goToToday}
+            className="px-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant"
+          >
+            Today
+          </button>
+          <button
+            type="button"
+            onClick={goNext}
+            className="p-1.5 hover:bg-surface-container-high rounded-md transition-colors"
+          >
+            <span className="material-symbols-outlined text-lg">
+              chevron_right
+            </span>
+          </button>
         </div>
       </div>
 
       {/* View content */}
-      {view === "day" && (
-        <div data-testid="calendar-day-view">
-          <DayView
-            tasks={tasks}
-            currentDate={currentDate}
-            onNavigate={handleNavigate}
-          />
-        </div>
-      )}
-      {view === "week" && (
-        <div data-testid="calendar-week-view">
-          <WeekView
-            tasks={tasks}
-            currentDate={currentDate}
-            onNavigate={handleNavigate}
-          />
-        </div>
-      )}
-      {view === "month" && (
-        <div data-testid="calendar-month-view">
-          <MonthView
-            tasks={tasks}
-            currentDate={currentDate}
-            onNavigate={handleNavigate}
-          />
-        </div>
-      )}
-      {view === "year" && (
+      {view === "year" ? (
         <div data-testid="calendar-year-view">
           <YearView
             tasks={tasks}
             currentDate={currentDate}
             onNavigate={handleNavigate}
+          />
+        </div>
+      ) : (
+        <div
+          data-testid={`calendar-${view}-view`}
+          className="flex-1 min-h-0"
+        >
+          <FullCalendarView
+            tasks={tasks}
+            currentDate={currentDate}
+            view={VIEW_TO_FC[view]}
           />
         </div>
       )}

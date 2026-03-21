@@ -211,7 +211,7 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   }
 
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-0.5" data-task-list-draggable>
       {orderedTasks.map((task) => {
         const isDragged = draggedTaskId === task.id
         const isDraggedOver = dragOverTaskId === task.id
@@ -232,6 +232,7 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
               else taskRefs.current.delete(task.id)
             }}
             draggable
+            data-task-id={task.id}
             onDragStart={(e) => handleDragStart(e, task.id)}
             onDragOver={(e) => handleDragOver(e, task.id)}
             onDrop={handleDrop}

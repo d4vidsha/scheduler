@@ -5,6 +5,11 @@ import { format } from "date-fns"
 import { useState } from "react"
 
 import { Spinner } from "@/components/Common/Spinner"
+import {
+  CalendarViewProvider,
+  useCalendarView,
+} from "@/components/calendar/CalendarViewContext"
+import type { CalendarView } from "@/components/calendar/shared"
 import Sidebar from "@/components/sidebar"
 import { Toaster } from "@/components/ui/toaster"
 import UserMenu from "@/components/user-menu"
@@ -22,7 +27,36 @@ export const Route = createFileRoute("/_layout")({
   },
 })
 
-function Layout() {
+const VIEW_TABS: { key: CalendarView; label: string }[] = [
+  { key: "day", label: "Day" },
+  { key: "week", label: "Week" },
+  { key: "month", label: "Month" },
+  { key: "year", label: "Year" },
+]
+
+function ViewTabs() {
+  const { view, setView } = useCalendarView()
+  return (
+    <nav className="flex space-x-6 text-sm">
+      {VIEW_TABS.map((tab) => (
+        <button
+          key={tab.key}
+          type="button"
+          onClick={() => setView(tab.key)}
+          className={`font-medium transition-colors pb-1 ${
+            view === tab.key
+              ? "text-primary-container font-semibold border-b-2 border-primary-container"
+              : "text-on-surface-variant hover:text-on-surface"
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </nav>
+  )
+}
+
+function LayoutInner() {
   const { isLoading } = useAuth()
   const queryClient = useQueryClient()
   const { toast } = useToast()
@@ -57,6 +91,7 @@ function Layout() {
             <span className="text-xl font-bold text-on-surface tracking-tight">
               Planner
             </span>
+            <ViewTabs />
           </div>
           <div className="flex items-center space-x-4">
             <button
@@ -114,5 +149,13 @@ function Layout() {
       </div>
       <Toaster />
     </>
+  )
+}
+
+function Layout() {
+  return (
+    <CalendarViewProvider>
+      <LayoutInner />
+    </CalendarViewProvider>
   )
 }

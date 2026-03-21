@@ -1,0 +1,308 @@
+/* FullCalendar → Sanctuary Stitch 1:1 Overrides */
+
+/* === Base reset === */
+.fc {
+  --fc-border-color: rgba(194, 198, 214, 0.1); /* outline-variant/10 — the gap-px hairline */
+  --fc-today-bg-color: transparent;
+  --fc-neutral-bg-color: transparent;
+  --fc-page-bg-color: transparent;
+  --fc-event-border-color: transparent;
+  --fc-now-indicator-color: #004fa8;
+  font-family: "Inter", sans-serif;
+}
+
+/* === Hide default toolbar (we have our own) === */
+.fc .fc-toolbar {
+  display: none !important;
+}
+
+/* === Grid container — rounded-2xl shadow-sm === */
+.fc .fc-scrollgrid {
+  border: none !important;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.fc .fc-scrollgrid-section > td,
+.fc .fc-scrollgrid-section > th {
+  border: none !important;
+}
+
+/* === Column headers — bg-surface-container-lowest p-4 text-center === */
+.fc .fc-col-header-cell {
+  background: #ffffff; /* surface-container-lowest */
+  border: none !important;
+  padding: 16px 8px;
+  vertical-align: middle;
+}
+
+.fc .fc-col-header-cell-cushion {
+  text-decoration: none !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+}
+
+/* === Time gutter — bg-surface-container-lowest, text-[10px] font-mono === */
+.fc .fc-timegrid-axis {
+  background: #ffffff;
+  border: none !important;
+}
+
+.fc .fc-timegrid-slot-label {
+  background: #ffffff;
+  border: none !important;
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(66, 71, 83, 0.6); /* on-surface-variant/60 */
+  vertical-align: top;
+  padding: 8px 8px 8px 0;
+  text-align: right;
+  width: 64px !important;
+  min-width: 64px !important;
+}
+
+/* Current hour label in primary */
+.fc .fc-timegrid-slot-label.fc-slot-now {
+  color: #004fa8;
+}
+
+/* === Slot lanes (the cells) — min-h-[80px] with background variants === */
+.fc .fc-timegrid-slot {
+  height: 40px; /* 2 slots per hour = 80px per hour */
+  border-color: rgba(194, 198, 214, 0.1);
+}
+
+.fc .fc-timegrid-slot-lane {
+  background: #f7f9ff; /* surface */
+}
+
+/* Today column — bg-surface-container-lowest */
+.fc .fc-day-today .fc-timegrid-col-frame {
+  background: #ffffff;
+}
+
+/* Weekend columns — bg-surface-container-low */
+.fc .fc-day-sat .fc-timegrid-col-frame,
+.fc .fc-day-sun .fc-timegrid-col-frame {
+  background: #f0f4fc;
+}
+
+/* Today column slots */
+.fc .fc-day-today .fc-timegrid-slot-lane {
+  background: #ffffff;
+}
+
+/* Weekend slots */
+.fc .fc-day-sat .fc-timegrid-slot-lane,
+.fc .fc-day-sun .fc-timegrid-slot-lane {
+  background: #f0f4fc;
+}
+
+/* === Column borders (gap-px effect) === */
+.fc .fc-timegrid-col {
+  border-right: 1px solid rgba(194, 198, 214, 0.1);
+}
+
+.fc .fc-timegrid-col:last-child {
+  border-right: none;
+}
+
+/* === Now indicator — pulse dot from stitch === */
+.fc .fc-timegrid-now-indicator-line {
+  border-color: rgba(0, 79, 168, 0.3); /* primary/30 */
+  border-width: 2px;
+  z-index: 10;
+}
+
+.fc .fc-timegrid-now-indicator-line::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  background: #004fa8;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(0, 79, 168, 0.5);
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(0, 79, 168, 0.5); }
+  50% { opacity: 0.7; box-shadow: 0 0 12px rgba(0, 79, 168, 0.3); }
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+  display: none; /* We use our own dot */
+}
+
+/* === Events — bg-primary/5 border-l-4 border-primary rounded-md === */
+.fc .fc-event,
+.fc .fc-timegrid-event {
+  border: none !important;
+  border-radius: 6px !important;
+  border-left: 4px solid #004fa8 !important;
+  background: rgba(0, 79, 168, 0.05) !important;
+  color: #004fa8 !important;
+  padding: 8px !important;
+  cursor: pointer;
+  box-shadow: none !important;
+  overflow: hidden;
+  margin: 0 4px !important;
+}
+
+.fc .fc-timegrid-event .fc-event-main,
+.fc .fc-event .fc-event-main {
+  padding: 0 !important;
+  overflow: hidden;
+  color: inherit !important;
+}
+
+/* Remove FullCalendar's default time element */
+.fc .fc-event-time {
+  display: none !important;
+}
+
+.fc .fc-event-title {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+  color: #004fa8 !important;
+}
+
+/* === Priority colors (override default primary) === */
+.fc-event-priority-1 {
+  background: #fef2f2 !important;
+  border-left-color: #ef4444 !important;
+  color: #b91c1c !important;
+}
+
+.fc-event-priority-2 {
+  background: #fff7ed !important;
+  border-left-color: #f97316 !important;
+  color: #c2410c !important;
+}
+
+.fc-event-priority-3 {
+  background: rgba(0, 79, 168, 0.05) !important;
+  border-left-color: #3b82f6 !important;
+  color: #004fa8 !important;
+}
+
+.fc-event-priority-4 {
+  background: #f8fafc !important;
+  border-left-color: #94a3b8 !important;
+  color: #475569 !important;
+}
+
+.fc-event-priority-default {
+  background: rgba(0, 79, 168, 0.05) !important;
+  border-left-color: #004fa8 !important;
+  color: #004fa8 !important;
+}
+
+/* === Conflict ring === */
+.fc-event-conflict {
+  box-shadow: inset 0 0 0 2px rgba(248, 113, 113, 0.6) !important;
+}
+
+/* === Event resize handle === */
+.fc .fc-event .fc-event-resizer {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.fc .fc-event:hover .fc-event-resizer {
+  opacity: 1;
+}
+
+/* === Drag highlighting — border-2 border-dashed border-primary/20 === */
+.fc .fc-highlight {
+  background: rgba(0, 79, 168, 0.08) !important;
+  border: 2px dashed rgba(0, 79, 168, 0.2) !important;
+  border-radius: 12px;
+}
+
+/* === DayGrid / Month view === */
+.fc .fc-daygrid-day {
+  min-height: 100px;
+  background: #f7f9ff;
+  transition: background-color 0.15s;
+}
+
+.fc .fc-daygrid-day:hover {
+  background: rgba(228, 232, 240, 0.5); /* surface-container-high/50 */
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background: #ffffff;
+}
+
+.fc .fc-daygrid-day.fc-day-other {
+  background: #eaeef6;
+}
+
+.fc .fc-daygrid-day-number {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 8px;
+  color: #171c22;
+  text-decoration: none !important;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+  color: #004fa8;
+}
+
+.fc .fc-day-other .fc-daygrid-day-number {
+  opacity: 0.4;
+}
+
+.fc .fc-daygrid-event {
+  border-radius: 4px !important;
+  border-left: 3px solid #004fa8 !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  background: rgba(0, 79, 168, 0.05) !important;
+  padding: 1px 4px !important;
+  margin: 1px 2px !important;
+  font-size: 10px !important;
+}
+
+.fc .fc-daygrid-more-link {
+  font-size: 10px;
+  font-weight: 600;
+  color: #424753;
+  padding: 2px 4px;
+}
+
+/* === Scrollbar styling (matching stitch) === */
+.fc .fc-scroller::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fc .fc-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fc .fc-scroller::-webkit-scrollbar-thumb {
+  background: #dee3eb;
+  border-radius: 10px;
+}
+
+/* === Remove all-day section border === */
+.fc .fc-timegrid-divider {
+  display: none;
+}
+
+/* === Ensure the grid fills available space === */
+.fc .fc-view-harness {
+  flex: 1;
+}
