@@ -11,6 +11,7 @@ import {
 } from "@/components/calendar/CalendarViewContext"
 import type { CalendarView } from "@/components/calendar/shared"
 import Sidebar from "@/components/sidebar"
+import { useTheme } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import UserMenu from "@/components/user-menu"
 import { useToast } from "@/hooks/use-toast"
@@ -33,6 +34,27 @@ const VIEW_TABS: { key: CalendarView; label: string }[] = [
   { key: "month", label: "Month" },
   { key: "year", label: "Year" },
 ]
+
+function DarkModeToggle() {
+  const { theme, setTheme } = useTheme()
+  const isDark =
+    theme === "dark" ||
+    (theme === "system" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches)
+
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="p-2 hover:bg-surface-container rounded-full transition-colors"
+      aria-label="Toggle dark mode"
+    >
+      <span className="material-symbols-outlined text-xl">
+        {isDark ? "light_mode" : "dark_mode"}
+      </span>
+    </button>
+  )
+}
 
 function ViewTabs() {
   const { view, setView } = useCalendarView()
@@ -86,10 +108,10 @@ function LayoutInner() {
       <Sidebar />
       <div className="ml-64 min-h-screen flex flex-col">
         {/* Top App Bar */}
-        <header className="flex justify-between items-center w-full px-8 h-16 sticky top-0 bg-surface z-40 transition-colors duration-200">
+        <header className="flex justify-between items-center w-full px-8 h-16 sticky top-0 bg-surface dark:bg-surface/80 dark:backdrop-blur-md dark:border-b dark:border-outline-variant/20 z-40 transition-colors duration-200">
           <div className="flex items-center space-x-8">
             <span className="text-xl font-bold text-on-surface tracking-tight">
-              Planner
+              Scheduler
             </span>
             <ViewTabs />
           </div>
@@ -117,6 +139,7 @@ function LayoutInner() {
               )}
             </button>
             <div className="flex items-center space-x-2 text-on-surface-variant">
+              <DarkModeToggle />
               <button
                 type="button"
                 className="p-2 hover:bg-surface-container rounded-full transition-colors"

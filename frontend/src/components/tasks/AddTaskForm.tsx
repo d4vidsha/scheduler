@@ -1,4 +1,5 @@
 import { TasksService } from "@/client/services"
+import { useTheme } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
@@ -91,54 +92,73 @@ function parseNaturalLanguage(
     .replace(/\s+/g, " ")
     .trim()
 
-  return { title, tags: tags.length > 0 ? tags : null, priorityId, due, duration }
+  return {
+    title,
+    tags: tags.length > 0 ? tags : null,
+    priorityId,
+    due,
+    duration,
+  }
 }
 
-const mentionsInputStyle = {
-  control: {
-    fontSize: 14,
-    lineHeight: 1.5,
-  },
-  input: {
-    padding: "10px 14px",
-    border: "none",
-    borderRadius: "12px",
-    outline: "none",
-    backgroundColor: "#f0f4fc",
-    color: "#171c22",
-    width: "100%",
-    transition: "background-color 0.2s, box-shadow 0.2s",
-  },
-  highlighter: {
-    padding: "10px 14px",
-    border: "1px solid transparent",
-  },
-  suggestions: {
-    list: {
-      backgroundColor: "#ffffff",
+function getMentionsInputStyle(isDark: boolean) {
+  return {
+    control: {
+      fontSize: 14,
+      lineHeight: 1.5,
+    },
+    input: {
+      padding: "10px 14px",
       border: "none",
       borderRadius: "12px",
-      fontSize: 14,
-      overflow: "hidden",
-      boxShadow: "0 12px 32px rgba(23, 28, 34, 0.06)",
+      outline: "none",
+      backgroundColor: isDark ? "#1e293b" : "#f0f4fc",
+      color: isDark ? "#f1f5f9" : "#171c22",
+      width: "100%",
+      transition: "background-color 0.2s, box-shadow 0.2s",
     },
-    item: {
-      padding: "8px 14px",
-      cursor: "pointer",
+    highlighter: {
+      padding: "10px 14px",
+      border: "1px solid transparent",
     },
-  },
+    suggestions: {
+      list: {
+        backgroundColor: isDark ? "#1e293b" : "#ffffff",
+        border: "none",
+        borderRadius: "12px",
+        fontSize: 14,
+        overflow: "hidden",
+        boxShadow: isDark
+          ? "0 12px 32px rgba(0, 0, 0, 0.4)"
+          : "0 12px 32px rgba(23, 28, 34, 0.06)",
+      },
+      item: {
+        padding: "8px 14px",
+        cursor: "pointer",
+        color: isDark ? "#f1f5f9" : "#171c22",
+      },
+    },
+  }
 }
 
-const mentionStyle = {
-  backgroundColor: "#eaeef6",
-  borderRadius: "4px",
-  padding: "1px 3px",
+function getMentionStyle(isDark: boolean) {
+  return {
+    backgroundColor: isDark ? "#334155" : "#eaeef6",
+    borderRadius: "4px",
+    padding: "1px 3px",
+  }
 }
 
 export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
   const queryClient = useQueryClient()
   const { user } = useAuth()
   const showToast = useCustomToast()
+  const { theme } = useTheme()
+  const isDark =
+    theme === "dark" ||
+    (theme === "system" &&
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches)
   const [value, setValue] = useState("")
   const [plainText, setPlainText] = useState("")
 
@@ -204,14 +224,12 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
           }}
           placeholder="Task title @tag p1 monday 1h30m — press Enter to add"
           singleLine
-          style={mentionsInputStyle}
+          style={getMentionsInputStyle(isDark)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault()
-              const { title, tags, priorityId, due, duration } = parseNaturalLanguage(
-                value,
-                plainText,
-              )
+              const { title, tags, priorityId, due, duration } =
+                parseNaturalLanguage(value, plainText)
               if (!title) return
               mutation.mutate({ title, tags, priorityId, due, duration })
             }
@@ -220,7 +238,7 @@ export function AddTaskForm({ onSuccess }: { onSuccess?: () => void }) {
           <Mention
             trigger="@"
             data={(search) => (search ? [{ id: search, display: search }] : [])}
-            style={mentionStyle}
+            style={getMentionStyle(isDark)}
             appendSpaceOnAdd
           />
         </MentionsInput>

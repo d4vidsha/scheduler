@@ -63,7 +63,10 @@ export default function WeekView({ tasks, currentDate }: CalendarViewProps) {
   useEffect(() => {
     return () => {
       if (resizeListenersRef.current) {
-        document.removeEventListener("mousemove", resizeListenersRef.current.move)
+        document.removeEventListener(
+          "mousemove",
+          resizeListenersRef.current.move,
+        )
         document.removeEventListener("mouseup", resizeListenersRef.current.up)
       }
     }
@@ -348,7 +351,10 @@ export default function WeekView({ tasks, currentDate }: CalendarViewProps) {
                             </p>
                           )}
                           {hasConflict && (
-                            <p data-testid="conflict-label" className="text-[8px] text-red-500 font-semibold mt-0.5">
+                            <p
+                              data-testid="conflict-label"
+                              className="text-[8px] text-red-500 font-semibold mt-0.5"
+                            >
                               Conflict
                             </p>
                           )}

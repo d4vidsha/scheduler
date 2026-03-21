@@ -203,9 +203,7 @@ export default function FullCalendarView({
               <div className="text-center py-1">
                 <p
                   className={`text-[10px] font-bold uppercase tracking-widest ${
-                    isCurrent
-                      ? "text-primary"
-                      : "text-on-surface-variant"
+                    isCurrent ? "text-primary" : "text-on-surface-variant"
                   }`}
                 >
                   {format(date, "EEE")}
@@ -228,9 +226,7 @@ export default function FullCalendarView({
             )
           }}
           eventContent={(arg) => {
-            const task = arg.event.extendedProps.task as
-              | TaskPublic
-              | undefined
+            const task = arg.event.extendedProps.task as TaskPublic | undefined
             const isTimeGrid = arg.view.type.startsWith("timeGrid")
             const duration = task?.duration ?? 30
 
@@ -241,9 +237,7 @@ export default function FullCalendarView({
                     {arg.event.title}
                   </p>
                   {duration > 30 && (
-                    <p className="text-[9px] opacity-60 mt-1">
-                      {arg.timeText}
-                    </p>
+                    <p className="text-[9px] opacity-60 mt-1">{arg.timeText}</p>
                   )}
                 </div>
               )

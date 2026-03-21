@@ -18,40 +18,46 @@ export default {
         headline: ["Inter var", ...defaultTheme.fontFamily.sans],
         body: ["Inter var", ...defaultTheme.fontFamily.sans],
         label: ["Inter var", ...defaultTheme.fontFamily.sans],
-        mono: ["ui-monospace", "SFMono-Regular", "SF Mono", "Menlo", "monospace"],
+        mono: [
+          "ui-monospace",
+          "SFMono-Regular",
+          "SF Mono",
+          "Menlo",
+          "monospace",
+        ],
       },
       colors: {
-        // Design system surface hierarchy
-        "surface": "#f7f9ff",
-        "surface-dim": "#d6dae2",
-        "surface-bright": "#f7f9ff",
-        "surface-container-lowest": "#ffffff",
-        "surface-container-low": "#f0f4fc",
-        "surface-container": "#eaeef6",
-        "surface-container-high": "#e4e8f0",
-        "surface-container-highest": "#dee3eb",
-        "surface-variant": "#dee3eb",
+        // Design system surface hierarchy (CSS vars for dark mode support)
+        surface: "var(--ds-surface)",
+        "surface-dim": "var(--ds-surface-container-high)",
+        "surface-bright": "var(--ds-surface)",
+        "surface-container-lowest": "var(--ds-surface-container-lowest)",
+        "surface-container-low": "var(--ds-surface-container-low)",
+        "surface-container": "var(--ds-surface-container)",
+        "surface-container-high": "var(--ds-surface-container-high)",
+        "surface-container-highest": "var(--ds-surface-container-highest)",
+        "surface-variant": "var(--ds-surface-container-highest)",
 
         // On-surface text colors
-        "on-surface": "#171c22",
-        "on-surface-variant": "#424753",
+        "on-surface": "var(--ds-on-surface)",
+        "on-surface-variant": "var(--ds-on-surface-variant)",
 
         // Primary
-        "primary": {
-          DEFAULT: "#004fa8",
-          container: "#0366d6",
+        primary: {
+          DEFAULT: "var(--ds-primary)",
+          container: "var(--ds-primary-container)",
           fixed: "#d8e2ff",
           "fixed-dim": "#adc6ff",
         },
         "on-primary": "#ffffff",
-        "on-primary-container": "#e5ebff",
+        "on-primary-container": "var(--ds-on-primary-container)",
         "on-primary-fixed": "#001a41",
         "on-primary-fixed-variant": "#004493",
 
         // Secondary
-        "secondary": {
+        secondary: {
           DEFAULT: "#5a5f66",
-          container: "#dee3eb",
+          container: "var(--ds-surface-container-highest)",
           fixed: "#dee3eb",
           "fixed-dim": "#c2c7cf",
         },
@@ -61,7 +67,7 @@ export default {
         "on-secondary-fixed-variant": "#42474e",
 
         // Tertiary
-        "tertiary": {
+        tertiary: {
           DEFAULT: "#005395",
           container: "#006cbe",
           fixed: "#d3e4ff",
@@ -73,16 +79,16 @@ export default {
         "on-tertiary-fixed-variant": "#004882",
 
         // Error
-        "error": {
-          DEFAULT: "#ba1a1a",
+        error: {
+          DEFAULT: "var(--ds-error)",
           container: "#ffdad6",
         },
         "on-error": "#ffffff",
         "on-error-container": "#93000a",
 
         // Outline
-        "outline": "#727785",
-        "outline-variant": "#c2c6d6",
+        outline: "#727785",
+        "outline-variant": "var(--ds-outline-variant)",
 
         // Inverse
         "inverse-surface": "#2c3137",
@@ -127,7 +133,7 @@ export default {
         "2xl": "1rem",
       },
       boxShadow: {
-        "ambient": "0 12px 32px rgba(23, 28, 34, 0.06)",
+        ambient: "0 12px 32px rgba(23, 28, 34, 0.06)",
         "ambient-lg": "0 16px 48px rgba(23, 28, 34, 0.08)",
       },
       keyframes: {

@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    /* shadcn variables */
     --background: 220 50% 98%;
     --foreground: 216 29% 11%;
 
@@ -33,36 +34,75 @@
     --ring: 211 100% 33%;
 
     --radius: 0.75rem;
+
+    /* Design-system surface palette — light mode */
+    --ds-surface: #f7f9ff;
+    --ds-surface-container-lowest: #ffffff;
+    --ds-surface-container-low: #f0f4fc;
+    --ds-surface-container: #eaeef6;
+    --ds-surface-container-high: #e4e8f0;
+    --ds-surface-container-highest: #dee3eb;
+    --ds-on-surface: #171c22;
+    --ds-on-surface-variant: #424753;
+    --ds-primary: #004fa8;
+    --ds-primary-container: #0366d6;
+    --ds-on-primary-container: #e5ebff;
+    --ds-outline-variant: #c2c6d6;
+    --ds-error: #ba1a1a;
+
+    /* Scrollbar */
+    --scrollbar-thumb: #dee3eb;
+    --scrollbar-thumb-hover: #c2c6d6;
   }
 
   .dark {
-    --background: 222 30% 8%;
-    --foreground: 210 40% 98%;
+    /* shadcn variables */
+    --background: 222 47% 6%;
+    --foreground: 210 40% 96%;
 
-    --card: 222 30% 10%;
-    --card-foreground: 210 40% 98%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 96%;
 
-    --popover: 222 30% 10%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 96%;
 
-    --primary: 217 75% 80%;
-    --primary-foreground: 216 29% 11%;
+    --primary: 213 94% 68%;
+    --primary-foreground: 222 47% 6%;
 
-    --secondary: 217 20% 20%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 96%;
 
-    --muted: 217 20% 17%;
+    --muted: 217 33% 14%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 217 20% 17%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 96%;
 
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 20% 17%;
-    --input: 217 20% 17%;
-    --ring: 213 27% 84%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 213 94% 68%;
+
+    /* Design-system surface palette — dark mode (from stitch-dark) */
+    --ds-surface: #0f172a;
+    --ds-surface-container-lowest: #020617;
+    --ds-surface-container-low: #1e293b;
+    --ds-surface-container: #334155;
+    --ds-surface-container-high: #475569;
+    --ds-surface-container-highest: #64748b;
+    --ds-on-surface: #f1f5f9;
+    --ds-on-surface-variant: #94a3b8;
+    --ds-primary: #60a5fa;
+    --ds-primary-container: #1e3a8a;
+    --ds-on-primary-container: #dbeafe;
+    --ds-outline-variant: #334155;
+    --ds-error: #f87171;
+
+    /* Scrollbar */
+    --scrollbar-thumb: #334155;
+    --scrollbar-thumb-hover: #475569;
   }
 }
 
@@ -71,7 +111,9 @@
     @apply border-border;
   }
   body {
-    @apply bg-surface font-body text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container;
+    background-color: var(--ds-surface);
+    color: var(--ds-on-surface);
+    @apply font-body antialiased;
   }
 }
 
@@ -88,11 +130,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #dee3eb;
+  background: var(--scrollbar-thumb);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #c2c6d6;
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Ghost border utility for accessibility-only borders */

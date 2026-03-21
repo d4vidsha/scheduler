@@ -4,7 +4,9 @@ import { randomString } from "./utils/random"
 // Helper: format a Date as naive local ISO string (no timezone offset or Z suffix)
 function toNaiveLocal(d: Date): string {
   const pad = (n: number) => n.toString().padStart(2, "0")
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours(),
+  )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
 // Helper: get an auth token from the page's localStorage
@@ -126,9 +128,7 @@ test.describe("Month view", () => {
       page.locator('[data-testid="calendar-month-view"]'),
     ).toBeVisible()
     await expect(
-      page
-        .locator('[data-testid="calendar-month-view"]')
-        .getByText(taskTitle),
+      page.locator('[data-testid="calendar-month-view"]').getByText(taskTitle),
     ).toBeVisible({ timeout: 8000 })
   })
 
@@ -154,7 +154,9 @@ test.describe("Month view", () => {
 
     // FullCalendar shows a "+N more" link when dayMaxEvents is exceeded
     await expect(
-      page.locator('[data-testid="calendar-month-view"]').locator(".fc-more-link, .fc-daygrid-more-link"),
+      page
+        .locator('[data-testid="calendar-month-view"]')
+        .locator(".fc-more-link, .fc-daygrid-more-link"),
     ).toBeVisible({ timeout: 8000 })
   })
 })
@@ -356,8 +358,6 @@ test.describe("Sidebar", () => {
 
     await page.getByRole("button", { name: "Add New Task" }).click()
     await expect(page.getByRole("dialog")).toBeVisible({ timeout: 3000 })
-    await expect(
-      page.getByRole("dialog").getByText("New Task"),
-    ).toBeVisible()
+    await expect(page.getByRole("dialog").getByText("New Task")).toBeVisible()
   })
 })

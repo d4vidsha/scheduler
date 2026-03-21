@@ -14,27 +14,40 @@ test.describe("Phase 2 features", () => {
     tomorrow.setHours(12, 0, 0, 0)
 
     // Create task via API with a due date and duration so the scheduler can place it
-    const token = await page.evaluate(() => localStorage.getItem("access_token"))
-    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { title: taskTitle, due: tomorrow.toISOString(), duration: 60 },
-    })
+    const token = await page.evaluate(() =>
+      localStorage.getItem("access_token"),
+    )
+    const response = await page.request.post(
+      "http://localhost:8000/api/v1/tasks/",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { title: taskTitle, due: tomorrow.toISOString(), duration: 60 },
+      },
+    )
     expect(response.ok()).toBeTruthy()
     const created = await response.json()
 
     // Trigger scheduling
-    const scheduleResponse = await page.request.post("http://localhost:8000/api/v1/tasks/schedule", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const scheduleResponse = await page.request.post(
+      "http://localhost:8000/api/v1/tasks/schedule",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    )
     expect(scheduleResponse.ok()).toBeTruthy()
 
     // Fetch the task and verify scheduled_start is set
-    const tasksResponse = await page.request.get("http://localhost:8000/api/v1/tasks/", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const tasksResponse = await page.request.get(
+      "http://localhost:8000/api/v1/tasks/",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    )
     expect(tasksResponse.ok()).toBeTruthy()
     const tasks = await tasksResponse.json()
-    const scheduledTask = tasks.data.find((t: { id: string }) => t.id === created.id)
+    const scheduledTask = tasks.data.find(
+      (t: { id: string }) => t.id === created.id,
+    )
     expect(scheduledTask).toBeDefined()
     expect(scheduledTask.scheduled_start).not.toBeNull()
   })
@@ -47,7 +60,9 @@ test.describe("Phase 2 features", () => {
     await page.getByRole("tab", { name: "Working Hours" }).click()
 
     // The section heading should be visible
-    await expect(page.getByText("Working Hours", { exact: true }).first()).toBeVisible()
+    await expect(
+      page.getByText("Working Hours", { exact: true }).first(),
+    ).toBeVisible()
 
     // The work-start select should exist with default value 9
     const workStart = page.locator("#work-start")
@@ -85,7 +100,9 @@ test.describe("Tasks", () => {
     await page.getByRole("button", { name: "Add" }).click()
 
     await expect(getTaskItem(page, baseTitle)).toBeVisible()
-    await expect(page.locator("p", { hasText: `${baseTitle} @work` })).not.toBeVisible()
+    await expect(
+      page.locator("p", { hasText: `${baseTitle} @work` }),
+    ).not.toBeVisible()
   })
 
   test("should strip priority token from displayed title", async ({ page }) => {
@@ -96,7 +113,9 @@ test.describe("Tasks", () => {
     await page.getByRole("button", { name: "Add" }).click()
 
     await expect(getTaskItem(page, baseTitle)).toBeVisible()
-    await expect(page.locator("p", { hasText: `${baseTitle} p1` })).not.toBeVisible()
+    await expect(
+      page.locator("p", { hasText: `${baseTitle} p1` }),
+    ).not.toBeVisible()
   })
 
   test("should strip date token from displayed title", async ({ page }) => {
@@ -107,10 +126,14 @@ test.describe("Tasks", () => {
     await page.getByRole("button", { name: "Add" }).click()
 
     await expect(getTaskItem(page, baseTitle)).toBeVisible()
-    await expect(page.locator("p", { hasText: `${baseTitle} tuesday` })).not.toBeVisible()
+    await expect(
+      page.locator("p", { hasText: `${baseTitle} tuesday` }),
+    ).not.toBeVisible()
   })
 
-  test("should strip all natural language tokens combined", async ({ page }) => {
+  test("should strip all natural language tokens combined", async ({
+    page,
+  }) => {
     await page.goto("/tasks")
 
     const baseTitle = `NL Task ${randomString(5)}`
@@ -120,7 +143,9 @@ test.describe("Tasks", () => {
     await page.getByRole("button", { name: "Add" }).click()
 
     await expect(getTaskItem(page, baseTitle)).toBeVisible()
-    await expect(page.locator("p", { hasText: `${baseTitle} @work p2 monday` })).not.toBeVisible()
+    await expect(
+      page.locator("p", { hasText: `${baseTitle} @work p2 monday` }),
+    ).not.toBeVisible()
   })
 
   test("should submit on Enter key", async ({ page }) => {
@@ -180,7 +205,9 @@ test.describe("Tasks", () => {
 
     const taskItem = getTaskItem(page, baseTitle)
     await expect(taskItem).toBeVisible()
-    await expect(taskItem.locator('[data-testid="priority-dot"].text-red-500')).toBeVisible()
+    await expect(
+      taskItem.locator('[data-testid="priority-dot"].text-red-500'),
+    ).toBeVisible()
   })
 
   test("should show priority dot for p2 task", async ({ page }) => {
@@ -192,7 +219,9 @@ test.describe("Tasks", () => {
 
     const taskItem = getTaskItem(page, baseTitle)
     await expect(taskItem).toBeVisible()
-    await expect(taskItem.locator('[data-testid="priority-dot"].text-orange-400')).toBeVisible()
+    await expect(
+      taskItem.locator('[data-testid="priority-dot"].text-orange-400'),
+    ).toBeVisible()
   })
 
   test("should show priority dot for p3 task", async ({ page }) => {
@@ -204,7 +233,9 @@ test.describe("Tasks", () => {
 
     const taskItem = getTaskItem(page, baseTitle)
     await expect(taskItem).toBeVisible()
-    await expect(taskItem.locator('[data-testid="priority-dot"].text-blue-400')).toBeVisible()
+    await expect(
+      taskItem.locator('[data-testid="priority-dot"].text-blue-400'),
+    ).toBeVisible()
   })
 
   test("should show no priority dot for plain task", async ({ page }) => {
@@ -216,7 +247,9 @@ test.describe("Tasks", () => {
 
     const taskItem = getTaskItem(page, taskTitle)
     await expect(taskItem).toBeVisible()
-    await expect(taskItem.locator('[data-testid="priority-dot"]')).not.toBeAttached()
+    await expect(
+      taskItem.locator('[data-testid="priority-dot"]'),
+    ).not.toBeAttached()
   })
 
   test("should show due date Today for task due today", async ({ page }) => {
@@ -230,11 +263,15 @@ test.describe("Tasks", () => {
     const taskItem = getTaskItem(page, baseTitle)
     await expect(taskItem).toBeVisible()
     await expect(
-      taskItem.locator('[data-testid="task-meta"]').getByText("Today", { exact: true }),
+      taskItem
+        .locator('[data-testid="task-meta"]')
+        .getByText("Today", { exact: true }),
     ).toBeVisible()
   })
 
-  test("should show due date Tomorrow for task due tomorrow", async ({ page }) => {
+  test("should show due date Tomorrow for task due tomorrow", async ({
+    page,
+  }) => {
     await page.goto("/tasks")
 
     // "Upcoming Task" contains no parser tokens
@@ -245,7 +282,9 @@ test.describe("Tasks", () => {
     const taskItem = getTaskItem(page, baseTitle)
     await expect(taskItem).toBeVisible()
     await expect(
-      taskItem.locator('[data-testid="task-meta"]').getByText("Tomorrow", { exact: true }),
+      taskItem
+        .locator('[data-testid="task-meta"]')
+        .getByText("Tomorrow", { exact: true }),
     ).toBeVisible()
   })
 
@@ -259,7 +298,9 @@ test.describe("Tasks", () => {
     const taskItem = getTaskItem(page, taskTitle)
     await expect(taskItem).toBeVisible()
     // TaskMeta renders null when no tags and no due date
-    await expect(taskItem.locator('[data-testid="task-meta"]')).not.toBeAttached()
+    await expect(
+      taskItem.locator('[data-testid="task-meta"]'),
+    ).not.toBeAttached()
   })
 
   test("should show tag pill for task with tags", async ({ page }) => {
@@ -267,11 +308,16 @@ test.describe("Tasks", () => {
 
     // Create via API to bypass mention dropdown complexity
     const baseTitle = `Grocery Task ${randomString(5)}`
-    const token = await page.evaluate(() => localStorage.getItem("access_token"))
-    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { title: baseTitle, tags: ["groceries"] },
-    })
+    const token = await page.evaluate(() =>
+      localStorage.getItem("access_token"),
+    )
+    const response = await page.request.post(
+      "http://localhost:8000/api/v1/tasks/",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { title: baseTitle, tags: ["groceries"] },
+      },
+    )
     expect(response.ok()).toBeTruthy()
 
     await page.reload()
@@ -280,7 +326,9 @@ test.describe("Tasks", () => {
     const taskItem = getTaskItem(page, baseTitle)
     await expect(taskItem).toBeVisible()
     await expect(
-      taskItem.locator('[data-testid="task-meta"]').getByText("groceries", { exact: true }),
+      taskItem
+        .locator('[data-testid="task-meta"]')
+        .getByText("groceries", { exact: true }),
     ).toBeVisible()
   })
 
@@ -296,11 +344,15 @@ test.describe("Tasks", () => {
     const taskItem = getTaskItem(page, baseTitle)
     await expect(taskItem).toBeVisible()
     await expect(
-      taskItem.locator('[data-testid="task-meta"]').getByText("1h", { exact: true }),
+      taskItem
+        .locator('[data-testid="task-meta"]')
+        .getByText("1h", { exact: true }),
     ).toBeVisible()
   })
 
-  test("should show '2h 30m' duration badge for '2h30m' input", async ({ page }) => {
+  test("should show '2h 30m' duration badge for '2h30m' input", async ({
+    page,
+  }) => {
     await page.goto("/tasks")
 
     const baseTitle = `Deep Work Task ${randomString(5)}`
@@ -310,7 +362,9 @@ test.describe("Tasks", () => {
     const taskItem = getTaskItem(page, baseTitle)
     await expect(taskItem).toBeVisible()
     await expect(
-      taskItem.locator('[data-testid="task-meta"]').getByText("2h 30m", { exact: true }),
+      taskItem
+        .locator('[data-testid="task-meta"]')
+        .getByText("2h 30m", { exact: true }),
     ).toBeVisible()
   })
 
@@ -324,7 +378,9 @@ test.describe("Tasks", () => {
     const taskItem = getTaskItem(page, baseTitle)
     await expect(taskItem).toBeVisible()
     await expect(
-      taskItem.locator('[data-testid="task-meta"]').getByText("30m", { exact: true }),
+      taskItem
+        .locator('[data-testid="task-meta"]')
+        .getByText("30m", { exact: true }),
     ).toBeVisible()
   })
 
@@ -338,23 +394,32 @@ test.describe("Tasks", () => {
     const taskItem = getTaskItem(page, baseTitle)
     await expect(taskItem).toBeVisible()
     // The raw token should not appear in the title paragraph
-    await expect(page.locator("p", { hasText: `${baseTitle} 1h` })).not.toBeVisible()
+    await expect(
+      page.locator("p", { hasText: `${baseTitle} 1h` }),
+    ).not.toBeVisible()
   })
 
   // --- Calendar all-day chip tests ---
 
-  test("should show task with due date today as an all-day chip in the calendar", async ({ page }) => {
+  test("should show task with due date today as an all-day chip in the calendar", async ({
+    page,
+  }) => {
     await page.goto("/")
 
     const baseTitle = `Calendar Today Task ${randomString(5)}`
     // Create via API so we can set due precisely to today without relying on the parser route
-    const token = await page.evaluate(() => localStorage.getItem("access_token"))
+    const token = await page.evaluate(() =>
+      localStorage.getItem("access_token"),
+    )
     const today = new Date()
     today.setHours(12, 0, 0, 0)
-    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { title: baseTitle, due: today.toISOString() },
-    })
+    const response = await page.request.post(
+      "http://localhost:8000/api/v1/tasks/",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { title: baseTitle, due: today.toISOString() },
+      },
+    )
     expect(response.ok()).toBeTruthy()
 
     await page.reload()
@@ -362,22 +427,31 @@ test.describe("Tasks", () => {
 
     // The calendar renders all-day chips in the desktop header as <span> elements with the task title
     // They live inside the right ResizablePanel that contains the WeekCalendar component
-    const calendarPanel = page.locator('[data-panel-id]').last()
-    await expect(calendarPanel.getByText(baseTitle, { exact: true })).toBeVisible({ timeout: 8000 })
+    const calendarPanel = page.locator("[data-panel-id]").last()
+    await expect(
+      calendarPanel.getByText(baseTitle, { exact: true }),
+    ).toBeVisible({ timeout: 8000 })
   })
 
-  test("should show task with due date tomorrow as an all-day chip in the calendar", async ({ page }) => {
+  test("should show task with due date tomorrow as an all-day chip in the calendar", async ({
+    page,
+  }) => {
     await page.goto("/")
 
     const baseTitle = `Calendar Tomorrow Task ${randomString(5)}`
-    const token = await page.evaluate(() => localStorage.getItem("access_token"))
+    const token = await page.evaluate(() =>
+      localStorage.getItem("access_token"),
+    )
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
     tomorrow.setHours(12, 0, 0, 0)
-    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { title: baseTitle, due: tomorrow.toISOString() },
-    })
+    const response = await page.request.post(
+      "http://localhost:8000/api/v1/tasks/",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { title: baseTitle, due: tomorrow.toISOString() },
+      },
+    )
     expect(response.ok()).toBeTruthy()
 
     await page.reload()
@@ -391,22 +465,36 @@ test.describe("Tasks", () => {
       await page.waitForTimeout(500)
     }
 
-    const calendarPanel = page.locator('[data-panel-id]').last()
-    await expect(calendarPanel.getByText(baseTitle)).toBeVisible({ timeout: 15000 })
+    const calendarPanel = page.locator("[data-panel-id]").last()
+    await expect(calendarPanel.getByText(baseTitle)).toBeVisible({
+      timeout: 15000,
+    })
   })
 
-  test("should show combined metadata for task with tag, priority, and due date", async ({ page }) => {
+  test("should show combined metadata for task with tag, priority, and due date", async ({
+    page,
+  }) => {
     await page.goto("/tasks")
 
     // Create via API for reliable tag + priority + due combination
     const baseTitle = `Multi Meta Task ${randomString(5)}`
-    const token = await page.evaluate(() => localStorage.getItem("access_token"))
+    const token = await page.evaluate(() =>
+      localStorage.getItem("access_token"),
+    )
     const due = new Date()
     due.setDate(due.getDate() + 1) // tomorrow
-    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { title: baseTitle, tags: ["work"], priority_id: 2, due: due.toISOString() },
-    })
+    const response = await page.request.post(
+      "http://localhost:8000/api/v1/tasks/",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        data: {
+          title: baseTitle,
+          tags: ["work"],
+          priority_id: 2,
+          due: due.toISOString(),
+        },
+      },
+    )
     expect(response.ok()).toBeTruthy()
 
     await page.reload()
@@ -414,112 +502,154 @@ test.describe("Tasks", () => {
 
     const taskItem = getTaskItem(page, baseTitle)
     await expect(taskItem).toBeVisible()
-    await expect(taskItem.locator('[data-testid="priority-dot"].text-orange-400')).toBeVisible()
     await expect(
-      taskItem.locator('[data-testid="task-meta"]').getByText("work", { exact: true }),
+      taskItem.locator('[data-testid="priority-dot"].text-orange-400'),
     ).toBeVisible()
     await expect(
-      taskItem.locator('[data-testid="task-meta"]').getByText("Tomorrow", { exact: true }),
+      taskItem
+        .locator('[data-testid="task-meta"]')
+        .getByText("work", { exact: true }),
+    ).toBeVisible()
+    await expect(
+      taskItem
+        .locator('[data-testid="task-meta"]')
+        .getByText("Tomorrow", { exact: true }),
     ).toBeVisible()
   })
 })
 
 // --- Phase 3: two-way calendar interaction tests ---
 
-test.describe.serial("Phase 3 features", () => {
-  test("click task block opens edit dialog", async ({ page }) => {
-    await page.goto("/")
-    await page.waitForLoadState("networkidle")
+test.describe
+  .serial("Phase 3 features", () => {
+    test("click task block opens edit dialog", async ({ page }) => {
+      await page.goto("/")
+      await page.waitForLoadState("networkidle")
 
-    const taskTitle = `Cal Edit Task ${randomString(5)}`
-    const token = await page.evaluate(() => localStorage.getItem("access_token"))
+      const taskTitle = `Cal Edit Task ${randomString(5)}`
+      const token = await page.evaluate(() =>
+        localStorage.getItem("access_token"),
+      )
 
-    // Create a task scheduled for today at 10am
-    const today = new Date()
-    today.setHours(10, 0, 0, 0)
-    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { title: taskTitle, scheduled_start: today.toISOString(), duration: 60 },
+      // Create a task scheduled for today at 10am
+      const today = new Date()
+      today.setHours(10, 0, 0, 0)
+      const response = await page.request.post(
+        "http://localhost:8000/api/v1/tasks/",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          data: {
+            title: taskTitle,
+            scheduled_start: today.toISOString(),
+            duration: 60,
+          },
+        },
+      )
+      expect(response.ok()).toBeTruthy()
+
+      await page.reload()
+      await page.waitForLoadState("networkidle")
+
+      // Click on the task block in the calendar
+      const taskBlock = page
+        .locator('[data-testid="calendar-task-block"]')
+        .filter({ hasText: taskTitle })
+      await expect(taskBlock).toBeVisible({ timeout: 8000 })
+      await taskBlock.click()
+
+      // Edit dialog should appear with the task title pre-filled in the input
+      await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 })
+      await expect(page.getByLabel("Title")).toHaveValue(taskTitle)
     })
-    expect(response.ok()).toBeTruthy()
 
-    await page.reload()
-    await page.waitForLoadState("networkidle")
+    test("edit dialog saves updated title", async ({ page }) => {
+      await page.goto("/")
+      await page.waitForLoadState("networkidle")
 
-    // Click on the task block in the calendar
-    const taskBlock = page.locator('[data-testid="calendar-task-block"]').filter({ hasText: taskTitle })
-    await expect(taskBlock).toBeVisible({ timeout: 8000 })
-    await taskBlock.click()
+      const taskTitle = `Edit Title Task ${randomString(5)}`
+      const updatedTitle = `Updated Title ${randomString(5)}`
+      const token = await page.evaluate(() =>
+        localStorage.getItem("access_token"),
+      )
 
-    // Edit dialog should appear with the task title pre-filled in the input
-    await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 })
-    await expect(page.getByLabel("Title")).toHaveValue(taskTitle)
-  })
+      // Create a task scheduled for today at 10am
+      const today = new Date()
+      today.setHours(10, 0, 0, 0)
+      const response = await page.request.post(
+        "http://localhost:8000/api/v1/tasks/",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          data: {
+            title: taskTitle,
+            scheduled_start: today.toISOString(),
+            duration: 60,
+          },
+        },
+      )
+      expect(response.ok()).toBeTruthy()
 
-  test("edit dialog saves updated title", async ({ page }) => {
-    await page.goto("/")
-    await page.waitForLoadState("networkidle")
+      await page.reload()
+      await page.waitForLoadState("networkidle")
 
-    const taskTitle = `Edit Title Task ${randomString(5)}`
-    const updatedTitle = `Updated Title ${randomString(5)}`
-    const token = await page.evaluate(() => localStorage.getItem("access_token"))
+      const taskBlock = page
+        .locator('[data-testid="calendar-task-block"]')
+        .filter({ hasText: taskTitle })
+      await expect(taskBlock).toBeVisible({ timeout: 12000 })
+      await taskBlock.click()
 
-    // Create a task scheduled for today at 10am
-    const today = new Date()
-    today.setHours(10, 0, 0, 0)
-    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { title: taskTitle, scheduled_start: today.toISOString(), duration: 60 },
+      // Edit dialog should open
+      await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 })
+
+      // Clear and fill in new title
+      const titleInput = page.getByLabel("Title")
+      await titleInput.clear()
+      await titleInput.fill(updatedTitle)
+
+      // Save
+      await page.getByRole("button", { name: "Save" }).click()
+
+      // Dialog should close and updated title should appear in calendar
+      await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 5000 })
+      await expect(
+        page
+          .locator('[data-testid="calendar-task-block"]')
+          .filter({ hasText: updatedTitle }),
+      ).toBeVisible({ timeout: 8000 })
     })
-    expect(response.ok()).toBeTruthy()
 
-    await page.reload()
-    await page.waitForLoadState("networkidle")
+    test("unscheduled tasks panel shows tasks without scheduled_start", async ({
+      page,
+    }) => {
+      await page.goto("/")
+      await page.waitForLoadState("networkidle")
 
-    const taskBlock = page.locator('[data-testid="calendar-task-block"]').filter({ hasText: taskTitle })
-    await expect(taskBlock).toBeVisible({ timeout: 12000 })
-    await taskBlock.click()
+      const taskTitle = `Unscheduled Task ${randomString(5)}`
+      const token = await page.evaluate(() =>
+        localStorage.getItem("access_token"),
+      )
 
-    // Edit dialog should open
-    await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 })
+      // Create a task with no due date and no scheduled_start
+      const response = await page.request.post(
+        "http://localhost:8000/api/v1/tasks/",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          data: { title: taskTitle },
+        },
+      )
+      expect(response.ok()).toBeTruthy()
 
-    // Clear and fill in new title
-    const titleInput = page.getByLabel("Title")
-    await titleInput.clear()
-    await titleInput.fill(updatedTitle)
+      await page.reload()
+      await page.waitForResponse(
+        (r) => r.url().includes("/api/v1/tasks") && r.status() === 200,
+      )
+      await page.waitForLoadState("networkidle")
+      await page.waitForTimeout(1500)
 
-    // Save
-    await page.getByRole("button", { name: "Save" }).click()
-
-    // Dialog should close and updated title should appear in calendar
-    await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 5000 })
-    await expect(
-      page.locator('[data-testid="calendar-task-block"]').filter({ hasText: updatedTitle }),
-    ).toBeVisible({ timeout: 8000 })
-  })
-
-  test("unscheduled tasks panel shows tasks without scheduled_start", async ({ page }) => {
-    await page.goto("/")
-    await page.waitForLoadState("networkidle")
-
-    const taskTitle = `Unscheduled Task ${randomString(5)}`
-    const token = await page.evaluate(() => localStorage.getItem("access_token"))
-
-    // Create a task with no due date and no scheduled_start
-    const response = await page.request.post("http://localhost:8000/api/v1/tasks/", {
-      headers: { Authorization: `Bearer ${token}` },
-      data: { title: taskTitle },
+      // The unscheduled panel should show the task
+      const unscheduledPanel = page.locator('[data-testid="unscheduled-panel"]')
+      await expect(unscheduledPanel).toBeVisible({ timeout: 12000 })
+      await expect(page.getByText(taskTitle).first()).toBeVisible({
+        timeout: 15000,
+      })
     })
-    expect(response.ok()).toBeTruthy()
-
-    await page.reload()
-    await page.waitForResponse((r) => r.url().includes("/api/v1/tasks") && r.status() === 200)
-    await page.waitForLoadState("networkidle")
-    await page.waitForTimeout(1500)
-
-    // The unscheduled panel should show the task
-    const unscheduledPanel = page.locator('[data-testid="unscheduled-panel"]')
-    await expect(unscheduledPanel).toBeVisible({ timeout: 12000 })
-    await expect(page.getByText(taskTitle).first()).toBeVisible({ timeout: 15000 })
   })
-})

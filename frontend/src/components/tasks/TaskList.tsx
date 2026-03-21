@@ -7,12 +7,13 @@ import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 
 const TAG_COLORS: Record<string, string> = {
-  finance: "bg-blue-100 text-blue-700",
-  design: "bg-purple-100 text-purple-700",
-  sales: "bg-amber-100 text-amber-700",
-  ops: "bg-slate-100 text-slate-700",
-  dev: "bg-emerald-100 text-emerald-700",
-  marketing: "bg-pink-100 text-pink-700",
+  finance: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  design:
+    "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
+  sales: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+  ops: "bg-slate-100 text-slate-700 dark:bg-slate-800/40 dark:text-slate-300",
+  dev: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+  marketing: "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300",
 }
 
 function getTagColor(tag: string): string {

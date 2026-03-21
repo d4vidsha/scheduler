@@ -47,7 +47,10 @@ export default function DayView({ tasks, currentDate }: CalendarViewProps) {
   useEffect(() => {
     return () => {
       if (resizeListenersRef.current) {
-        document.removeEventListener("mousemove", resizeListenersRef.current.move)
+        document.removeEventListener(
+          "mousemove",
+          resizeListenersRef.current.move,
+        )
         document.removeEventListener("mouseup", resizeListenersRef.current.up)
       }
     }

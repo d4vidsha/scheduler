@@ -1,13 +1,13 @@
-/* FullCalendar → Sanctuary Stitch 1:1 Overrides */
+/* FullCalendar → Scheduler design overrides */
 
 /* === Base reset === */
 .fc {
-  --fc-border-color: rgba(194, 198, 214, 0.1); /* outline-variant/10 — the gap-px hairline */
+  --fc-border-color: var(--ds-outline-variant-10, rgba(194, 198, 214, 0.1));
   --fc-today-bg-color: transparent;
   --fc-neutral-bg-color: transparent;
   --fc-page-bg-color: transparent;
   --fc-event-border-color: transparent;
-  --fc-now-indicator-color: #004fa8;
+  --fc-now-indicator-color: var(--ds-primary);
   font-family: "Inter", sans-serif;
 }
 
@@ -24,14 +24,18 @@
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 
+.dark .fc .fc-scrollgrid {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
 .fc .fc-scrollgrid-section > td,
 .fc .fc-scrollgrid-section > th {
   border: none !important;
 }
 
-/* === Column headers — bg-surface-container-lowest p-4 text-center === */
+/* === Column headers === */
 .fc .fc-col-header-cell {
-  background: #ffffff; /* surface-container-lowest */
+  background: var(--ds-surface-container-lowest);
   border: none !important;
   padding: 16px 8px;
   vertical-align: middle;
@@ -46,20 +50,20 @@
   padding: 0;
 }
 
-/* === Time gutter — bg-surface-container-lowest, text-[10px] font-mono === */
+/* === Time gutter === */
 .fc .fc-timegrid-axis {
-  background: #ffffff;
+  background: var(--ds-surface-container-lowest);
   border: none !important;
 }
 
 .fc .fc-timegrid-slot-label {
-  background: #ffffff;
+  background: var(--ds-surface-container-lowest);
   border: none !important;
   font-size: 10px;
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
   font-weight: 700;
   text-transform: uppercase;
-  color: rgba(66, 71, 83, 0.6); /* on-surface-variant/60 */
+  color: color-mix(in srgb, var(--ds-on-surface-variant) 60%, transparent);
   vertical-align: top;
   padding: 8px 8px 8px 0;
   text-align: right;
@@ -69,39 +73,61 @@
 
 /* Current hour label in primary */
 .fc .fc-timegrid-slot-label.fc-slot-now {
-  color: #004fa8;
+  color: var(--ds-primary);
 }
 
-/* === Slot lanes (the cells) — min-h-[80px] with background variants === */
+/* === Slot lanes === */
 .fc .fc-timegrid-slot {
-  height: 40px; /* 2 slots per hour = 80px per hour */
-  border-color: rgba(194, 198, 214, 0.1);
+  height: 40px;
+  border-color: var(--ds-outline-variant-10, rgba(194, 198, 214, 0.1));
+}
+
+.dark .fc .fc-timegrid-slot {
+  border-color: rgba(51, 65, 85, 0.3);
 }
 
 .fc .fc-timegrid-slot-lane {
-  background: #f7f9ff; /* surface */
+  background: var(--ds-surface);
 }
 
-/* Today column — bg-surface-container-lowest */
+/* Today column */
 .fc .fc-day-today .fc-timegrid-col-frame {
-  background: #ffffff;
+  background: var(--ds-surface-container-lowest);
 }
 
-/* Weekend columns — bg-surface-container-low */
+.dark .fc .fc-day-today .fc-timegrid-col-frame {
+  background: var(--ds-surface-container-low);
+}
+
+/* Weekend columns */
 .fc .fc-day-sat .fc-timegrid-col-frame,
 .fc .fc-day-sun .fc-timegrid-col-frame {
-  background: #f0f4fc;
+  background: var(--ds-surface-container-low);
+}
+
+.dark .fc .fc-day-sat .fc-timegrid-col-frame,
+.dark .fc .fc-day-sun .fc-timegrid-col-frame {
+  background: var(--ds-surface);
 }
 
 /* Today column slots */
 .fc .fc-day-today .fc-timegrid-slot-lane {
-  background: #ffffff;
+  background: var(--ds-surface-container-lowest);
+}
+
+.dark .fc .fc-day-today .fc-timegrid-slot-lane {
+  background: var(--ds-surface-container-low);
 }
 
 /* Weekend slots */
 .fc .fc-day-sat .fc-timegrid-slot-lane,
 .fc .fc-day-sun .fc-timegrid-slot-lane {
-  background: #f0f4fc;
+  background: var(--ds-surface-container-low);
+}
+
+.dark .fc .fc-day-sat .fc-timegrid-slot-lane,
+.dark .fc .fc-day-sun .fc-timegrid-slot-lane {
+  background: var(--ds-surface);
 }
 
 /* === Column borders (gap-px effect) === */
@@ -109,13 +135,17 @@
   border-right: 1px solid rgba(194, 198, 214, 0.1);
 }
 
+.dark .fc .fc-timegrid-col {
+  border-right: 1px solid rgba(51, 65, 85, 0.3);
+}
+
 .fc .fc-timegrid-col:last-child {
   border-right: none;
 }
 
-/* === Now indicator — pulse dot from stitch === */
+/* === Now indicator — pulse dot === */
 .fc .fc-timegrid-now-indicator-line {
-  border-color: rgba(0, 79, 168, 0.3); /* primary/30 */
+  border-color: color-mix(in srgb, var(--ds-primary) 30%, transparent);
   border-width: 2px;
   z-index: 10;
 }
@@ -127,34 +157,39 @@
   top: -5px;
   width: 10px;
   height: 10px;
-  background: #004fa8;
+  background: var(--ds-primary);
   border-radius: 50%;
-  box-shadow: 0 0 8px rgba(0, 79, 168, 0.5);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--ds-primary) 50%, transparent);
   animation: pulse-glow 2s infinite;
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(0, 79, 168, 0.5); }
-  50% { opacity: 0.7; box-shadow: 0 0 12px rgba(0, 79, 168, 0.3); }
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px color-mix(in srgb, var(--ds-primary) 50%, transparent); }
+  50% { opacity: 0.7; box-shadow: 0 0 12px color-mix(in srgb, var(--ds-primary) 30%, transparent); }
 }
 
 .fc .fc-timegrid-now-indicator-arrow {
-  display: none; /* We use our own dot */
+  display: none;
 }
 
-/* === Events — bg-primary/5 border-l-4 border-primary rounded-md === */
+/* === Events === */
 .fc .fc-event,
 .fc .fc-timegrid-event {
   border: none !important;
   border-radius: 6px !important;
-  border-left: 4px solid #004fa8 !important;
-  background: rgba(0, 79, 168, 0.05) !important;
-  color: #004fa8 !important;
+  border-left: 4px solid var(--ds-primary) !important;
+  background: color-mix(in srgb, var(--ds-primary) 5%, transparent) !important;
+  color: var(--ds-primary) !important;
   padding: 8px !important;
   cursor: pointer;
   box-shadow: none !important;
   overflow: hidden;
   margin: 0 4px !important;
+}
+
+.dark .fc .fc-event,
+.dark .fc .fc-timegrid-event {
+  background: color-mix(in srgb, var(--ds-primary) 20%, transparent) !important;
 }
 
 .fc .fc-timegrid-event .fc-event-main,
@@ -173,10 +208,10 @@
   font-size: 10px !important;
   font-weight: 700 !important;
   line-height: 1.4 !important;
-  color: #004fa8 !important;
+  color: var(--ds-primary) !important;
 }
 
-/* === Priority colors (override default primary) === */
+/* === Priority colors — light mode === */
 .fc-event-priority-1 {
   background: #fef2f2 !important;
   border-left-color: #ef4444 !important;
@@ -202,9 +237,40 @@
 }
 
 .fc-event-priority-default {
-  background: rgba(0, 79, 168, 0.05) !important;
-  border-left-color: #004fa8 !important;
-  color: #004fa8 !important;
+  background: color-mix(in srgb, var(--ds-primary) 5%, transparent) !important;
+  border-left-color: var(--ds-primary) !important;
+  color: var(--ds-primary) !important;
+}
+
+/* === Priority colors — dark mode === */
+.dark .fc-event-priority-1 {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-left-color: #f87171 !important;
+  color: #fca5a5 !important;
+}
+
+.dark .fc-event-priority-2 {
+  background: rgba(249, 115, 22, 0.15) !important;
+  border-left-color: #fb923c !important;
+  color: #fdba74 !important;
+}
+
+.dark .fc-event-priority-3 {
+  background: rgba(96, 165, 250, 0.15) !important;
+  border-left-color: #60a5fa !important;
+  color: #93bbfd !important;
+}
+
+.dark .fc-event-priority-4 {
+  background: rgba(148, 163, 184, 0.1) !important;
+  border-left-color: #64748b !important;
+  color: #94a3b8 !important;
+}
+
+.dark .fc-event-priority-default {
+  background: color-mix(in srgb, var(--ds-primary) 20%, transparent) !important;
+  border-left-color: var(--ds-primary) !important;
+  color: var(--ds-primary) !important;
 }
 
 /* === Conflict ring === */
@@ -222,42 +288,42 @@
   opacity: 1;
 }
 
-/* === Drag highlighting — border-2 border-dashed border-primary/20 === */
+/* === Drag highlighting === */
 .fc .fc-highlight {
-  background: rgba(0, 79, 168, 0.08) !important;
-  border: 2px dashed rgba(0, 79, 168, 0.2) !important;
+  background: color-mix(in srgb, var(--ds-primary) 8%, transparent) !important;
+  border: 2px dashed color-mix(in srgb, var(--ds-primary) 20%, transparent) !important;
   border-radius: 12px;
 }
 
 /* === DayGrid / Month view === */
 .fc .fc-daygrid-day {
   min-height: 100px;
-  background: #f7f9ff;
+  background: var(--ds-surface);
   transition: background-color 0.15s;
 }
 
 .fc .fc-daygrid-day:hover {
-  background: rgba(228, 232, 240, 0.5); /* surface-container-high/50 */
+  background: color-mix(in srgb, var(--ds-surface-container-high) 50%, transparent);
 }
 
 .fc .fc-daygrid-day.fc-day-today {
-  background: #ffffff;
+  background: var(--ds-surface-container-lowest);
 }
 
 .fc .fc-daygrid-day.fc-day-other {
-  background: #eaeef6;
+  background: var(--ds-surface-container);
 }
 
 .fc .fc-daygrid-day-number {
   font-size: 14px;
   font-weight: 700;
   padding: 8px;
-  color: #171c22;
+  color: var(--ds-on-surface);
   text-decoration: none !important;
 }
 
 .fc .fc-day-today .fc-daygrid-day-number {
-  color: #004fa8;
+  color: var(--ds-primary);
 }
 
 .fc .fc-day-other .fc-daygrid-day-number {
@@ -266,24 +332,28 @@
 
 .fc .fc-daygrid-event {
   border-radius: 4px !important;
-  border-left: 3px solid #004fa8 !important;
+  border-left: 3px solid var(--ds-primary) !important;
   border-top: none !important;
   border-right: none !important;
   border-bottom: none !important;
-  background: rgba(0, 79, 168, 0.05) !important;
+  background: color-mix(in srgb, var(--ds-primary) 5%, transparent) !important;
   padding: 1px 4px !important;
   margin: 1px 2px !important;
   font-size: 10px !important;
 }
 
+.dark .fc .fc-daygrid-event {
+  background: color-mix(in srgb, var(--ds-primary) 20%, transparent) !important;
+}
+
 .fc .fc-daygrid-more-link {
   font-size: 10px;
   font-weight: 600;
-  color: #424753;
+  color: var(--ds-on-surface-variant);
   padding: 2px 4px;
 }
 
-/* === Scrollbar styling (matching stitch) === */
+/* === Scrollbar styling === */
 .fc .fc-scroller::-webkit-scrollbar {
   width: 6px;
 }
@@ -293,7 +363,7 @@
 }
 
 .fc .fc-scroller::-webkit-scrollbar-thumb {
-  background: #dee3eb;
+  background: var(--scrollbar-thumb);
   border-radius: 10px;
 }
 

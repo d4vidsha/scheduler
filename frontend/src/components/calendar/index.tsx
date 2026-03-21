@@ -163,10 +163,7 @@ export default function Calendar({ tasks = [] }: CalendarProps) {
           />
         </div>
       ) : (
-        <div
-          data-testid={`calendar-${view}-view`}
-          className="flex-1 min-h-0"
-        >
+        <div data-testid={`calendar-${view}-view`} className="flex-1 min-h-0">
           <FullCalendarView
             tasks={tasks}
             currentDate={currentDate}

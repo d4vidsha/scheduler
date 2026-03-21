@@ -48,7 +48,7 @@ function Dashboard() {
   return (
     <main className="flex-1 flex overflow-hidden">
       {/* Left Column: Inbox */}
-      <section className="w-80 bg-surface flex flex-col shrink-0">
+      <section className="w-80 bg-surface dark:border-r dark:border-outline-variant/20 flex flex-col shrink-0">
         <div className="p-6 overflow-y-auto flex-1">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold tracking-tight text-on-surface">
