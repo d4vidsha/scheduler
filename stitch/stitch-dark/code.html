@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Planner - Weekly View (Dark Mode)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "error-container": "#93000a",
+                        "outline": "#8e9199",
+                        "background": "#0f172a", /* Deep slate */
+                        "surface": "#0f172a",
+                        "surface-container-lowest": "#020617",
+                        "surface-container-low": "#1e293b",
+                        "surface-container": "#334155",
+                        "surface-container-high": "#475569",
+                        "surface-container-highest": "#64748b",
+                        "on-surface": "#f1f5f9",
+                        "on-surface-variant": "#94a3b8",
+                        "primary": "#60a5fa", /* Adjusted blue for dark mode */
+                        "primary-container": "#1e3a8a",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#dbeafe",
+                        "secondary": "#94a3b8",
+                        "secondary-container": "#334155",
+                        "on-secondary-container": "#f1f5f9",
+                        "tertiary": "#38bdf8",
+                        "tertiary-container": "#0369a1",
+                        "outline-variant": "#334155",
+                        "error": "#f87171"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+        .custom-calendar-grid {
+            background-color: rgba(51, 65, 85, 0.5); /* outline-variant replacement */
+        }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-slate-900 border-r border-slate-800 flex flex-col p-6 space-y-8 z-50">
+<div class="flex items-center space-x-3 mb-4">
+<div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-sm" data-icon="sanctuary">shrine</span>
+</div>
+<div>
+<h1 class="text-lg font-black tracking-tighter text-slate-50">Sanctuary</h1>
+<p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Editorial</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="text-slate-400 hover:bg-slate-800 rounded-xl px-3 py-2.5 flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1 cursor-pointer active:scale-95">
+<span class="material-symbols-outlined text-xl" data-icon="today">today</span>
+<span class="font-medium text-sm">Today</span>
+</div>
+<div class="bg-slate-800 text-primary rounded-xl px-3 py-2.5 flex items-center space-x-3 font-semibold shadow-sm transition-transform duration-200 hover:translate-x-1 cursor-pointer active:scale-95">
+<span class="material-symbols-outlined text-xl" data-icon="calendar_month">calendar_month</span>
+<span class="font-semibold text-sm">Upcoming</span>
+</div>
+<div class="text-slate-400 hover:bg-slate-800 rounded-xl px-3 py-2.5 flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1 cursor-pointer active:scale-95">
+<span class="material-symbols-outlined text-xl" data-icon="folder_open">folder_open</span>
+<span class="font-medium text-sm">Projects</span>
+</div>
+<div class="text-slate-400 hover:bg-slate-800 rounded-xl px-3 py-2.5 flex items-center space-x-3 transition-transform duration-200 hover:translate-x-1 cursor-pointer active:scale-95">
+<span class="material-symbols-outlined text-xl" data-icon="history_edu">history_edu</span>
+<span class="font-medium text-sm">Logbook</span>
+</div>
+</nav>
+<button class="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl py-3 px-4 flex items-center justify-center space-x-2 font-semibold shadow-lg shadow-blue-900/40 hover:scale-[1.02] active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+<span class="text-sm">Add New Task</span>
+</button>
+</aside>
+<div class="ml-64 min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-8 h-16 sticky top-0 bg-slate-950/80 backdrop-blur-md z-40 border-b border-slate-900">
+<div class="flex items-center space-x-8">
+<span class="text-xl font-bold text-slate-50 tracking-tight">Planner</span>
+<nav class="flex space-x-6 text-sm">
+<a class="text-slate-500 font-medium hover:text-slate-100 transition-colors" href="#">Day</a>
+<a class="text-primary font-semibold border-b-2 border-primary pb-1 transition-colors" href="#">Week</a>
+<a class="text-slate-500 font-medium hover:text-slate-100 transition-colors" href="#">Month</a>
+</nav>
+</div>
+<div class="flex items-center space-x-4">
+<button class="bg-slate-800 hover:bg-slate-700 text-primary px-4 py-1.5 rounded-full text-xs font-bold tracking-tight transition-all active:opacity-80">
+                Auto-Schedule
+            </button>
+<div class="flex items-center space-x-2 text-slate-400">
+<button class="p-2 hover:bg-slate-800 rounded-full transition-colors material-symbols-outlined text-xl" data-icon="notifications">notifications</button>
+<button class="p-2 hover:bg-slate-800 rounded-full transition-colors material-symbols-outlined text-xl" data-icon="dark_mode">dark_mode</button><button class="p-2 hover:bg-slate-800 rounded-full transition-colors material-symbols-outlined text-xl" data-icon="settings">settings</button>
+</div>
+<img alt="User Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-slate-800 shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPJ0o9TgyP6hV8MLYhmpB0rkGRAfw1vceaS7Ev_zzA_ZWgULIKNXrIonK28w5Yak8VaLq3CfAmpyWwIgbktX49aM-JdqFUWk61ZGQvxBwJPVghDErRzyLPBnlm3bUmJWtz2ucIqFoXNiAKEC7PbvDcGDeGwZ75X6_MR4FXhKDZKWWZMO4d5FkOzvXV61hPIU5Gnl4Bi3pguZBG7L5eeKbg3js-vYrPNfGE5lppYgG2jpFDYicH6AZJRNYyD4ZnQvhVAgch_6yH"/>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex overflow-hidden">
+<!-- Left Column: Inbox -->
+<section class="w-80 bg-slate-900 flex flex-col border-r border-slate-800">
+<div class="p-6">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-xl font-bold tracking-tight text-slate-50">Inbox</h2>
+<span class="bg-slate-800 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">4 Tasks</span>
+</div>
+<div class="space-y-1">
+<!-- Task Item -->
+<div class="group flex space-x-2.5 py-2 px-2 hover:bg-slate-800/60 rounded-lg cursor-default transition-colors items-start">
+<input class="w-4 h-4 rounded border-slate-700 text-primary focus:ring-primary/20 bg-transparent transition-all cursor-pointer mt-1" type="checkbox"/>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-medium text-slate-200 truncate">Quarterly Revenue Review</p>
+<div class="flex items-center space-x-2 mt-1">
+<span class="text-[10px] px-1.5 py-0.5 rounded-sm bg-blue-900/40 text-blue-300 font-semibold uppercase tracking-wider">Finance</span>
+<span class="text-[10px] text-slate-500 flex items-center"><span class="material-symbols-outlined text-[12px] mr-1">event</span>Oct 28</span>
+<span class="text-[10px] text-slate-500 flex items-center"><span class="material-symbols-outlined text-[12px] mr-1">schedule</span>3h</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-600 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing" data-icon="drag_indicator">drag_indicator</span>
+</div>
+<div class="group flex space-x-2.5 py-2 px-2 hover:bg-slate-800/60 rounded-lg cursor-default transition-colors items-start">
+<input class="w-4 h-4 rounded border-slate-700 text-primary focus:ring-primary/20 bg-transparent transition-all cursor-pointer mt-1" type="checkbox"/>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-medium text-slate-200 truncate">Update Brand Guidelines</p>
+<div class="flex items-center space-x-2 mt-1">
+<span class="text-[10px] px-1.5 py-0.5 rounded-sm bg-purple-900/40 text-purple-300 font-semibold uppercase tracking-wider">Design</span>
+<span class="text-[10px] text-slate-500 flex items-center"><span class="material-symbols-outlined text-[12px] mr-1">event</span>Oct 24</span>
+<span class="text-[10px] text-slate-500 flex items-center"><span class="material-symbols-outlined text-[12px] mr-1">schedule</span>4h</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-600 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab" data-icon="drag_indicator">drag_indicator</span>
+</div>
+<div class="group flex space-x-2.5 py-2 px-2 hover:bg-slate-800/60 rounded-lg cursor-default transition-colors items-start">
+<input class="w-4 h-4 rounded border-slate-700 text-primary focus:ring-primary/20 bg-transparent transition-all cursor-pointer mt-1" type="checkbox"/>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-medium text-slate-200 truncate">Prepare Pitch Deck</p>
+<div class="flex items-center space-x-2 mt-1">
+<span class="text-[10px] px-1.5 py-0.5 rounded-sm bg-amber-900/40 text-amber-300 font-semibold uppercase tracking-wider">Sales</span>
+<span class="text-[10px] text-slate-500 flex items-center"><span class="material-symbols-outlined text-[12px] mr-1">event</span>Oct 25</span>
+<span class="text-[10px] text-slate-500 flex items-center"><span class="material-symbols-outlined text-[12px] mr-1">schedule</span>2h</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-600 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab" data-icon="drag_indicator">drag_indicator</span>
+</div>
+<div class="group flex space-x-2.5 py-2 px-2 hover:bg-slate-800/60 rounded-lg cursor-default transition-colors items-start">
+<input class="w-4 h-4 rounded border-slate-700 text-primary focus:ring-primary/20 bg-transparent transition-all cursor-pointer mt-1" type="checkbox"/>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-medium text-slate-200 truncate">Weekly Sync Prep</p>
+<div class="flex items-center space-x-2 mt-1">
+<span class="text-[10px] px-1.5 py-0.5 rounded-sm bg-slate-800 text-slate-300 font-semibold uppercase tracking-wider">Ops</span>
+<span class="text-[10px] text-slate-500 flex items-center"><span class="material-symbols-outlined text-[12px] mr-1">event</span>Oct 23</span>
+<span class="text-[10px] text-slate-500 flex items-center"><span class="material-symbols-outlined text-[12px] mr-1">schedule</span>1h</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-600 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab" data-icon="drag_indicator">drag_indicator</span>
+</div>
+</div>
+<!-- Placeholder/Drop Zone Hint -->
+<div class="mt-8 p-4 border border-dashed border-slate-700 rounded-xl flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-slate-700 text-2xl mb-1.5" data-icon="move_to_inbox">move_to_inbox</span>
+<p class="text-[10px] text-slate-600 font-medium uppercase tracking-wider">Drop to unschedule</p>
+</div>
+</div>
+</section>
+<!-- Right Column: Weekly Calendar Grid -->
+<section class="flex-1 bg-slate-950 p-8 overflow-y-auto">
+<div class="max-w-6xl mx-auto">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h2 class="text-3xl font-black tracking-tight text-slate-50">September 11 – 17</h2>
+<p class="text-slate-500 text-sm font-medium mt-1">Week 37 • 2023</p>
+</div>
+<div class="flex bg-slate-900 rounded-lg p-1 border border-slate-800">
+<button class="p-1.5 hover:bg-slate-800 rounded-md transition-colors material-symbols-outlined text-lg text-slate-400" data-icon="chevron_left">chevron_left</button>
+<button class="px-3 text-xs font-bold uppercase tracking-wider text-slate-400">Today</button>
+<button class="p-1.5 hover:bg-slate-800 rounded-md transition-colors material-symbols-outlined text-lg text-slate-400" data-icon="chevron_right">chevron_right</button>
+</div>
+</div>
+<div class="grid grid-cols-8 gap-px bg-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+<!-- Header Corner -->
+<div class="bg-slate-900 p-4"></div>
+<!-- Weekday Headers -->
+<div class="bg-slate-900 p-4 text-center">
+<p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mon</p>
+<p class="text-xl font-bold mt-1 text-slate-100">11</p>
+</div>
+<div class="bg-slate-900 p-4 text-center">
+<p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tue</p>
+<p class="text-xl font-bold mt-1 text-slate-100">12</p>
+</div>
+<div class="bg-slate-900 p-4 text-center relative">
+<p class="text-[10px] font-bold text-primary uppercase tracking-widest">Wed</p>
+<p class="text-xl font-bold mt-1 text-primary">13</p>
+<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></div>
+</div>
+<div class="bg-slate-900 p-4 text-center">
+<p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Thu</p>
+<p class="text-xl font-bold mt-1 text-slate-100">14</p>
+</div>
+<div class="bg-slate-900 p-4 text-center">
+<p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Fri</p>
+<p class="text-xl font-bold mt-1 text-slate-100">15</p>
+</div>
+<div class="bg-slate-900 p-4 text-center">
+<p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Sat</p>
+<p class="text-xl font-bold mt-1 text-slate-600">16</p>
+</div>
+<div class="bg-slate-900 p-4 text-center">
+<p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Sun</p>
+<p class="text-xl font-bold mt-1 text-slate-600">17</p>
+</div>
+<!-- Time Slots Grid -->
+<!-- 9 AM -->
+<div class="bg-slate-900 p-2 text-right text-[10px] font-mono text-slate-600 font-bold uppercase">9 AM</div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative">
+<div class="bg-primary/20 border-l-4 border-primary p-2 rounded-md h-full">
+<p class="text-[10px] font-bold text-primary leading-tight">Product Review</p>
+</div>
+</div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-900 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<!-- 10 AM -->
+<div class="bg-slate-900 p-2 text-right text-[10px] font-mono text-slate-600 font-bold uppercase">10 AM</div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative">
+<div class="bg-tertiary/20 border-l-4 border-tertiary p-2 rounded-md h-full">
+<p class="text-[10px] font-bold text-tertiary leading-tight">Focus Block</p>
+</div>
+</div>
+<div class="bg-slate-900 min-h-[80px] p-1 relative group">
+<div class="absolute inset-1 border-2 border-dashed border-primary/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-primary/40" data-icon="add_circle">add_circle</span>
+</div>
+</div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<!-- 11 AM -->
+<div class="bg-slate-900 p-2 text-right text-[10px] font-mono text-primary font-bold uppercase">11 AM</div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-900 min-h-[80px] p-1 relative">
+<div class="absolute top-1/4 left-0 right-0 h-0.5 bg-primary/30 z-10 flex items-center">
+<div class="w-2.5 h-2.5 bg-primary rounded-full shadow-[0_0_12px_rgba(96,165,250,0.6)] -ml-1.25"></div>
+</div>
+</div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<!-- 12 PM -->
+<div class="bg-slate-900 p-2 text-right text-[10px] font-mono text-slate-600 font-bold uppercase">12 PM</div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-900 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<!-- 1 PM -->
+<div class="bg-slate-900 p-2 text-right text-[10px] font-mono text-slate-600 font-bold uppercase">1 PM</div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-900 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<!-- 2 PM -->
+<div class="bg-slate-900 p-2 text-right text-[10px] font-mono text-slate-600 font-bold uppercase">2 PM</div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative">
+<div class="bg-slate-800 border-l-4 border-slate-500 p-2 rounded-md h-[160px] z-20 shadow-xl ring-1 ring-slate-700">
+<p class="text-[10px] font-bold text-slate-200 leading-tight">Design Workshop</p>
+<p class="text-[9px] text-slate-500 mt-1">Conference Room B</p>
+</div>
+</div>
+<div class="bg-slate-900 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<!-- 3 PM -->
+<div class="bg-slate-900 p-2 text-right text-[10px] font-mono text-slate-600 font-bold uppercase">3 PM</div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative pointer-events-none"></div>
+<div class="bg-slate-900 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<!-- 4 PM -->
+<div class="bg-slate-900 p-2 text-right text-[10px] font-mono text-slate-600 font-bold uppercase">4 PM</div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-900 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative">
+<div class="bg-primary/20 border-l-4 border-primary p-2 rounded-md h-full">
+<p class="text-[10px] font-bold text-primary leading-tight">Hiring Sync</p>
+</div>
+</div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+<div class="bg-slate-950 min-h-[80px] p-1 relative"></div>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- Floating UI elements -->
+<div class="fixed bottom-8 right-8 flex items-center space-x-3 pointer-events-none">
+<div class="bg-slate-800 shadow-2xl rounded-full px-6 py-3 flex items-center space-x-3 border border-slate-700 animate-pulse">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="auto_awesome">auto_awesome</span>
+<p class="text-sm font-semibold text-slate-200">Auto-scheduling 4 tasks...</p>
+</div>
+</div>
+</body></html>
