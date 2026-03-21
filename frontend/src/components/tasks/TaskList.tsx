@@ -362,72 +362,76 @@ function TaskItem({
         }}
       />
 
-      {/* Inner content — FC Draggable targets this for calendar drops */}
       <div
-        data-task-id={task.id}
-        onClick={(e) => onClick(task.id, e)}
-        className={`flex space-x-2.5 py-2.5 px-2.5 items-start cursor-default ${
+        className={`flex items-start py-2.5 px-2.5 cursor-default ${
           !isSelected && !isCompleted ? "hover:bg-surface-container-highest/50 rounded-lg" : ""
         }`}
+        onClick={(e) => onClick(task.id, e)}
       >
-        {/* Checkbox */}
-        <motion.button
-          whileTap={{ scale: 1.2 }}
-          onClick={handleToggleCompleted}
-          className="flex-none mt-0.5"
-          disabled={toggleCompletedMutation.status === "pending"}
+        {/* Inner content — FC Draggable targets this for calendar drops */}
+        <div
+          data-task-id={task.id}
+          className="flex space-x-2.5 items-start flex-1 min-w-0"
         >
-          <div
-            className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
-              isCompleted
-                ? "bg-primary text-white"
-                : "border-[1.5px] border-outline-variant/40 hover:border-primary/50"
-            }`}
+          {/* Checkbox */}
+          <motion.button
+            whileTap={{ scale: 1.2 }}
+            onClick={handleToggleCompleted}
+            className="flex-none mt-0.5"
+            disabled={toggleCompletedMutation.status === "pending"}
           >
-            {isCompleted && (
-              <span className="material-symbols-outlined text-[12px] font-bold">
-                check
-              </span>
-            )}
-          </div>
-        </motion.button>
+            <div
+              className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
+                isCompleted
+                  ? "bg-primary text-white"
+                  : "border-[1.5px] border-outline-variant/40 hover:border-primary/50"
+              }`}
+            >
+              {isCompleted && (
+                <span className="material-symbols-outlined text-[12px] font-bold">
+                  check
+                </span>
+              )}
+            </div>
+          </motion.button>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <p
-            className={`text-sm font-medium truncate ${
-              isCompleted
-                ? "line-through decoration-primary/30 decoration-2 text-on-surface-variant/50"
-                : "text-on-surface"
-            }`}
-          >
-            {task.title}
-          </p>
-          <TaskMeta tags={task.tags} due={task.due} duration={task.duration} />
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <p
+              className={`text-sm font-medium truncate ${
+                isCompleted
+                  ? "line-through decoration-primary/30 decoration-2 text-on-surface-variant/50"
+                  : "text-on-surface"
+              }`}
+            >
+              {task.title}
+            </p>
+            <TaskMeta tags={task.tags} due={task.due} duration={task.duration} />
+          </div>
+
+          {!isCompleted && (
+            <button
+              type="button"
+              className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-error/10 rounded"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (confirm("Are you sure you want to delete this task?")) {
+                  deleteMutation.mutate()
+                }
+              }}
+              disabled={deleteMutation.status === "pending"}
+              aria-label="Delete task"
+            >
+              <span className="material-symbols-outlined text-error/60 text-base">
+                close
+              </span>
+            </button>
+          )}
         </div>
 
-        {!isCompleted && (
-          <button
-            type="button"
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-error/10 rounded"
-            onClick={(e) => {
-              e.stopPropagation()
-              if (confirm("Are you sure you want to delete this task?")) {
-                deleteMutation.mutate()
-              }
-            }}
-            disabled={deleteMutation.status === "pending"}
-            aria-label="Delete task"
-          >
-            <span className="material-symbols-outlined text-error/60 text-base">
-              close
-            </span>
-          </button>
-        )}
-
-        {/* Drag handle — reorder within list (FM) */}
+        {/* Drag handle — reorder within list only (outside data-task-id so FC Draggable ignores it) */}
         <motion.span
-          className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing touch-none select-none"
+          className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing touch-none select-none ml-2.5"
           onPointerDown={(e) => {
             e.stopPropagation()
             dragControls.start(e)
