@@ -45,6 +45,7 @@ export default {
         // Primary
         primary: {
           DEFAULT: "var(--ds-primary)",
+          foreground: "#ffffff",
           container: "var(--ds-primary-container)",
           fixed: "#d8e2ff",
           "fixed-dim": "#adc6ff",
@@ -57,6 +58,7 @@ export default {
         // Secondary
         secondary: {
           DEFAULT: "#5a5f66",
+          foreground: "#ffffff",
           container: "var(--ds-surface-container-highest)",
           fixed: "#dee3eb",
           "fixed-dim": "#c2c7cf",
