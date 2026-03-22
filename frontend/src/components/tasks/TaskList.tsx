@@ -1,10 +1,20 @@
 import type { TaskPublic } from "@/client/models"
 import { TasksService } from "@/client/services"
+import EditDialog from "@/components/calendar/EditDialog"
 import { useToast } from "@/hooks/use-toast"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { format, isPast, isToday, isTomorrow } from "date-fns"
-import { AnimatePresence, Reorder, motion, useDragControls } from "framer-motion"
-import { useCallback, useEffect, useRef, useState } from "react"
+import {
+  AnimatePresence,
+  Reorder,
+  animate,
+  motion,
+  useDragControls,
+  useMotionValue,
+  useTransform,
+} from "framer-motion"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTaskGesture } from "./useTaskGesture"
 
 const TAG_COLORS: Record<string, string> = {
   finance: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
@@ -120,6 +130,7 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   const { toast } = useToast()
   const [orderedTasks, setOrderedTasks] = useState<TaskPublic[]>(tasks)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [editingTask, setEditingTask] = useState<TaskPublic | null>(null)
   const lastClickedId = useRef<string | null>(null)
   const isDragging = useRef(false)
   const orderedRef = useRef(orderedTasks)
@@ -168,7 +179,11 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
 
       let finalOrder = orderedRef.current
       if (selectedIds.size > 1 && selectedIds.has(draggedTaskId)) {
-        finalOrder = consolidateSelection(finalOrder, draggedTaskId, selectedIds)
+        finalOrder = consolidateSelection(
+          finalOrder,
+          draggedTaskId,
+          selectedIds,
+        )
         setOrderedTasks(finalOrder)
       }
 
@@ -178,7 +193,10 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   )
 
   const handleTaskClick = useCallback(
-    (taskId: string, e: React.MouseEvent) => {
+    (
+      taskId: string,
+      e: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean },
+    ) => {
       if (e.metaKey || e.ctrlKey) {
         setSelectedIds((prev) => {
           const next = new Set(prev)
@@ -186,6 +204,7 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
           else next.add(taskId)
           return next
         })
+        lastClickedId.current = taskId
       } else if (e.shiftKey && lastClickedId.current) {
         const ids = orderedRef.current.map((t) => t.id)
         const start = ids.indexOf(lastClickedId.current)
@@ -195,14 +214,22 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
           setSelectedIds(new Set(ids.slice(lo, hi + 1)))
         }
       } else {
-        setSelectedIds((prev) =>
-          prev.size === 1 && prev.has(taskId) ? new Set() : new Set([taskId]),
-        )
+        // Plain tap → open edit dialog
+        const task = orderedRef.current.find((t) => t.id === taskId)
+        if (task) setEditingTask(task)
       }
-      lastClickedId.current = taskId
     },
     [],
   )
+
+  const handleToggleSelection = useCallback((taskId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(taskId)) next.delete(taskId)
+      else next.add(taskId)
+      return next
+    })
+  }, [])
 
   if (orderedTasks.length === 0) {
     return (
@@ -225,9 +252,7 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
             transition={{ type: "spring", stiffness: 500, damping: 35 }}
             className="overflow-hidden"
           >
-            <div
-              className="flex items-center justify-between px-2 py-2 mb-1 bg-primary/5 rounded-lg border border-primary/10"
-            >
+            <div className="flex items-center justify-between px-2 py-2 mb-1 bg-primary/5 rounded-lg border border-primary/10">
               <span className="text-xs font-semibold text-primary">
                 {selectedIds.size} tasks selected
               </span>
@@ -253,7 +278,9 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
         {orderedTasks.map((task, i) => {
           const sel = selectedIds.has(task.id)
           const prevSel = i > 0 && selectedIds.has(orderedTasks[i - 1].id)
-          const nextSel = i < orderedTasks.length - 1 && selectedIds.has(orderedTasks[i + 1].id)
+          const nextSel =
+            i < orderedTasks.length - 1 &&
+            selectedIds.has(orderedTasks[i + 1].id)
           return (
             <TaskItem
               key={task.id}
@@ -263,10 +290,17 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
               isLastSelected={sel && !nextSel}
               onDragEnd={handleDragEnd}
               onClick={handleTaskClick}
+              onToggleSelection={handleToggleSelection}
             />
           )
         })}
       </Reorder.Group>
+
+      <EditDialog
+        task={editingTask}
+        tasks={orderedTasks}
+        onClose={() => setEditingTask(null)}
+      />
     </div>
   )
 }
@@ -278,18 +312,74 @@ function TaskItem({
   isLastSelected,
   onDragEnd,
   onClick,
+  onToggleSelection,
 }: {
   task: TaskPublic
   isSelected: boolean
   isFirstSelected: boolean
   isLastSelected: boolean
   onDragEnd: (taskId: string) => void
-  onClick: (taskId: string, e: React.MouseEvent) => void
+  onClick: (
+    taskId: string,
+    e: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean },
+  ) => void
+  onToggleSelection: (taskId: string) => void
 }) {
   const [isCompleted, setIsCompleted] = useState(task.completed ?? false)
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const dragControls = useDragControls()
+
+  // Swipe animation values
+  const x = useMotionValue(0)
+  const revealOpacity = useTransform(x, [-60, -20, 0], [1, 0.3, 0])
+
+  const gestureCallbacks = useMemo(
+    () => ({
+      onTap: (e: PointerEvent) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey) {
+          onClick(task.id, e)
+        } else {
+          onClick(task.id, { metaKey: false, ctrlKey: false, shiftKey: false })
+        }
+      },
+      onDragStart: (e: PointerEvent) => {
+        // Vertical drag (no long press) → reorder within task list
+        dragControls.start(e)
+      },
+      onLongPress: (originalEvent: PointerEvent) => {
+        // Long press → dispatch synthetic pointerdown for FC Draggable (calendar drop)
+        const taskEl = document.querySelector(`[data-task-id="${task.id}"]`)
+        if (!taskEl) return
+        bypassGesture.current = true
+        const synth = new PointerEvent("pointerdown", {
+          bubbles: true,
+          cancelable: true,
+          clientX: originalEvent.clientX,
+          clientY: originalEvent.clientY,
+          pointerId: originalEvent.pointerId,
+          pointerType: originalEvent.pointerType,
+          isPrimary: true,
+        })
+        taskEl.dispatchEvent(synth)
+      },
+      onSwipeLeft: () => {
+        onToggleSelection(task.id)
+      },
+      onSwipeRight: () => {
+        // no-op placeholder
+      },
+      onSwipeMove: (dx: number) => {
+        x.set(dx)
+      },
+      onSwipeEnd: () => {
+        animate(x, 0, { type: "spring", stiffness: 500, damping: 30 })
+      },
+    }),
+    [task.id, onClick, onToggleSelection, dragControls, x],
+  )
+
+  const { bypassGesture, gestureBindings } = useTaskGesture(gestureCallbacks)
 
   const deleteMutation = useMutation({
     mutationFn: () => {
@@ -334,6 +424,16 @@ function TaskItem({
     toggleCompletedMutation.mutate()
   }
 
+  const selectionRounding = isSelected
+    ? isFirstSelected && isLastSelected
+      ? "rounded-[28px]"
+      : isFirstSelected
+        ? "rounded-t-[28px] rounded-b-none"
+        : isLastSelected
+          ? "rounded-b-[28px] rounded-t-none"
+          : "rounded-none"
+    : "rounded-[28px]"
+
   return (
     <Reorder.Item
       value={task}
@@ -354,100 +454,96 @@ function TaskItem({
       }}
       className="group"
     >
-      <div
-        className={`flex items-center cursor-default transition-colors duration-150 ${
-          isSelected
-            ? `bg-blue-50/80 dark:bg-blue-900/20 py-0.25 px-4 ${
-                isFirstSelected && isLastSelected
-                  ? "rounded-[28px]"
-                  : isFirstSelected
-                    ? "rounded-t-[28px] rounded-b-none"
-                    : isLastSelected
-                      ? "rounded-b-[28px] rounded-t-none"
-                      : "rounded-none"
-              }`
-            : `py-0.25 px-4 rounded-[28px] ${
-                !isCompleted ? "hover:bg-surface-container/50" : ""
-              }`
-        }`}
-        onClick={(e) => onClick(task.id, e)}
-      >
-        {/* Inner content — FC Draggable targets this for calendar drops */}
-        <div
-          data-task-id={task.id}
-          className="flex space-x-2.5 items-center flex-1 min-w-0"
+      <div className={`relative overflow-hidden ${selectionRounding}`}>
+        {/* Reveal layer (behind content) — shown on swipe left */}
+        <motion.div
+          className="absolute inset-0 flex items-center justify-end pr-4"
+          style={{ opacity: revealOpacity }}
         >
-          {/* Checkbox */}
-          <motion.button
-            whileTap={{ scale: 1.2 }}
-            onClick={handleToggleCompleted}
-            className="flex-none"
-            disabled={toggleCompletedMutation.status === "pending"}
+          <span className="material-symbols-outlined text-primary text-xl">
+            checklist
+          </span>
+        </motion.div>
+
+        {/* Sliding content */}
+        <motion.div
+          style={{ x, ...gestureBindings.style }}
+          className={`relative z-[1] cursor-default transition-colors duration-150 ${
+            isSelected
+              ? "bg-blue-50/80 dark:bg-blue-900/20"
+              : `bg-surface ${
+                  !isCompleted ? "hover:bg-surface-container/50" : ""
+                }`
+          }`}
+          onPointerDown={gestureBindings.onPointerDown}
+          onPointerMove={gestureBindings.onPointerMove}
+          onPointerUp={gestureBindings.onPointerUp}
+          onPointerCancel={gestureBindings.onPointerCancel}
+        >
+          <div
+            data-task-id={task.id}
+            className="flex space-x-2.5 items-center flex-1 min-w-0 py-0.25 px-4"
           >
-            <div
-              className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
+            {/* Checkbox */}
+            <motion.button
+              whileTap={{ scale: 1.2 }}
+              onClick={handleToggleCompleted}
+              className="flex-none"
+              disabled={toggleCompletedMutation.status === "pending"}
+            >
+              <div
+                className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
+                  isCompleted
+                    ? "bg-primary text-white"
+                    : "border-[1.5px] border-outline-variant/40 hover:border-primary/50"
+                }`}
+              >
+                {isCompleted && (
+                  <span className="material-symbols-outlined text-[12px] font-bold">
+                    check
+                  </span>
+                )}
+              </div>
+            </motion.button>
+
+            {/* Title */}
+            <p
+              className={`flex-1 min-w-0 text-sm font-medium truncate ${
                 isCompleted
-                  ? "bg-primary text-white"
-                  : "border-[1.5px] border-outline-variant/40 hover:border-primary/50"
+                  ? "line-through decoration-primary/30 decoration-2 text-on-surface-variant/50"
+                  : "text-on-surface"
               }`}
             >
-              {isCompleted && (
-                <span className="material-symbols-outlined text-[12px] font-bold">
-                  check
-                </span>
-              )}
-            </div>
-          </motion.button>
+              {task.title}
+            </p>
 
-          {/* Title */}
-          <p
-            className={`flex-1 min-w-0 text-sm font-medium truncate ${
-              isCompleted
-                ? "line-through decoration-primary/30 decoration-2 text-on-surface-variant/50"
-                : "text-on-surface"
-            }`}
-          >
-            {task.title}
-          </p>
+            {/* Meta (tags, due, duration) — right-aligned */}
+            <TaskMeta
+              tags={task.tags}
+              due={task.due}
+              duration={task.duration}
+            />
 
-          {/* Meta (tags, due, duration) — right-aligned */}
-          <TaskMeta tags={task.tags} due={task.due} duration={task.duration} />
-
-          <button
-            type="button"
-            className={`transition-opacity p-0.5 hover:bg-error/10 rounded ${
-              isCompleted
-                ? "invisible"
-                : "opacity-0 group-hover:opacity-100"
-            }`}
-            onClick={(e) => {
-              e.stopPropagation()
-              if (confirm("Are you sure you want to delete this task?")) {
-                deleteMutation.mutate()
-              }
-            }}
-            disabled={isCompleted || deleteMutation.status === "pending"}
-            aria-label="Delete task"
-          >
-            <span className="material-symbols-outlined text-error/60 text-base">
-              close
-            </span>
-          </button>
-        </div>
-
-        {/* Drag handle — reorder within list only (outside data-task-id so FC Draggable ignores it) */}
-        <motion.span
-          className="material-symbols-outlined text-outline-variant/40 text-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing touch-none select-none ml-2.5"
-          onPointerDown={(e) => {
-            e.stopPropagation()
-            dragControls.start(e)
-          }}
-          onClick={(e) => e.stopPropagation()}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          drag_indicator
-        </motion.span>
+            <button
+              type="button"
+              className={`transition-opacity p-0.5 hover:bg-error/10 rounded ${
+                isCompleted ? "invisible" : "opacity-0 group-hover:opacity-100"
+              }`}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (confirm("Are you sure you want to delete this task?")) {
+                  deleteMutation.mutate()
+                }
+              }}
+              disabled={isCompleted || deleteMutation.status === "pending"}
+              aria-label="Delete task"
+            >
+              <span className="material-symbols-outlined text-error/60 text-base">
+                close
+              </span>
+            </button>
+          </div>
+        </motion.div>
       </div>
     </Reorder.Item>
   )
