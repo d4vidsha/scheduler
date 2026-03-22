@@ -501,9 +501,7 @@ export default function FullCalendarView({
                 >
                   {format(date, "d")}
                 </p>
-                {isCurrent && (
-                  <div className="mx-auto mt-1 w-1 h-1 bg-primary rounded-full" />
-                )}
+                <div className={`mx-auto mt-1 w-1 h-1 rounded-full ${isCurrent ? "bg-primary" : "bg-transparent"}`} />
               </div>
             )
           }}
