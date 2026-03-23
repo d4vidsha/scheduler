@@ -1,4 +1,5 @@
 import type { TaskPublic } from "@/client/models"
+import { Badge } from "@/components/ui/badge"
 import { TasksService } from "@/client/services"
 import EditDialog from "@/components/calendar/EditDialog"
 import { useToast } from "@/hooks/use-toast"
@@ -15,23 +16,6 @@ import {
 } from "framer-motion"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTaskGesture } from "./useTaskGesture"
-
-const TAG_COLORS: Record<string, string> = {
-  finance: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
-  design:
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
-  sales: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  ops: "bg-slate-100 text-slate-700 dark:bg-slate-800/40 dark:text-slate-300",
-  dev: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
-  marketing: "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300",
-}
-
-function getTagColor(tag: string): string {
-  return (
-    TAG_COLORS[tag.toLowerCase()] ??
-    "bg-surface-container text-on-surface-variant"
-  )
-}
 
 function formatDueDate(due: string): { label: string; overdue: boolean } {
   const date = new Date(due)
@@ -53,53 +37,56 @@ function formatDuration(minutes: number): string {
   return `${h}h ${m}m`
 }
 
+function extractProject(tags: string[] | null | undefined): {
+  projectName: string | null
+  displayTags: string[]
+} {
+  if (!tags || tags.length === 0) return { projectName: null, displayTags: [] }
+
+  const projectIdx = tags.indexOf("project")
+  if (projectIdx === -1) return { projectName: null, displayTags: [...tags] }
+
+  const hasName = projectIdx + 1 < tags.length
+  const projectName = hasName ? tags[projectIdx + 1] : null
+  const displayTags = tags.filter(
+    (_, i) => i !== projectIdx && (!hasName || i !== projectIdx + 1),
+  )
+  return { projectName, displayTags }
+}
+
 function TaskMeta({
-  tags,
   due,
   duration,
 }: {
-  tags: string[] | null | undefined
   due: string | null | undefined
   duration: number | null | undefined
 }) {
-  const hasTags = tags && tags.length > 0
   const hasDue = !!due
   const hasDuration = duration != null && duration > 0
 
-  if (!hasTags && !hasDue && !hasDuration) return null
+  if (!hasDue && !hasDuration) return null
 
   const dueInfo = due ? formatDueDate(due) : null
 
   return (
-    <div data-testid="task-meta" className="flex items-center gap-2 shrink-0">
-      {hasTags &&
-        tags.map((tag) => (
-          <span
-            key={tag}
-            className={`text-[10px] px-1.5 py-0.5 rounded-sm font-semibold uppercase tracking-wider ${getTagColor(
-              tag,
-            )}`}
-          >
-            {tag}
-          </span>
-        ))}
+    <div
+      data-testid="task-meta"
+      className="flex items-center gap-1.5 shrink-0 ml-auto"
+    >
       {dueInfo && (
         <span
-          className={`text-[10px] flex items-center ${
-            dueInfo.overdue ? "text-error" : "text-on-surface-variant/60"
+          className={`text-[10px] flex items-center space-x-1 font-bold ${
+            dueInfo.overdue ? "text-error" : "text-on-surface-variant/50"
           }`}
         >
-          <span className="material-symbols-outlined text-[12px] mr-1">
-            event
+          <span className="material-symbols-outlined text-[12px]">
+            {dueInfo.overdue ? "flag" : "event"}
           </span>
-          {dueInfo.label}
+          <span>{dueInfo.label}</span>
         </span>
       )}
       {hasDuration && (
-        <span className="text-[10px] text-on-surface-variant/60 flex items-center">
-          <span className="material-symbols-outlined text-[12px] mr-1">
-            schedule
-          </span>
+        <span className="text-[9px] text-on-surface-variant/50 font-medium">
           {formatDuration(duration)}
         </span>
       )}
@@ -252,14 +239,14 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
             transition={{ type: "spring", stiffness: 500, damping: 35 }}
             className="overflow-hidden"
           >
-            <div className="flex items-center justify-between px-2 py-2 mb-1 bg-primary/5 rounded-lg border border-primary/10">
-              <span className="text-xs font-semibold text-primary">
-                {selectedIds.size} tasks selected
+            <div className="flex items-center justify-between px-4 py-2 mb-1">
+              <span className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest">
+                {selectedIds.size} selected
               </span>
               <button
                 type="button"
                 onClick={() => setSelectedIds(new Set())}
-                className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/60 hover:text-primary transition-colors"
+                className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 hover:text-on-surface transition-colors"
               >
                 Clear
               </button>
@@ -426,13 +413,25 @@ function TaskItem({
 
   const selectionRounding = isSelected
     ? isFirstSelected && isLastSelected
-      ? "rounded-[28px]"
+      ? "rounded-2xl"
       : isFirstSelected
-        ? "rounded-t-[28px] rounded-b-none"
+        ? "rounded-t-2xl rounded-b-none"
         : isLastSelected
-          ? "rounded-b-[28px] rounded-t-none"
+          ? "rounded-b-2xl rounded-t-none"
           : "rounded-none"
-    : "rounded-[28px]"
+    : "rounded-2xl"
+
+  const selectionBorder = isSelected
+    ? `border-[var(--ds-selection-border)] ${
+        isFirstSelected && isLastSelected
+          ? "border"
+          : isFirstSelected
+            ? "border-t border-l border-r"
+            : isLastSelected
+              ? "border-b border-l border-r"
+              : "border-l border-r"
+      }`
+    : ""
 
   return (
     <Reorder.Item
@@ -454,7 +453,9 @@ function TaskItem({
       }}
       className="group"
     >
-      <div className={`relative overflow-hidden ${selectionRounding}`}>
+      <div
+        className={`relative overflow-hidden transition-[border-radius] duration-200 ${selectionRounding} ${selectionBorder}`}
+      >
         {/* Reveal layer (behind content) — shown on swipe left */}
         <motion.div
           className="absolute inset-0 flex items-center justify-end pr-4"
@@ -468,12 +469,12 @@ function TaskItem({
         {/* Sliding content */}
         <motion.div
           style={{ x, ...gestureBindings.style }}
-          className={`relative z-[1] cursor-default transition-colors duration-150 ${
+          className={`relative z-[1] cursor-default transition-[color,background-color,border-radius] duration-150 ${selectionRounding} ${
             isSelected
-              ? "bg-blue-50/80 dark:bg-blue-900/20"
-              : `bg-surface ${
-                  !isCompleted ? "hover:bg-surface-container/50" : ""
-                }`
+              ? "bg-[var(--ds-selection)]"
+              : !isCompleted
+                ? "hover:bg-black/[0.04]"
+                : ""
           }`}
           onPointerDown={gestureBindings.onPointerDown}
           onPointerMove={gestureBindings.onPointerMove}
@@ -482,7 +483,7 @@ function TaskItem({
         >
           <div
             data-task-id={task.id}
-            className="flex space-x-2.5 items-center flex-1 min-w-0 py-0.25 px-4"
+            className="flex items-center space-x-3 py-0.4 px-3 min-w-0"
           >
             {/* Checkbox */}
             <motion.button
@@ -495,7 +496,7 @@ function TaskItem({
                 className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
                   isCompleted
                     ? "bg-primary text-white"
-                    : "border-[1.5px] border-outline-variant/40 hover:border-primary/50"
+                    : "border-[1.5px] border-[var(--ds-checkbox-border)] hover:border-primary/50"
                 }`}
               >
                 {isCompleted && (
@@ -506,27 +507,50 @@ function TaskItem({
               </div>
             </motion.button>
 
-            {/* Title */}
-            <p
-              className={`flex-1 min-w-0 text-sm font-medium truncate ${
-                isCompleted
-                  ? "line-through decoration-primary/30 decoration-2 text-on-surface-variant/50"
-                  : "text-on-surface"
-              }`}
-            >
-              {task.title}
-            </p>
-
-            {/* Meta (tags, due, duration) — right-aligned */}
-            <TaskMeta
-              tags={task.tags}
-              due={task.due}
-              duration={task.duration}
-            />
+            {/* Title + inline meta */}
+            {(() => {
+              const { projectName, displayTags } = extractProject(task.tags)
+              return (
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center">
+                    <span
+                      className={`text-[13px] truncate ${
+                        isCompleted
+                          ? "line-through text-on-surface-variant/40"
+                          : "text-on-surface/90"
+                      }`}
+                    >
+                      {task.title}
+                    </span>
+                    {task.description && (
+                      <span className="material-symbols-outlined text-[12px] ml-1.5 text-on-surface-variant/30">
+                        description
+                      </span>
+                    )}
+                    {displayTags.length > 0 &&
+                      displayTags.map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant="outline"
+                          className="bg-on-surface-variant/[0.08] text-[9px] px-1.5 py-0.5 text-on-surface-variant/70 font-medium ml-1.5 border-on-surface-variant/[0.08]"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    <TaskMeta due={task.due} duration={task.duration} />
+                  </div>
+                  {projectName && (
+                    <p className="text-[10px] text-on-surface-variant/40 -mt-0.5 leading-tight">
+                      {projectName}
+                    </p>
+                  )}
+                </div>
+              )
+            })()}
 
             <button
               type="button"
-              className={`transition-opacity p-0.5 hover:bg-error/10 rounded ${
+              className={`transition-opacity p-0.5 hover:bg-error/10 rounded-full ${
                 isCompleted ? "invisible" : "opacity-0 group-hover:opacity-100"
               }`}
               onClick={(e) => {
@@ -538,7 +562,7 @@ function TaskItem({
               disabled={isCompleted || deleteMutation.status === "pending"}
               aria-label="Delete task"
             >
-              <span className="material-symbols-outlined text-error/60 text-base">
+              <span className="material-symbols-outlined text-on-surface-variant/30 text-sm">
                 close
               </span>
             </button>
