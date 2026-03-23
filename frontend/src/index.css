@@ -49,6 +49,9 @@
     --ds-on-primary-container: #e5ebff;
     --ds-outline-variant: #c2c6d6;
     --ds-error: #ba1a1a;
+    --ds-selection: rgba(0, 79, 168, 0.12);
+    --ds-selection-border: rgba(0, 79, 168, 0.12);
+    --ds-checkbox-border: rgba(150, 155, 170, 0.6);
 
     /* Scrollbar */
     --scrollbar-thumb: #dee3eb;
@@ -99,6 +102,9 @@
     --ds-on-primary-container: #dbeafe;
     --ds-outline-variant: #334155;
     --ds-error: #f87171;
+    --ds-selection: rgba(96, 165, 250, 0.18);
+    --ds-selection-border: rgba(96, 165, 250, 0.18);
+    --ds-checkbox-border: rgba(148, 163, 184, 0.6);
 
     /* Scrollbar */
     --scrollbar-thumb: #334155;
