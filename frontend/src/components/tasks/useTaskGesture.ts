@@ -1,13 +1,19 @@
 import { useCallback, useRef } from "react"
 
-type GestureState = "idle" | "pending" | "longpress" | "dragging" | "swiping"
+type GestureState =
+  | "idle"
+  | "pending"
+  | "longpress"
+  | "dragging"
+  | "swiping"
+  | "committed"
 
 interface GestureCallbacks {
   onTap: (e: PointerEvent) => void
   onDragStart: (e: PointerEvent) => void // vertical movement → reorder
   onLongPress: (e: PointerEvent) => void // timer fires → calendar drop
   onSwipeLeft: () => void
-  onSwipeRight: () => void
+  onSwipeRightCommit: (e: PointerEvent) => void // fires at threshold while pointer is down
   onSwipeMove: (dx: number) => void // continuous x offset for animation
   onSwipeEnd: () => void // snap back
 }
@@ -78,19 +84,7 @@ export function useTaskGesture(callbacks: GestureCallbacks) {
       timerId.current = setTimeout(() => {
         if (state.current === "pending") {
           state.current = "longpress"
-
-          // Release capture so FC Draggable can track the pointer
-          if (captureTarget.current && pointerId.current !== null) {
-            try {
-              captureTarget.current.releasePointerCapture(pointerId.current)
-            } catch {
-              // ignore
-            }
-          }
-
-          if (storedEvent.current) {
-            callbacks.onLongPress(storedEvent.current)
-          }
+          callbacks.onLongPress(storedEvent.current!)
         }
       }, LONG_PRESS_MS)
     },
@@ -141,6 +135,21 @@ export function useTaskGesture(callbacks: GestureCallbacks) {
       } else if (state.current === "swiping") {
         e.preventDefault()
         callbacks.onSwipeMove(rubberBand(dx, MAX_SWIPE_PX))
+
+        // Right-swipe threshold crossed while pointer is still down
+        if (dx > 60) {
+          state.current = "committed"
+          // Release capture so FC Draggable can track the pointer
+          if (captureTarget.current && pointerId.current !== null) {
+            try {
+              captureTarget.current.releasePointerCapture(pointerId.current)
+            } catch {
+              // ignore
+            }
+          }
+          callbacks.onSwipeEnd()
+          callbacks.onSwipeRightCommit(e.nativeEvent)
+        }
       }
     },
     [callbacks],
@@ -160,10 +169,11 @@ export function useTaskGesture(callbacks: GestureCallbacks) {
         const dx = e.clientX - startX.current
         if (dx < -60) {
           callbacks.onSwipeLeft()
-        } else if (dx > 60) {
-          callbacks.onSwipeRight()
         }
         callbacks.onSwipeEnd()
+        cleanup()
+      } else if (currentState === "committed") {
+        // Mid-swipe handoff already fired; just cleanup
         cleanup()
       } else if (currentState === "longpress" || currentState === "dragging") {
         cleanup()

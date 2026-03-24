@@ -424,6 +424,12 @@
   display: none;
 }
 
+/* === External drag mirror — polished shadow === */
+.fc .fc-event-mirror {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  opacity: 0.9;
+}
+
 /* === Ensure the grid fills available space === */
 .fc .fc-view-harness {
   flex: 1;
