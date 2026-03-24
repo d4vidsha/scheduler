@@ -1,7 +1,7 @@
 import type { TaskPublic } from "@/client/models"
-import { Badge } from "@/components/ui/badge"
 import { TasksService } from "@/client/services"
 import EditDialog from "@/components/calendar/EditDialog"
+import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { format, isPast, isToday, isTomorrow } from "date-fns"
@@ -118,6 +118,9 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   const [orderedTasks, setOrderedTasks] = useState<TaskPublic[]>(tasks)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [editingTask, setEditingTask] = useState<TaskPublic | null>(null)
+  const [draggingToCalendarId, setDraggingToCalendarId] = useState<
+    string | null
+  >(null)
   const lastClickedId = useRef<string | null>(null)
   const isDragging = useRef(false)
   const orderedRef = useRef(orderedTasks)
@@ -278,6 +281,8 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
               onDragEnd={handleDragEnd}
               onClick={handleTaskClick}
               onToggleSelection={handleToggleSelection}
+              draggingToCalendarId={draggingToCalendarId}
+              setDraggingToCalendarId={setDraggingToCalendarId}
             />
           )
         })}
@@ -300,6 +305,8 @@ function TaskItem({
   onDragEnd,
   onClick,
   onToggleSelection,
+  draggingToCalendarId,
+  setDraggingToCalendarId,
 }: {
   task: TaskPublic
   isSelected: boolean
@@ -311,6 +318,8 @@ function TaskItem({
     e: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean },
   ) => void
   onToggleSelection: (taskId: string) => void
+  draggingToCalendarId: string | null
+  setDraggingToCalendarId: (id: string | null) => void
 }) {
   const [isCompleted, setIsCompleted] = useState(task.completed ?? false)
   const queryClient = useQueryClient()
@@ -320,6 +329,7 @@ function TaskItem({
   // Swipe animation values
   const x = useMotionValue(0)
   const revealOpacity = useTransform(x, [-60, -20, 0], [1, 0.3, 0])
+  const revealOpacityRight = useTransform(x, [0, 20, 60], [0, 0.3, 1])
 
   const gestureCallbacks = useMemo(
     () => ({
@@ -334,27 +344,38 @@ function TaskItem({
         // Vertical drag (no long press) → reorder within task list
         dragControls.start(e)
       },
-      onLongPress: (originalEvent: PointerEvent) => {
-        // Long press → dispatch synthetic pointerdown for FC Draggable (calendar drop)
-        const taskEl = document.querySelector(`[data-task-id="${task.id}"]`)
-        if (!taskEl) return
-        bypassGesture.current = true
-        const synth = new PointerEvent("pointerdown", {
-          bubbles: true,
-          cancelable: true,
-          clientX: originalEvent.clientX,
-          clientY: originalEvent.clientY,
-          pointerId: originalEvent.pointerId,
-          pointerType: originalEvent.pointerType,
-          isPrimary: true,
-        })
-        taskEl.dispatchEvent(synth)
+      onLongPress: (_originalEvent: PointerEvent) => {
+        // No-op — long press reserved for future use
       },
       onSwipeLeft: () => {
         onToggleSelection(task.id)
       },
-      onSwipeRight: () => {
-        // no-op placeholder
+      onSwipeRightCommit: (e: PointerEvent) => {
+        const taskEl = document.querySelector(
+          `[data-task-id="${task.id}"]`,
+        ) as HTMLElement
+        if (!taskEl) return
+        bypassGesture.current = true
+
+        setDraggingToCalendarId(task.id)
+
+        const onDragFinish = () => {
+          document.removeEventListener("pointerup", onDragFinish)
+          setTimeout(() => setDraggingToCalendarId(null), 50)
+        }
+        document.addEventListener("pointerup", onDragFinish, { once: true })
+
+        // Hand off to FullCalendar Draggable (pointer is still active)
+        const synth = new PointerEvent("pointerdown", {
+          bubbles: true,
+          cancelable: true,
+          clientX: e.clientX,
+          clientY: e.clientY,
+          pointerId: e.pointerId,
+          pointerType: e.pointerType,
+          isPrimary: true,
+        })
+        taskEl.dispatchEvent(synth)
       },
       onSwipeMove: (dx: number) => {
         x.set(dx)
@@ -363,7 +384,14 @@ function TaskItem({
         animate(x, 0, { type: "spring", stiffness: 500, damping: 30 })
       },
     }),
-    [task.id, onClick, onToggleSelection, dragControls, x],
+    [
+      task.id,
+      onClick,
+      onToggleSelection,
+      dragControls,
+      x,
+      setDraggingToCalendarId,
+    ],
   )
 
   const { bypassGesture, gestureBindings } = useTaskGesture(gestureCallbacks)
@@ -453,122 +481,142 @@ function TaskItem({
       }}
       className="group"
     >
-      <div
-        className={`relative overflow-hidden transition-[border-radius] duration-200 ${selectionRounding} ${selectionBorder}`}
+      <motion.div
+        animate={{ opacity: draggingToCalendarId === task.id ? 0 : 1 }}
+        transition={{ duration: draggingToCalendarId === task.id ? 0.1 : 0.25 }}
+        style={{
+          pointerEvents: draggingToCalendarId === task.id ? "none" : "auto",
+        }}
       >
-        {/* Reveal layer (behind content) — shown on swipe left */}
-        <motion.div
-          className="absolute inset-0 flex items-center justify-end pr-4"
-          style={{ opacity: revealOpacity }}
+        <div
+          className={`relative overflow-hidden transition-[border-radius] duration-200 ${selectionRounding} ${selectionBorder}`}
         >
-          <span className="material-symbols-outlined text-primary text-xl">
-            checklist
-          </span>
-        </motion.div>
-
-        {/* Sliding content */}
-        <motion.div
-          style={{ x, ...gestureBindings.style }}
-          className={`relative z-[1] cursor-default transition-[color,background-color,border-radius] duration-150 ${selectionRounding} ${
-            isSelected
-              ? "bg-[var(--ds-selection)]"
-              : !isCompleted
-                ? "hover:bg-black/[0.04]"
-                : ""
-          }`}
-          onPointerDown={gestureBindings.onPointerDown}
-          onPointerMove={gestureBindings.onPointerMove}
-          onPointerUp={gestureBindings.onPointerUp}
-          onPointerCancel={gestureBindings.onPointerCancel}
-        >
-          <div
-            data-task-id={task.id}
-            className="flex items-center space-x-3 py-0.4 px-3 min-w-0"
+          {/* Reveal layer — right swipe → calendar icon on left */}
+          <motion.div
+            className="absolute inset-0 flex items-center justify-start pl-4"
+            style={{ opacity: revealOpacityRight }}
           >
-            {/* Checkbox */}
-            <motion.button
-              whileTap={{ scale: 1.2 }}
-              onClick={handleToggleCompleted}
-              className="flex-none"
-              disabled={toggleCompletedMutation.status === "pending"}
-            >
-              <div
-                className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
-                  isCompleted
-                    ? "bg-primary text-white"
-                    : "border-[1.5px] border-[var(--ds-checkbox-border)] hover:border-primary/50"
-                }`}
-              >
-                {isCompleted && (
-                  <span className="material-symbols-outlined text-[12px] font-bold">
-                    check
-                  </span>
-                )}
-              </div>
-            </motion.button>
+            <span className="material-symbols-outlined text-primary text-xl">
+              calendar_add_on
+            </span>
+          </motion.div>
 
-            {/* Title + inline meta */}
-            {(() => {
-              const { projectName, displayTags } = extractProject(task.tags)
-              return (
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center">
-                    <span
-                      className={`text-[13px] truncate ${
-                        isCompleted
-                          ? "line-through text-on-surface-variant/40"
-                          : "text-on-surface/90"
-                      }`}
-                    >
-                      {task.title}
+          {/* Reveal layer (behind content) — shown on swipe left */}
+          <motion.div
+            className="absolute inset-0 flex items-center justify-end pr-4"
+            style={{ opacity: revealOpacity }}
+          >
+            <span className="material-symbols-outlined text-primary text-xl">
+              checklist
+            </span>
+          </motion.div>
+
+          {/* Sliding content */}
+          <motion.div
+            style={{ x, ...gestureBindings.style }}
+            className={`relative z-[1] cursor-default transition-[color,background-color,border-radius] duration-150 ${selectionRounding} ${
+              isSelected
+                ? "bg-[var(--ds-selection)]"
+                : !isCompleted
+                  ? "hover:bg-black/[0.04]"
+                  : ""
+            }`}
+            onPointerDown={gestureBindings.onPointerDown}
+            onPointerMove={gestureBindings.onPointerMove}
+            onPointerUp={gestureBindings.onPointerUp}
+            onPointerCancel={gestureBindings.onPointerCancel}
+          >
+            <div
+              data-task-id={task.id}
+              className="flex items-center space-x-3 py-0.4 px-3 min-w-0"
+            >
+              {/* Checkbox */}
+              <motion.button
+                whileTap={{ scale: 1.2 }}
+                onClick={handleToggleCompleted}
+                className="flex-none"
+                disabled={toggleCompletedMutation.status === "pending"}
+              >
+                <div
+                  className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
+                    isCompleted
+                      ? "bg-primary text-white"
+                      : "border-[1.5px] border-[var(--ds-checkbox-border)] hover:border-primary/50"
+                  }`}
+                >
+                  {isCompleted && (
+                    <span className="material-symbols-outlined text-[12px] font-bold">
+                      check
                     </span>
-                    {task.description && (
-                      <span className="material-symbols-outlined text-[12px] ml-1.5 text-on-surface-variant/30">
-                        description
-                      </span>
-                    )}
-                    {displayTags.length > 0 &&
-                      displayTags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="outline"
-                          className="bg-on-surface-variant/[0.08] text-[9px] px-1.5 py-0.5 text-on-surface-variant/70 font-medium ml-1.5 border-on-surface-variant/[0.08]"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    <TaskMeta due={task.due} duration={task.duration} />
-                  </div>
-                  {projectName && (
-                    <p className="text-[10px] text-on-surface-variant/40 -mt-0.5 leading-tight">
-                      {projectName}
-                    </p>
                   )}
                 </div>
-              )
-            })()}
+              </motion.button>
 
-            <button
-              type="button"
-              className={`transition-opacity p-0.5 hover:bg-error/10 rounded-full ${
-                isCompleted ? "invisible" : "opacity-0 group-hover:opacity-100"
-              }`}
-              onClick={(e) => {
-                e.stopPropagation()
-                if (confirm("Are you sure you want to delete this task?")) {
-                  deleteMutation.mutate()
-                }
-              }}
-              disabled={isCompleted || deleteMutation.status === "pending"}
-              aria-label="Delete task"
-            >
-              <span className="material-symbols-outlined text-on-surface-variant/30 text-sm">
-                close
-              </span>
-            </button>
-          </div>
-        </motion.div>
-      </div>
+              {/* Title + inline meta */}
+              {(() => {
+                const { projectName, displayTags } = extractProject(task.tags)
+                return (
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center">
+                      <span
+                        className={`text-[13px] truncate ${
+                          isCompleted
+                            ? "line-through text-on-surface-variant/40"
+                            : "text-on-surface/90"
+                        }`}
+                      >
+                        {task.title}
+                      </span>
+                      {task.description && (
+                        <span className="material-symbols-outlined text-[12px] ml-1.5 text-on-surface-variant/30">
+                          description
+                        </span>
+                      )}
+                      {displayTags.length > 0 &&
+                        displayTags.map((tag) => (
+                          <Badge
+                            key={tag}
+                            variant="outline"
+                            className="bg-on-surface-variant/[0.08] text-[9px] px-1.5 py-0.5 text-on-surface-variant/70 font-medium ml-1.5 border-on-surface-variant/[0.08]"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      <TaskMeta due={task.due} duration={task.duration} />
+                    </div>
+                    {projectName && (
+                      <p className="text-[10px] text-on-surface-variant/40 -mt-0.5 leading-tight">
+                        {projectName}
+                      </p>
+                    )}
+                  </div>
+                )
+              })()}
+
+              <button
+                type="button"
+                className={`transition-opacity p-0.5 hover:bg-error/10 rounded-full ${
+                  isCompleted
+                    ? "invisible"
+                    : "opacity-0 group-hover:opacity-100"
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (confirm("Are you sure you want to delete this task?")) {
+                    deleteMutation.mutate()
+                  }
+                }}
+                disabled={isCompleted || deleteMutation.status === "pending"}
+                aria-label="Delete task"
+              >
+                <span className="material-symbols-outlined text-on-surface-variant/30 text-sm">
+                  close
+                </span>
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
     </Reorder.Item>
   )
 }
