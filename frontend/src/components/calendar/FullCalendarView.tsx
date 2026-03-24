@@ -200,13 +200,20 @@ export default function FullCalendarView({
     // Remove existing trail DOM elements (will be redrawn)
     // When skipToday, only clear non-today columns
     if (skipToday) {
-      container.querySelectorAll(".fc-timegrid-col:not(.fc-day-today)").forEach((col) => {
-        col.querySelectorAll(".achievement-trail-dot, .achievement-trail-dot-static, .achievement-trail-line")
-          .forEach((el) => el.remove())
-      })
+      container
+        .querySelectorAll(".fc-timegrid-col:not(.fc-day-today)")
+        .forEach((col) => {
+          col
+            .querySelectorAll(
+              ".achievement-trail-dot, .achievement-trail-dot-static, .achievement-trail-line",
+            )
+            .forEach((el) => el.remove())
+        })
     } else {
       container
-        .querySelectorAll(".achievement-trail-dot, .achievement-trail-dot-static, .achievement-trail-line")
+        .querySelectorAll(
+          ".achievement-trail-dot, .achievement-trail-dot-static, .achievement-trail-line",
+        )
         .forEach((el) => el.remove())
     }
 
@@ -283,23 +290,24 @@ export default function FullCalendarView({
         for (let i = 0; i < chain.length - 1; i++) {
           const from = chain[i]
           const to = chain[i + 1]
-        const lineTop = from.bottom
-        const lineHeight = to.top - from.bottom
-        const pairKey = `${from.id}→${to.id}`
-        nextConnected.add(pairKey)
+          const lineTop = from.bottom
+          const lineHeight = to.top - from.bottom
+          const pairKey = `${from.id}→${to.id}`
+          nextConnected.add(pairKey)
 
-        const alreadyConnected = !isToday || connectedPairs.current.has(pairKey)
-        const isAdjacent = lineHeight <= 0
+          const alreadyConnected =
+            !isToday || connectedPairs.current.has(pairKey)
+          const isAdjacent = lineHeight <= 0
 
-        if (alreadyConnected) {
-          // Already connected or non-today — style instantly
-          to.el.classList.add("fc-event-completed")
-          nextStyled.add(to.id)
+          if (alreadyConnected) {
+            // Already connected or non-today — style instantly
+            to.el.classList.add("fc-event-completed")
+            nextStyled.add(to.id)
 
-          if (!isAdjacent) {
-            const dot = document.createElement("div")
-            dot.className = "achievement-trail-dot-static"
-            dot.style.cssText = `
+            if (!isAdjacent) {
+              const dot = document.createElement("div")
+              dot.className = "achievement-trail-dot-static"
+              dot.style.cssText = `
               position: absolute;
               left: ${from.centerX - 3}px;
               top: ${from.bottom - 3}px;
@@ -310,12 +318,12 @@ export default function FullCalendarView({
               z-index: 5;
               pointer-events: none;
             `
-            colFrame.appendChild(dot)
+              colFrame.appendChild(dot)
 
-            const isDashed = lineHeight > 5
-            const line = document.createElement("div")
-            line.className = "achievement-trail-line"
-            line.style.cssText = `
+              const isDashed = lineHeight > 5
+              const line = document.createElement("div")
+              line.className = "achievement-trail-line"
+              line.style.cssText = `
               position: absolute;
               left: ${from.centerX - 1}px;
               top: ${lineTop}px;
@@ -331,31 +339,31 @@ export default function FullCalendarView({
                      background-size: 2px 8px;
                      background-repeat: repeat-y;
                      opacity: 0.4;`
-                  : `background: linear-gradient(180deg, color-mix(in srgb, var(--ds-primary) 40%, transparent) 0%, color-mix(in srgb, var(--ds-primary) 5%, transparent) 100%);`
+                  : "background: linear-gradient(180deg, color-mix(in srgb, var(--ds-primary) 40%, transparent) 0%, color-mix(in srgb, var(--ds-primary) 5%, transparent) 100%);"
               }
             `
-            colFrame.appendChild(line)
-          }
-        } else if (isAdjacent) {
-          // Adjacent on today — no line, but cascade with a small delay
-          const adjacentDelay = 0.25
-          const revealMs = (cumulativeNewDelay + adjacentDelay) * 1000
-          const targetEl = to.el
-          const targetId = to.id
-          nextStyled.add(targetId)
-          trailTimers.current.push(
-            setTimeout(() => {
-              targetEl.classList.add("fc-event-completed")
-            }, revealMs),
-          )
-          cumulativeNewDelay += adjacentDelay
-        } else {
-          // New connection with gap — animate line
-          const drawDuration = Math.max(0.3, Math.min(lineHeight / 120, 0.8))
+              colFrame.appendChild(line)
+            }
+          } else if (isAdjacent) {
+            // Adjacent on today — no line, but cascade with a small delay
+            const adjacentDelay = 0.25
+            const revealMs = (cumulativeNewDelay + adjacentDelay) * 1000
+            const targetEl = to.el
+            const targetId = to.id
+            nextStyled.add(targetId)
+            trailTimers.current.push(
+              setTimeout(() => {
+                targetEl.classList.add("fc-event-completed")
+              }, revealMs),
+            )
+            cumulativeNewDelay += adjacentDelay
+          } else {
+            // New connection with gap — animate line
+            const drawDuration = Math.max(0.3, Math.min(lineHeight / 120, 0.8))
 
-          const dot = document.createElement("div")
-          dot.className = "achievement-trail-dot"
-          dot.style.cssText = `
+            const dot = document.createElement("div")
+            dot.className = "achievement-trail-dot"
+            dot.style.cssText = `
             position: absolute;
             left: ${from.centerX - 3}px;
             top: ${from.bottom - 3}px;
@@ -367,13 +375,13 @@ export default function FullCalendarView({
             pointer-events: none;
             animation-delay: ${cumulativeNewDelay}s;
           `
-          colFrame.appendChild(dot)
+            colFrame.appendChild(dot)
 
-          const isDashed = lineHeight > 5
-          const line = document.createElement("div")
-          line.className = "achievement-trail-line"
-          const lineDelay = cumulativeNewDelay + 0.1
-          line.style.cssText = `
+            const isDashed = lineHeight > 5
+            const line = document.createElement("div")
+            line.className = "achievement-trail-line"
+            const lineDelay = cumulativeNewDelay + 0.1
+            line.style.cssText = `
             position: absolute;
             left: ${from.centerX - 1}px;
             top: ${lineTop}px;
@@ -390,25 +398,25 @@ export default function FullCalendarView({
                    background-size: 2px 8px;
                    background-repeat: repeat-y;
                    opacity: 0.4;`
-                : `background: linear-gradient(180deg, color-mix(in srgb, var(--ds-primary) 40%, transparent) 0%, color-mix(in srgb, var(--ds-primary) 5%, transparent) 100%);`
+                : "background: linear-gradient(180deg, color-mix(in srgb, var(--ds-primary) 40%, transparent) 0%, color-mix(in srgb, var(--ds-primary) 5%, transparent) 100%);"
             }
           `
-          colFrame.appendChild(line)
+            colFrame.appendChild(line)
 
-          // Reveal target event when line arrives
-          const revealMs = (lineDelay + drawDuration) * 1000
-          const targetEl = to.el
-          const targetId = to.id
-          nextStyled.add(targetId)
-          trailTimers.current.push(
-            setTimeout(() => {
-              targetEl.classList.add("fc-event-completed")
-            }, revealMs),
-          )
+            // Reveal target event when line arrives
+            const revealMs = (lineDelay + drawDuration) * 1000
+            const targetEl = to.el
+            const targetId = to.id
+            nextStyled.add(targetId)
+            trailTimers.current.push(
+              setTimeout(() => {
+                targetEl.classList.add("fc-event-completed")
+              }, revealMs),
+            )
 
-          cumulativeNewDelay = lineDelay + drawDuration
+            cumulativeNewDelay = lineDelay + drawDuration
+          }
         }
-      }
       } // end chain loop
     }
 
@@ -501,7 +509,11 @@ export default function FullCalendarView({
                 >
                   {format(date, "d")}
                 </p>
-                <div className={`mx-auto mt-1 w-1 h-1 rounded-full ${isCurrent ? "bg-primary" : "bg-transparent"}`} />
+                <div
+                  className={`mx-auto mt-1 w-1 h-1 rounded-full ${
+                    isCurrent ? "bg-primary" : "bg-transparent"
+                  }`}
+                />
               </div>
             )
           }}

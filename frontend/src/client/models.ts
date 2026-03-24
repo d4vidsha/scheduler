@@ -42,6 +42,11 @@ export type NewPassword = {
   new_password: string
 }
 
+export type ScheduleTasksRequest = {
+  client_now?: string | null
+  task_ids?: Array<string> | null
+}
+
 export type TaskCreate = {
   title: string
   description?: string | null

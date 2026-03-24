@@ -6,7 +6,15 @@ from fastapi import APIRouter, Body, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Message, Task, TaskCreate, TaskPublic, TasksPublic, TaskUpdate
+from app.models import (
+    Message,
+    ScheduleTasksRequest,
+    Task,
+    TaskCreate,
+    TaskPublic,
+    TasksPublic,
+    TaskUpdate,
+)
 
 router = APIRouter()
 
@@ -129,13 +137,16 @@ def delete_task(session: SessionDep, current_user: CurrentUser, id: str) -> Mess
 def schedule_tasks(
     session: SessionDep,
     current_user: CurrentUser,
-    client_now: datetime | None = Body(
-        default=None, description="Client's current local time"
-    ),
+    body: ScheduleTasksRequest | None = None,
 ) -> TasksPublic:
     """
     Auto-schedule incomplete tasks with a due date into working-hour slots.
+    Optionally pass task_ids to schedule only specific tasks.
     """
+    req = body or ScheduleTasksRequest()
+    client_now = req.client_now
+    task_ids = req.task_ids
+
     work_start = current_user.work_start
     work_end = current_user.work_end
 
@@ -152,6 +163,8 @@ def schedule_tasks(
             col(Task.due).asc(),
         )
     )
+    if task_ids is not None:
+        statement = statement.where(col(Task.id).in_(task_ids))
     tasks = list(session.exec(statement).all())
 
     now = client_now if client_now is not None else datetime.utcnow()
@@ -172,6 +185,23 @@ def schedule_tasks(
 
     # Track assigned slots as list of (start, end) tuples
     assigned_slots: list[tuple[datetime, datetime]] = []
+
+    # When scheduling a subset, pre-populate with existing scheduled tasks
+    # so new assignments don't overlap with already-scheduled ones.
+    if task_ids is not None:
+        task_id_set = set(task_ids)
+        existing_statement = (
+            select(Task)
+            .where(
+                Task.owner_id == current_user.id,
+                Task.completed == False,  # noqa: E712
+                Task.scheduled_start.is_not(None),  # type: ignore[union-attr]
+            )
+        )
+        for t in session.exec(existing_statement).all():
+            if t.id not in task_id_set and t.scheduled_start is not None:
+                dur = timedelta(minutes=t.duration if t.duration else 30)
+                assigned_slots.append((t.scheduled_start, t.scheduled_start + dur))
 
     MAX_DAYS_AHEAD = 365
 

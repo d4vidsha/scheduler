@@ -176,3 +176,8 @@ class TaskPublic(TaskBase):
 class TasksPublic(SQLModel):
     data: list[TaskPublic]
     count: int
+
+
+class ScheduleTasksRequest(SQLModel):
+    client_now: datetime | None = None
+    task_ids: list[str] | None = None

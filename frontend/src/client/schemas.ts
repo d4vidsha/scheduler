@@ -186,6 +186,37 @@ export const $NewPassword = {
   },
 } as const
 
+export const $ScheduleTasksRequest = {
+  properties: {
+    client_now: {
+      type: "any-of",
+      contains: [
+        {
+          type: "string",
+          format: "date-time",
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+    task_ids: {
+      type: "any-of",
+      contains: [
+        {
+          type: "array",
+          contains: {
+            type: "string",
+          },
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
+  },
+} as const
+
 export const $TaskCreate = {
   properties: {
     title: {

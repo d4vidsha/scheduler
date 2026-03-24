@@ -10,6 +10,7 @@ type GestureState =
 
 interface GestureCallbacks {
   onTap: (e: PointerEvent) => void
+  onDoubleTap: (e: PointerEvent) => void
   onDragStart: (e: PointerEvent) => void // vertical movement → reorder
   onLongPress: (e: PointerEvent) => void // timer fires → calendar drop
   onSwipeLeft: () => void
@@ -32,6 +33,8 @@ function rubberBand(dx: number, max: number): number {
   return sign * (max + over * 0.12)
 }
 
+const DOUBLE_TAP_MS = 300
+
 export function useTaskGesture(callbacks: GestureCallbacks) {
   const state = useRef<GestureState>("idle")
   const startX = useRef(0)
@@ -41,6 +44,8 @@ export function useTaskGesture(callbacks: GestureCallbacks) {
   const bypassGesture = useRef(false)
   const pointerId = useRef<number | null>(null)
   const captureTarget = useRef<HTMLElement | null>(null)
+  const lastTapTime = useRef(0)
+  const singleTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const cleanup = useCallback(() => {
     if (timerId.current !== null) {
@@ -63,7 +68,7 @@ export function useTaskGesture(callbacks: GestureCallbacks) {
       if (e.button !== 0) return
       // Ignore clicks on buttons/inputs
       const target = e.target as HTMLElement
-      if (target.closest("button, input, [role='button']")) return
+      if (target.closest("button, input, textarea, [role='button']")) return
 
       e.stopPropagation()
 
@@ -162,9 +167,26 @@ export function useTaskGesture(callbacks: GestureCallbacks) {
       const currentState = state.current
 
       if (currentState === "pending") {
-        // Released before timer fired and within movement threshold → tap
         cleanup()
-        callbacks.onTap(e.nativeEvent)
+        const now = Date.now()
+        const nativeEvent = e.nativeEvent
+
+        if (now - lastTapTime.current < DOUBLE_TAP_MS) {
+          // Second tap within window → double tap
+          lastTapTime.current = 0
+          if (singleTapTimer.current !== null) {
+            clearTimeout(singleTapTimer.current)
+            singleTapTimer.current = null
+          }
+          callbacks.onDoubleTap(nativeEvent)
+        } else {
+          // First tap — delay to distinguish from double tap
+          lastTapTime.current = now
+          singleTapTimer.current = setTimeout(() => {
+            singleTapTimer.current = null
+            callbacks.onTap(nativeEvent)
+          }, DOUBLE_TAP_MS)
+        }
       } else if (currentState === "swiping") {
         const dx = e.clientX - startX.current
         if (dx < -60) {

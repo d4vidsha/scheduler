@@ -1,6 +1,6 @@
 import type { TaskPublic } from "@/client/models"
 import { TasksService } from "@/client/services"
-import EditDialog from "@/components/calendar/EditDialog"
+import { saveTask } from "@/components/calendar/shared"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
@@ -117,7 +117,7 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
   const { toast } = useToast()
   const [orderedTasks, setOrderedTasks] = useState<TaskPublic[]>(tasks)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [editingTask, setEditingTask] = useState<TaskPublic | null>(null)
+  const [editingInlineId, setEditingInlineId] = useState<string | null>(null)
   const [draggingToCalendarId, setDraggingToCalendarId] = useState<
     string | null
   >(null)
@@ -132,14 +132,20 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
     }
   }, [tasks])
 
-  // Escape clears selection
+  // Escape closes inline edit or clears selection
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelectedIds(new Set())
+      if (e.key === "Escape") {
+        if (editingInlineId) {
+          setEditingInlineId(null)
+        } else {
+          setSelectedIds(new Set())
+        }
+      }
     }
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [])
+  }, [editingInlineId])
 
   const reorderMutation = useMutation({
     mutationFn: (taskIds: string[]) => {
@@ -204,13 +210,16 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
           setSelectedIds(new Set(ids.slice(lo, hi + 1)))
         }
       } else {
-        // Plain tap → open edit dialog
-        const task = orderedRef.current.find((t) => t.id === taskId)
-        if (task) setEditingTask(task)
+        // Plain tap → close inline edit if open
+        if (editingInlineId) setEditingInlineId(null)
       }
     },
-    [],
+    [editingInlineId],
   )
+
+  const handleDoubleTap = useCallback((taskId: string) => {
+    setEditingInlineId((prev) => (prev === taskId ? null : taskId))
+  }, [])
 
   const handleToggleSelection = useCallback((taskId: string) => {
     setSelectedIds((prev) => {
@@ -220,6 +229,27 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
       return next
     })
   }, [])
+
+  const handleScheduleSelected = useCallback(async () => {
+    if (selectedIds.size === 0) return
+    try {
+      await TasksService.scheduleTasks({
+        requestBody: {
+          client_now: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss"),
+          task_ids: [...selectedIds],
+        },
+      })
+      queryClient.invalidateQueries({ queryKey: ["tasks"] })
+      toast({ title: "Done", description: "Selected tasks scheduled" })
+      setSelectedIds(new Set())
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to schedule tasks",
+        variant: "destructive",
+      })
+    }
+  }, [selectedIds, queryClient, toast])
 
   if (orderedTasks.length === 0) {
     return (
@@ -246,13 +276,22 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
               <span className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest">
                 {selectedIds.size} selected
               </span>
-              <button
-                type="button"
-                onClick={() => setSelectedIds(new Set())}
-                className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 hover:text-on-surface transition-colors"
-              >
-                Clear
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleScheduleSelected}
+                  className="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
+                >
+                  Schedule
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedIds(new Set())}
+                  className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 hover:text-on-surface transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
@@ -275,49 +314,55 @@ export function TaskList({ tasks }: { tasks: TaskPublic[] }) {
             <TaskItem
               key={task.id}
               task={task}
+              tasks={orderedTasks}
               isSelected={sel}
               isFirstSelected={sel && !prevSel}
               isLastSelected={sel && !nextSel}
+              isEditing={editingInlineId === task.id}
               onDragEnd={handleDragEnd}
               onClick={handleTaskClick}
+              onDoubleTap={handleDoubleTap}
               onToggleSelection={handleToggleSelection}
+              onCloseEdit={() => setEditingInlineId(null)}
               draggingToCalendarId={draggingToCalendarId}
               setDraggingToCalendarId={setDraggingToCalendarId}
             />
           )
         })}
       </Reorder.Group>
-
-      <EditDialog
-        task={editingTask}
-        tasks={orderedTasks}
-        onClose={() => setEditingTask(null)}
-      />
     </div>
   )
 }
 
 function TaskItem({
   task,
+  tasks,
   isSelected,
   isFirstSelected,
   isLastSelected,
+  isEditing,
   onDragEnd,
   onClick,
+  onDoubleTap,
   onToggleSelection,
+  onCloseEdit,
   draggingToCalendarId,
   setDraggingToCalendarId,
 }: {
   task: TaskPublic
+  tasks: TaskPublic[]
   isSelected: boolean
   isFirstSelected: boolean
   isLastSelected: boolean
+  isEditing: boolean
   onDragEnd: (taskId: string) => void
   onClick: (
     taskId: string,
     e: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean },
   ) => void
+  onDoubleTap: (taskId: string) => void
   onToggleSelection: (taskId: string) => void
+  onCloseEdit: () => void
   draggingToCalendarId: string | null
   setDraggingToCalendarId: (id: string | null) => void
 }) {
@@ -331,6 +376,59 @@ function TaskItem({
   const revealOpacity = useTransform(x, [-60, -20, 0], [1, 0.3, 0])
   const revealOpacityRight = useTransform(x, [0, 20, 60], [0, 0.3, 1])
 
+  // Inline edit state
+  const [editTitle, setEditTitle] = useState(task.title ?? "")
+  const [editDescription, setEditDescription] = useState(task.description ?? "")
+  const editContainerRef = useRef<HTMLDivElement>(null)
+  const titleInputRef = useRef<HTMLInputElement>(null)
+
+  // Sync local edit state when task data changes or editing starts
+  useEffect(() => {
+    if (isEditing) {
+      setEditTitle(task.title ?? "")
+      setEditDescription(task.description ?? "")
+      // Focus title input after animation starts
+      requestAnimationFrame(() => titleInputRef.current?.focus())
+    }
+  }, [isEditing, task.title, task.description])
+
+  const handleSaveInline = useCallback(() => {
+    const titleChanged = editTitle !== (task.title ?? "")
+    const descChanged = editDescription !== (task.description ?? "")
+    if (titleChanged || descChanged) {
+      saveTask(queryClient, tasks, task.id, {
+        ...(titleChanged ? { title: editTitle } : {}),
+        ...(descChanged ? { description: editDescription || null } : {}),
+      })
+    }
+    onCloseEdit()
+  }, [
+    editTitle,
+    editDescription,
+    task.title,
+    task.description,
+    task.id,
+    tasks,
+    queryClient,
+    onCloseEdit,
+  ])
+
+  // Click-outside to save & close
+  useEffect(() => {
+    if (!isEditing) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        editContainerRef.current &&
+        !editContainerRef.current.contains(e.target as Node)
+      ) {
+        handleSaveInline()
+      }
+    }
+    // Use mousedown (not pointerdown) to avoid conflicting with gesture system
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [isEditing, handleSaveInline])
+
   const gestureCallbacks = useMemo(
     () => ({
       onTap: (e: PointerEvent) => {
@@ -339,6 +437,9 @@ function TaskItem({
         } else {
           onClick(task.id, { metaKey: false, ctrlKey: false, shiftKey: false })
         }
+      },
+      onDoubleTap: (_e: PointerEvent) => {
+        onDoubleTap(task.id)
       },
       onDragStart: (e: PointerEvent) => {
         // Vertical drag (no long press) → reorder within task list
@@ -387,6 +488,7 @@ function TaskItem({
     [
       task.id,
       onClick,
+      onDoubleTap,
       onToggleSelection,
       dragControls,
       x,
@@ -489,7 +591,12 @@ function TaskItem({
         }}
       >
         <div
-          className={`relative overflow-hidden transition-[border-radius] duration-200 ${selectionRounding} ${selectionBorder}`}
+          ref={editContainerRef}
+          className={`relative overflow-hidden transition-all duration-200 ${
+            isEditing
+              ? "bg-surface border border-outline-variant/10 shadow-lg shadow-black/[0.08] rounded-2xl my-2 mx-1"
+              : `${selectionRounding} ${selectionBorder}`
+          }`}
         >
           {/* Reveal layer — right swipe → calendar icon on left */}
           <motion.div
@@ -593,28 +700,109 @@ function TaskItem({
                 )
               })()}
 
-              <button
-                type="button"
-                className={`transition-opacity p-0.5 hover:bg-error/10 rounded-full ${
-                  isCompleted
-                    ? "invisible"
-                    : "opacity-0 group-hover:opacity-100"
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (confirm("Are you sure you want to delete this task?")) {
-                    deleteMutation.mutate()
-                  }
-                }}
-                disabled={isCompleted || deleteMutation.status === "pending"}
-                aria-label="Delete task"
-              >
-                <span className="material-symbols-outlined text-on-surface-variant/30 text-sm">
-                  close
-                </span>
-              </button>
+              {!isEditing && (
+                <button
+                  type="button"
+                  className={`transition-opacity p-0.5 hover:bg-error/10 rounded-full ${
+                    isCompleted
+                      ? "invisible"
+                      : "opacity-0 group-hover:opacity-100"
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (confirm("Are you sure you want to delete this task?")) {
+                      deleteMutation.mutate()
+                    }
+                  }}
+                  disabled={isCompleted || deleteMutation.status === "pending"}
+                  aria-label="Delete task"
+                >
+                  <span className="material-symbols-outlined text-on-surface-variant/30 text-sm">
+                    close
+                  </span>
+                </button>
+              )}
             </div>
           </motion.div>
+
+          {/* Inline edit form */}
+          <AnimatePresence>
+            {isEditing && (
+              <motion.div
+                data-testid="inline-edit-form"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className="relative z-[2] overflow-hidden"
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                <div className="px-4 pb-3 pt-1 space-y-2">
+                  <input
+                    ref={titleInputRef}
+                    data-testid="inline-edit-title"
+                    className="w-full text-[15px] font-semibold bg-transparent border-none outline-none text-on-surface placeholder:text-on-surface-variant/40 caret-primary"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSaveInline()
+                      if (e.key === "Escape") handleSaveInline()
+                    }}
+                    placeholder="Task title"
+                  />
+                  <textarea
+                    data-testid="inline-edit-notes"
+                    className="w-full text-[13px] bg-transparent border-none outline-none text-on-surface-variant/70 resize-none placeholder:text-on-surface-variant/40 caret-primary leading-relaxed"
+                    placeholder="Notes"
+                    rows={2}
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") handleSaveInline()
+                    }}
+                  />
+                  <div className="flex items-center justify-between pt-1 border-t border-outline-variant/10">
+                    <div className="flex items-center gap-1.5 text-[11px] text-primary font-medium pt-1.5">
+                      <span className="material-symbols-outlined text-[14px]">
+                        star
+                      </span>
+                      <span>
+                        {task.due
+                          ? formatDueDate(task.due).label
+                          : "No date"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-0.5 pt-1.5">
+                      <button
+                        type="button"
+                        className="p-1.5 rounded-lg hover:bg-on-surface/[0.06] text-on-surface-variant/40 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">
+                          sell
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        className="p-1.5 rounded-lg hover:bg-on-surface/[0.06] text-on-surface-variant/40 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">
+                          checklist
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        className="p-1.5 rounded-lg hover:bg-on-surface/[0.06] text-on-surface-variant/40 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">
+                          flag
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
     </Reorder.Item>
