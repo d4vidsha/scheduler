@@ -143,7 +143,7 @@ test.describe("Inline task editing", () => {
 
     // API should have been called with the new title
     expect(updatePayload).toBeTruthy()
-    expect((updatePayload as Record<string, unknown>)?.title).toBe(
+    expect((updatePayload as unknown as Record<string, unknown>)?.title).toBe(
       "Renamed task",
     )
   })
@@ -380,7 +380,7 @@ test.describe("Inline task editing", () => {
     })
 
     expect(updatePayload).toBeTruthy()
-    expect((updatePayload as Record<string, unknown>)?.description).toBe(
+    expect((updatePayload as unknown as Record<string, unknown>)?.description).toBe(
       "Updated notes",
     )
   })

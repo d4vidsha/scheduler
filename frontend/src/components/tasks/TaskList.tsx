@@ -594,154 +594,45 @@ function TaskItem({
           ref={editContainerRef}
           className={`relative overflow-hidden transition-all duration-200 ${
             isEditing
-              ? "bg-surface border border-outline-variant/10 shadow-lg shadow-black/[0.08] rounded-2xl my-2 mx-1"
+              ? "rounded-2xl"
               : `${selectionRounding} ${selectionBorder}`
           }`}
         >
-          {/* Reveal layer — right swipe → calendar icon on left */}
-          <motion.div
-            className="absolute inset-0 flex items-center justify-start pl-4"
-            style={{ opacity: revealOpacityRight }}
-          >
-            <span className="material-symbols-outlined text-primary text-xl">
-              calendar_add_on
-            </span>
-          </motion.div>
-
-          {/* Reveal layer (behind content) — shown on swipe left */}
-          <motion.div
-            className="absolute inset-0 flex items-center justify-end pr-4"
-            style={{ opacity: revealOpacity }}
-          >
-            <span className="material-symbols-outlined text-primary text-xl">
-              checklist
-            </span>
-          </motion.div>
-
-          {/* Sliding content */}
-          <motion.div
-            style={{ x, ...gestureBindings.style }}
-            className={`relative z-[1] cursor-default transition-[color,background-color,border-radius] duration-150 ${selectionRounding} ${
-              isSelected
-                ? "bg-[var(--ds-selection)]"
-                : !isCompleted
-                  ? "hover:bg-black/[0.04]"
-                  : ""
-            }`}
-            onPointerDown={gestureBindings.onPointerDown}
-            onPointerMove={gestureBindings.onPointerMove}
-            onPointerUp={gestureBindings.onPointerUp}
-            onPointerCancel={gestureBindings.onPointerCancel}
-          >
+          {isEditing ? (
+            /* ── Edit mode: matches mockup layout ── */
             <div
-              data-task-id={task.id}
-              className="flex items-center space-x-3 py-0.4 px-3 min-w-0"
+              data-testid="inline-edit-form"
+              className="rounded-2xl p-4 my-2 mx-1 transition-all bg-white dark:bg-surface-container border border-black/10 dark:border-white/[0.06] shadow-lg shadow-black/10 dark:shadow-black/40"
+              onPointerDown={(e) => e.stopPropagation()}
             >
-              {/* Checkbox */}
-              <motion.button
-                whileTap={{ scale: 1.2 }}
-                onClick={handleToggleCompleted}
-                className="flex-none"
-                disabled={toggleCompletedMutation.status === "pending"}
-              >
-                <div
-                  className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
-                    isCompleted
-                      ? "bg-primary text-white"
-                      : "border-[1.5px] border-[var(--ds-checkbox-border)] hover:border-primary/50"
-                  }`}
-                >
-                  {isCompleted && (
-                    <span className="material-symbols-outlined text-[12px] font-bold">
-                      check
-                    </span>
-                  )}
-                </div>
-              </motion.button>
-
-              {/* Title + inline meta */}
-              {(() => {
-                const { projectName, displayTags } = extractProject(task.tags)
-                return (
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center">
-                      <span
-                        className={`text-[13px] truncate ${
-                          isCompleted
-                            ? "line-through text-on-surface-variant/40"
-                            : "text-on-surface/90"
-                        }`}
-                      >
-                        {task.title}
-                      </span>
-                      {task.description && (
-                        <span className="material-symbols-outlined text-[12px] ml-1.5 text-on-surface-variant/30">
-                          description
-                        </span>
-                      )}
-                      {displayTags.length > 0 &&
-                        displayTags.map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="outline"
-                            className="bg-on-surface-variant/[0.08] text-[9px] px-1.5 py-0.5 text-on-surface-variant/70 font-medium ml-1.5 border-on-surface-variant/[0.08]"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                      <TaskMeta due={task.due} duration={task.duration} />
-                    </div>
-                    {projectName && (
-                      <p className="text-[10px] text-on-surface-variant/40 -mt-0.5 leading-tight">
-                        {projectName}
-                      </p>
-                    )}
-                  </div>
-                )
-              })()}
-
-              {!isEditing && (
+              <div className="flex items-start space-x-3">
+                {/* Checkbox */}
                 <button
                   type="button"
-                  className={`transition-opacity p-0.5 hover:bg-error/10 rounded-full ${
-                    isCompleted
-                      ? "invisible"
-                      : "opacity-0 group-hover:opacity-100"
-                  }`}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    if (confirm("Are you sure you want to delete this task?")) {
-                      deleteMutation.mutate()
-                    }
-                  }}
-                  disabled={isCompleted || deleteMutation.status === "pending"}
-                  aria-label="Delete task"
+                  onClick={handleToggleCompleted}
+                  className="mt-1 flex-none"
+                  disabled={toggleCompletedMutation.status === "pending"}
                 >
-                  <span className="material-symbols-outlined text-on-surface-variant/30 text-sm">
-                    close
-                  </span>
+                  <div
+                    className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
+                      isCompleted
+                        ? "bg-primary text-white"
+                        : "border-[1.5px] border-[var(--ds-checkbox-border)] hover:border-primary/50"
+                    }`}
+                  >
+                    {isCompleted && (
+                      <span className="material-symbols-outlined text-[12px] font-bold">
+                        check
+                      </span>
+                    )}
+                  </div>
                 </button>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Inline edit form */}
-          <AnimatePresence>
-            {isEditing && (
-              <motion.div
-                data-testid="inline-edit-form"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className="relative z-[2] overflow-hidden"
-                onPointerDown={(e) => e.stopPropagation()}
-              >
-                <div className="px-4 pb-3 pt-1 space-y-2">
+                {/* Title + Notes */}
+                <div className="flex-1 min-w-0">
                   <input
                     ref={titleInputRef}
                     data-testid="inline-edit-title"
-                    className="w-full text-[15px] font-semibold bg-transparent border-none outline-none text-on-surface placeholder:text-on-surface-variant/40 caret-primary"
+                    className="w-full bg-transparent border-none p-0 text-[13px] text-on-surface/90 focus:ring-0 focus:outline-none placeholder:text-on-surface/40"
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
                     onKeyDown={(e) => {
@@ -752,57 +643,197 @@ function TaskItem({
                   />
                   <textarea
                     data-testid="inline-edit-notes"
-                    className="w-full text-[13px] bg-transparent border-none outline-none text-on-surface-variant/70 resize-none placeholder:text-on-surface-variant/40 caret-primary leading-relaxed"
+                    className="w-full bg-transparent border-none p-0 mt-1 text-[13px] text-on-surface-variant focus:ring-0 focus:outline-none resize-none placeholder:text-on-surface-variant/40"
                     placeholder="Notes"
-                    rows={2}
+                    rows={1}
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Escape") handleSaveInline()
                     }}
                   />
-                  <div className="flex items-center justify-between pt-1 border-t border-outline-variant/10">
-                    <div className="flex items-center gap-1.5 text-[11px] text-primary font-medium pt-1.5">
-                      <span className="material-symbols-outlined text-[14px]">
-                        star
-                      </span>
-                      <span>
-                        {task.due
-                          ? formatDueDate(task.due).label
-                          : "No date"}
-                      </span>
+                </div>
+              </div>
+              {/* Bottom bar */}
+              <div className="flex items-center justify-between mt-6">
+                <div className="flex items-center bg-transparent text-on-surface space-x-1.5 py-1 px-2 rounded-lg cursor-pointer hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors">
+                  <span
+                    className="material-symbols-outlined text-[18px] text-yellow-500"
+                    style={{
+                      fontVariationSettings: "'FILL' 1",
+                    }}
+                  >
+                    star
+                  </span>
+                  <span className="text-[13px] font-semibold">
+                    {task.due
+                      ? formatDueDate(task.due).label
+                      : "No date"}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-4 text-on-surface-variant/60">
+                  <button
+                    type="button"
+                    className="hover:text-on-surface transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      sell
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="hover:text-on-surface transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      checklist
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="hover:text-on-surface transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      flag
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* ── Normal mode: swipe layers + task row ── */
+            <>
+              {/* Reveal layer — right swipe → calendar icon on left */}
+              <motion.div
+                className="absolute inset-0 flex items-center justify-start pl-4"
+                style={{ opacity: revealOpacityRight }}
+              >
+                <span className="material-symbols-outlined text-primary text-xl">
+                  calendar_add_on
+                </span>
+              </motion.div>
+
+              {/* Reveal layer (behind content) — shown on swipe left */}
+              <motion.div
+                className="absolute inset-0 flex items-center justify-end pr-4"
+                style={{ opacity: revealOpacity }}
+              >
+                <span className="material-symbols-outlined text-primary text-xl">
+                  checklist
+                </span>
+              </motion.div>
+
+              {/* Sliding content */}
+              <motion.div
+                style={{ x, ...gestureBindings.style }}
+                className={`relative z-[1] cursor-default transition-[color,background-color,border-radius] duration-150 ${selectionRounding} ${
+                  isSelected
+                    ? "bg-[var(--ds-selection)]"
+                    : !isCompleted
+                      ? "hover:bg-black/[0.04]"
+                      : ""
+                }`}
+                onPointerDown={gestureBindings.onPointerDown}
+                onPointerMove={gestureBindings.onPointerMove}
+                onPointerUp={gestureBindings.onPointerUp}
+                onPointerCancel={gestureBindings.onPointerCancel}
+              >
+                <div
+                  data-task-id={task.id}
+                  className="flex items-center space-x-3 py-0.4 px-3 min-w-0"
+                >
+                  {/* Checkbox */}
+                  <motion.button
+                    whileTap={{ scale: 1.2 }}
+                    onClick={handleToggleCompleted}
+                    className="flex-none"
+                    disabled={toggleCompletedMutation.status === "pending"}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded flex items-center justify-center transition-all cursor-pointer ${
+                        isCompleted
+                          ? "bg-primary text-white"
+                          : "border-[1.5px] border-[var(--ds-checkbox-border)] hover:border-primary/50"
+                      }`}
+                    >
+                      {isCompleted && (
+                        <span className="material-symbols-outlined text-[12px] font-bold">
+                          check
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-0.5 pt-1.5">
-                      <button
-                        type="button"
-                        className="p-1.5 rounded-lg hover:bg-on-surface/[0.06] text-on-surface-variant/40 transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">
-                          sell
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        className="p-1.5 rounded-lg hover:bg-on-surface/[0.06] text-on-surface-variant/40 transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">
-                          checklist
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        className="p-1.5 rounded-lg hover:bg-on-surface/[0.06] text-on-surface-variant/40 transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">
-                          flag
-                        </span>
-                      </button>
-                    </div>
-                  </div>
+                  </motion.button>
+
+                  {/* Title + inline meta */}
+                  {(() => {
+                    const { projectName, displayTags } = extractProject(
+                      task.tags,
+                    )
+                    return (
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center">
+                          <span
+                            className={`text-[13px] truncate ${
+                              isCompleted
+                                ? "line-through text-on-surface-variant/40"
+                                : "text-on-surface/90"
+                            }`}
+                          >
+                            {task.title}
+                          </span>
+                          {task.description && (
+                            <span className="material-symbols-outlined text-[12px] ml-1.5 text-on-surface-variant/30">
+                              description
+                            </span>
+                          )}
+                          {displayTags.length > 0 &&
+                            displayTags.map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="outline"
+                                className="bg-on-surface-variant/[0.08] text-[9px] px-1.5 py-0.5 text-on-surface-variant/70 font-medium ml-1.5 border-on-surface-variant/[0.08]"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                          <TaskMeta due={task.due} duration={task.duration} />
+                        </div>
+                        {projectName && (
+                          <p className="text-[10px] text-on-surface-variant/40 -mt-0.5 leading-tight">
+                            {projectName}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })()}
+
+                  <button
+                    type="button"
+                    className={`transition-opacity p-0.5 hover:bg-error/10 rounded-full ${
+                      isCompleted
+                        ? "invisible"
+                        : "opacity-0 group-hover:opacity-100"
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (
+                        confirm("Are you sure you want to delete this task?")
+                      ) {
+                        deleteMutation.mutate()
+                      }
+                    }}
+                    disabled={
+                      isCompleted || deleteMutation.status === "pending"
+                    }
+                    aria-label="Delete task"
+                  >
+                    <span className="material-symbols-outlined text-on-surface-variant/30 text-sm">
+                      close
+                    </span>
+                  </button>
                 </div>
               </motion.div>
-            )}
-          </AnimatePresence>
+            </>
+          )}
         </div>
       </motion.div>
     </Reorder.Item>
